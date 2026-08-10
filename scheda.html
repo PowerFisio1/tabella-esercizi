@@ -7,28 +7,28 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#0f6e56">
+<meta name="theme-color" content="#1c3f66">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
 <style>
   :root{
-    --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#f6f7f5;
-    --card:#ffffff; --accent:#0f6e56; --accent-light:#e1f5ee;
-    --danger:#b3412f; --muscle:#c0432a;
+    --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
+    --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    --danger:#b3412f;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --ink:#e8ece9; --sub:#93a39c; --line:#2b3835; --bg:#101614;
-      --card:#1a2220; --accent:#25a67d; --accent-light:#173330;
-      --danger:#c8543c; --muscle:#dd8259;
+      --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+      --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --danger:#c8543c;
     }
   }
   :root[data-theme="dark"]{
-    --ink:#e8ece9; --sub:#93a39c; --line:#2b3835; --bg:#101614;
-    --card:#1a2220; --accent:#25a67d; --accent-light:#173330;
-    --danger:#c8543c; --muscle:#dd8259;
+    --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+    --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --danger:#c8543c;
   }
   *{box-sizing:border-box;}
   body{transition:background-color .2s ease, color .2s ease;}
@@ -271,7 +271,7 @@
   .mastheadLogo{width:52px; height:auto; flex:none; display:block;}
   .mastheadText{font-size:11.5px; color:var(--sub); line-height:1.6;}
   .mastheadText b{color:var(--ink);}
-  .mastheadName{font-size:17px; font-weight:700; font-style:italic; color:var(--ink); margin-bottom:2px;}
+  .mastheadName{font-size:17px; font-weight:700; font-style:italic; color:var(--accent2); margin-bottom:2px;}
 
   @page{
     @bottom-center{
@@ -287,8 +287,8 @@
     }
     :root{
       --ink:#1c2b2a !important; --sub:#5b6b69 !important; --line:#dfe3e1 !important; --bg:#ffffff !important;
-      --card:#ffffff !important; --accent:#0f6e56 !important; --accent-light:#e1f5ee !important;
-      --danger:#b3412f !important; --muscle:#c0432a !important;
+      --card:#ffffff !important; --accent:#1c3f66 !important; --accent-light:#e4ebf2 !important; --accent2:#e8720f !important;
+      --danger:#b3412f !important;
     }
     body{background:#fff; padding:0; font-size:12px;}
     .actions, .rowActions, .toolIntro, footer.credits, .exSearchWrap{display:none;}
