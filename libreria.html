@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Libreria esercizi</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0f6e56">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<style>
+  :root{
+    --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#f6f7f5;
+    --card:#ffffff; --accent:#0f6e56; --accent-light:#e1f5ee;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#e8ece9; --sub:#93a39c; --line:#2b3835; --bg:#101614;
+      --card:#1a2220; --accent:#25a67d; --accent-light:#173330;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#e8ece9; --sub:#93a39c; --line:#2b3835; --bg:#101614;
+    --card:#1a2220; --accent:#25a67d; --accent-light:#173330;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:24px 20px 60px; transition:background-color .2s ease, color .2s ease;
+  }
+  .wrap{max-width:1160px; margin:0 auto;}
+  .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+  .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
+  .backLink:hover{color:var(--accent);}
+  .topActions{display:flex; align-items:center; gap:10px;}
+  .themeToggle{
+    width:36px; height:36px; border-radius:10px; border:1px solid var(--line); background:var(--card);
+    color:var(--ink); cursor:pointer; font-size:15px; flex:none;
+  }
+  .themeToggle:hover{border-color:var(--accent);}
+  h1{font-size:20px; margin:0 0 14px;}
+  .searchWrap{margin-bottom:22px;}
+  .searchInput{
+    width:100%; max-width:420px; font-family:inherit; font-size:14px; color:var(--ink); background:var(--card);
+    border:1px solid var(--line); border-radius:10px; padding:11px 14px; outline:none; transition:border-color .15s ease;
+  }
+  .searchInput:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+  .resultsCount{font-size:12px; color:var(--sub); margin-top:6px;}
+  .groupSection{margin-bottom:26px;}
+  .groupHeader{
+    display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+    font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub);
+    padding:6px 2px; border-bottom:1px solid var(--line); margin-bottom:12px;
+  }
+  .groupHeader:hover{color:var(--ink);}
+  .groupDot{width:8px; height:8px; border-radius:50%; flex:none;}
+  .groupCaret{margin-left:auto; font-size:11px; transition:transform .15s ease;}
+  .groupHeader.collapsed .groupCaret{transform:rotate(-90deg);}
+  .groupHeader.collapsed + .cardGrid{display:none;}
+  .cardGrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:14px;}
+  .exCard{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .exPic{width:100%; aspect-ratio:4/3.2; display:flex; align-items:center; justify-content:center; border-radius:8px; background:var(--bg); overflow:hidden;}
+  .exPic .ekfig{width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:6px;}
+  .exPic svg, .exPic img{width:100%; height:auto; display:block;}
+  .exPic .placeholderIcon{width:26px; height:26px; stroke:var(--sub);}
+  .exName{font-size:13.5px; font-weight:700;}
+  .exReps{font-size:11.5px; font-weight:700; color:var(--accent);}
+  .exDesc{font-size:12px; color:var(--sub); line-height:1.4;}
+  .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
+</style>
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('esercizi_fisio_tool_v1__theme');
+    if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="topBar">
+    <a class="backLink" href="index.html">← Dashboard</a>
+    <div class="topActions">
+      <button class="themeToggle" id="themeToggle" title="Cambia tema chiaro/scuro">🌙</button>
+    </div>
+  </div>
+  <h1>Libreria esercizi</h1>
+  <div class="searchWrap">
+    <input type="text" class="searchInput" id="searchInput" placeholder="Cerca per nome o descrizione…" autocomplete="off">
+    <div class="resultsCount" id="resultsCount"></div>
+  </div>
+  <div id="library"></div>
+</div>
+
+<script src="exercises-data.js"></script>
+<script>
+const libraryEl = document.getElementById('library');
+const searchInput = document.getElementById('searchInput');
+const resultsCount = document.getElementById('resultsCount');
+const collapsedGroupsLib = new Set(['Spalla - Riabilitazione']);
+
+function placeholderIcon(){
+  return '<svg class="placeholderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5.5-5.5a2 2 0 0 0-2.8 0L3 19"/></svg>';
+}
+
+function exerciseCardHTML(key, ex){
+  const pic = ex.svg ? ex.svg : placeholderIcon();
+  return '<div class="exCard" data-key="'+key+'" data-search="'+escapeHtml((ex.label+' '+ex.desc).toLowerCase())+'">'
+    + '<div class="exPic">'+pic+'</div>'
+    + '<div class="exName">'+escapeHtml(ex.label)+'</div>'
+    + (ex.reps ? '<div class="exReps">'+escapeHtml(ex.reps)+'</div>' : '')
+    + '<div class="exDesc">'+escapeHtml(ex.desc||'')+'</div>'
+    + '</div>';
+}
+
+function buildLibrary(){
+  if(!groupsOrder.length){ libraryEl.innerHTML = '<div class="emptyState">Nessun esercizio trovato.</div>'; return; }
+  let html = '';
+  groupsOrder.forEach(g=>{
+    const items = Object.entries(EX).filter(([k,v])=>v.group===g && k!=='__new__');
+    if(!items.length) return;
+    const dotColor = GROUP_COLORS[g] || '#8a8f87';
+    const collapsedCls = collapsedGroupsLib.has(g) ? ' collapsed' : '';
+    html += '<div class="groupSection">'
+      + '<div class="groupHeader'+collapsedCls+'" data-group="'+escapeHtml(g)+'">'
+      +   '<span class="groupDot" style="background:'+dotColor+'"></span>'+escapeHtml(g)+' ('+items.length+')'
+      +   '<span class="groupCaret">▾</span>'
+      + '</div>'
+      + '<div class="cardGrid">'
+      +   items.map(([k,v])=> exerciseCardHTML(k,v)).join('')
+      + '</div>'
+    + '</div>';
+  });
+  libraryEl.innerHTML = html;
+  libraryEl.querySelectorAll('.groupHeader').forEach(h=>{
+    h.addEventListener('click', ()=>{
+      const g = h.dataset.group;
+      if(collapsedGroupsLib.has(g)) collapsedGroupsLib.delete(g); else collapsedGroupsLib.add(g);
+      h.classList.toggle('collapsed', collapsedGroupsLib.has(g));
+    });
+  });
+}
+
+function filterLibrary(){
+  const q = searchInput.value.trim().toLowerCase();
+  let visibleCount = 0;
+  libraryEl.querySelectorAll('.groupSection').forEach(section=>{
+    let groupHasVisible = false;
+    section.querySelectorAll('.exCard').forEach(card=>{
+      const visible = !q || card.dataset.search.includes(q);
+      card.style.display = visible ? '' : 'none';
+      if(visible){ groupHasVisible = true; visibleCount++; }
+    });
+    section.style.display = groupHasVisible ? '' : 'none';
+    const header = section.querySelector('.groupHeader');
+    // durante la ricerca ignora i gruppi compressi: mostra sempre i risultati
+    section.querySelector('.cardGrid').style.display = (q || !header.classList.contains('collapsed')) ? '' : 'none';
+  });
+  resultsCount.textContent = q ? (visibleCount + (visibleCount===1 ? ' esercizio trovato' : ' esercizi trovati')) : '';
+}
+
+searchInput.addEventListener('input', filterLibrary);
+
+buildLibrary();
+
+const themeToggle = document.getElementById('themeToggle');
+function isDarkNow(){
+  const attr = document.documentElement.getAttribute('data-theme');
+  if(attr === 'dark') return true;
+  if(attr === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function updateThemeToggleIcon(){
+  themeToggle.textContent = isDarkNow() ? '☀️' : '🌙';
+}
+themeToggle.addEventListener('click', ()=>{
+  const next = isDarkNow() ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('esercizi_fisio_tool_v1__theme', next); }catch(e){}
+  updateThemeToggleIcon();
+});
+updateThemeToggleIcon();
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

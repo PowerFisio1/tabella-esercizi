@@ -1,8 +1,12 @@
 /* Service worker minimale: rende l'app installabile e usabile offline.
    Strategia "prima la rete": quando c'è connessione mostra sempre l'ultima
    versione pubblicata; se manca la connessione, usa l'ultima copia salvata. */
-const CACHE_NAME = 'tabella-esercizi-v1';
-const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'tabella-esercizi-v2';
+const APP_SHELL = [
+  './', './index.html', './scheda.html', './libreria.html',
+  './exercises-data.js', './manifest.json',
+  './icon-192.png', './icon-512.png', './logo.png'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
