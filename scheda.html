@@ -168,9 +168,6 @@
   .modalActions .warn{background:#e8ab13; color:#3a2c00; border-color:#e8ab13;}
   .modalActions .warn:hover{opacity:.9;}
   .templatesCard{max-width:440px;}
-  .syncCard{max-width:380px;}
-  .syncFields{display:flex; flex-direction:column; gap:10px; margin-bottom:4px;}
-  #syncBtn.syncActive{border-color:var(--accent); color:var(--accent);}
   .cropCard{max-width:480px;}
   .cropStageOuter{
     display:flex; align-items:center; justify-content:center;
@@ -268,6 +265,16 @@
   footer.credits a{color:var(--sub);}
   .printNotes{display:none;}
   .masthead{display:flex; align-items:center; gap:14px; margin-bottom:10px; flex-wrap:nowrap;}
+  @media screen{ .masthead{display:none;} } /* la testata resta solo per la stampa: a schermo logo e saluto sono già nella dashboard */
+  .settingsBtn{
+    position:fixed; top:16px; right:16px; width:38px; height:38px; border-radius:10px;
+    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
+    z-index:10; transition:border-color .15s ease;
+  }
+  .settingsBtn:hover{border-color:var(--accent);}
+  .settingsBtn svg{width:19px; height:19px;}
+  @media print{ .settingsBtn{display:none;} }
   .mastheadLogo{
     width:66px; height:66px; flex:none; display:block; border-radius:50%;
     background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.14), inset 0 0 0 1px rgba(0,0,0,.04);
@@ -295,7 +302,8 @@
       --danger:#b3412f !important;
     }
     body{background:#fff; padding:0; font-size:12px;}
-    .actions, .rowActions, .toolIntro, footer.credits, .exSearchWrap{display:none;}
+    header, .rowActions, footer.credits, .exSearchWrap{display:none;}
+    .masthead{display:flex !important;}
     header{margin-bottom:4px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
     .mastheadLogo{width:40px; height:40px; box-shadow:none;}
     .mastheadName{font-size:16px;}
@@ -349,7 +357,6 @@
     .actions button{flex:1 1 auto;}
     .mastheadLogo{width:52px; height:52px;}
     .mastheadText{min-width:0;}
-    header p, .toolIntro{font-size:12.5px;}
 
     .patientBar{gap:12px;}
     .patientField{min-width:0; flex:1 1 140px;}
@@ -383,10 +390,11 @@
 </script>
 </head>
 <body>
+<a class="settingsBtn" href="impostazioni.html" title="Impostazioni">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+</a>
 <div class="wrap">
-  <header>
-    <div>
-      <div class="masthead">
+  <div class="masthead">
     <img class="mastheadLogo" src="logo.png" alt="Logo studio">
     <div class="mastheadText">
       <div class="mastheadName">Dott. Kamil Gontarski</div>
@@ -395,14 +403,10 @@
       <div>Per info o appuntamenti: <b>389 154 5023</b></div>
     </div>
   </div>
-      <p class="toolIntro">Seleziona l'esercizio: immagine e descrizione si compilano da sole. La descrizione resta modificabile. Dove non è disponibile un'immagine libera da diritti, il riquadro resta vuoto: clicca per caricarne una tua (funziona anche per sostituire un'immagine già presente). In fondo al menù trovi "Altro" per aggiungere un esercizio personalizzato. Il lavoro si salva da solo in questo browser; il tasto <b>Salva</b> serve solo per averne conferma immediata.</p>
-    </div>
+  <header>
     <div class="actions">
-      <button id="themeToggle" title="Cambia tema chiaro/scuro">🌙</button>
-      <button id="syncBtn" title="Sincronizza esercizi personalizzati tra i tuoi dispositivi">Sincronizza</button>
       <button id="templatesBtn">Modelli</button>
       <button id="addRow">+ Aggiungi riga</button>
-      <button id="saveBtn">Salva</button>
       <button id="printBtn" class="primary">Stampa / esporta PDF</button>
     </div>
   </header>
@@ -489,38 +493,6 @@
     <div class="templatesList" id="templatesList"></div>
     <div class="modalActions">
       <button type="button" id="templatesModalClose">Chiudi</button>
-    </div>
-  </div>
-</div>
-
-<div class="modalOverlay" id="syncModalOverlay">
-  <div class="modalCard syncCard">
-    <p>Sincronizzazione libreria esercizi</p>
-    <p class="modalNote">Accedi per sincronizzare tra i tuoi dispositivi gli esercizi personalizzati, le immagini caricate, gli esercizi nascosti dal menù, i modelli salvati e la tabella che stai compilando. Nome paziente e data restano invece solo su questo dispositivo.</p>
-    <div id="syncLoggedOut" class="syncFields">
-      <label class="patientField">
-        <span class="label">Email</span>
-        <input type="email" id="syncEmail" placeholder="nome@esempio.it" autocomplete="username">
-      </label>
-      <label class="patientField">
-        <span class="label">Password</span>
-        <input type="password" id="syncPassword" placeholder="Almeno 6 caratteri" autocomplete="current-password">
-      </label>
-      <div class="modalActions">
-        <button type="button" id="syncSignupBtn">Registrati</button>
-        <button type="button" id="syncLoginBtn" class="primary">Accedi</button>
-      </div>
-    </div>
-    <div id="syncLoggedIn" style="display:none;">
-      <p>Collegato come <b id="syncUserEmail"></b></p>
-      <p class="modalNote" id="syncStatusText"></p>
-      <div class="modalActions">
-        <button type="button" id="syncLogoutBtn">Esci</button>
-      </div>
-    </div>
-    <p class="modalNote" id="syncMessage" style="color:var(--danger); min-height:14px;"></p>
-    <div class="modalActions">
-      <button type="button" id="syncModalClose">Chiudi</button>
     </div>
   </div>
 </div>
@@ -1388,79 +1360,13 @@ function unsubscribeRealtime(){
   realtimeChannel = null;
 }
 
-const syncModalOverlay = document.getElementById('syncModalOverlay');
-const syncLoggedOut = document.getElementById('syncLoggedOut');
-const syncLoggedIn = document.getElementById('syncLoggedIn');
-const syncEmailInput = document.getElementById('syncEmail');
-const syncPasswordInput = document.getElementById('syncPassword');
-const syncUserEmailEl = document.getElementById('syncUserEmail');
-const syncStatusText = document.getElementById('syncStatusText');
-const syncMessage = document.getElementById('syncMessage');
-const syncBtn = document.getElementById('syncBtn');
-
+/* l'interfaccia di accesso/sincronizzazione vive ora in impostazioni.html; qui resta solo
+   il motore che tiene i dati sincronizzati in background mentre usi la scheda */
 function setSyncUser(user){
   syncUser = user ? {id:user.id, email:user.email} : null;
-  const loggedIn = !!syncUser;
-  syncLoggedOut.style.display = loggedIn ? 'none' : '';
-  syncLoggedIn.style.display = loggedIn ? '' : 'none';
-  syncBtn.textContent = loggedIn ? 'Sincronizzato ✓' : 'Sincronizza';
-  syncBtn.classList.toggle('syncActive', loggedIn);
-  if(loggedIn){ syncUserEmailEl.textContent = syncUser.email; subscribeRealtime(); }
-  else { unsubscribeRealtime(); }
+  if(syncUser){ subscribeRealtime(); } else { unsubscribeRealtime(); }
 }
-function setSyncStatus(text){ if(syncStatusText) syncStatusText.textContent = text; }
-function setSyncMessage(text){ syncMessage.textContent = text || ''; }
-
-function openSyncModal(){ setSyncMessage(''); syncModalOverlay.classList.add('show'); }
-function closeSyncModal(){ syncModalOverlay.classList.remove('show'); }
-
-syncBtn.addEventListener('click', openSyncModal);
-document.getElementById('syncModalClose').addEventListener('click', closeSyncModal);
-syncModalOverlay.addEventListener('click', (e)=>{ if(e.target.id==='syncModalOverlay') closeSyncModal(); });
-
-document.getElementById('syncLoginBtn').addEventListener('click', async ()=>{
-  if(!supabaseClient){ setSyncMessage('Sincronizzazione non disponibile: controlla la connessione internet e ricarica la pagina.'); return; }
-  const email = syncEmailInput.value.trim();
-  const password = syncPasswordInput.value;
-  if(!email || !password){ setSyncMessage('Inserisci email e password.'); return; }
-  setSyncMessage('Accesso in corso…');
-  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
-  if(error){
-    setSyncMessage(/confirm/i.test(error.message)
-      ? 'Devi prima confermare l\'email: controlla la posta e clicca il link, poi riprova.'
-      : 'Accesso non riuscito: '+error.message);
-    return;
-  }
-  setSyncMessage('');
-  syncPasswordInput.value = '';
-  setSyncUser(data.user);
-  await pullLibraryFromCloud();
-});
-
-document.getElementById('syncSignupBtn').addEventListener('click', async ()=>{
-  if(!supabaseClient){ setSyncMessage('Sincronizzazione non disponibile: controlla la connessione internet e ricarica la pagina.'); return; }
-  const email = syncEmailInput.value.trim();
-  const password = syncPasswordInput.value;
-  if(!email || !password){ setSyncMessage('Inserisci email e password.'); return; }
-  if(password.length < 6){ setSyncMessage('La password deve avere almeno 6 caratteri.'); return; }
-  setSyncMessage('Registrazione in corso…');
-  const {data, error} = await supabaseClient.auth.signUp({email, password});
-  if(error){ setSyncMessage('Registrazione non riuscita: '+error.message); return; }
-  if(data.session){
-    setSyncMessage('');
-    syncPasswordInput.value = '';
-    setSyncUser(data.user);
-    await pullLibraryFromCloud();
-  } else {
-    setSyncMessage('Registrazione avviata: controlla la tua email, clicca il link di conferma, poi torna qui e premi "Accedi".');
-  }
-});
-
-document.getElementById('syncLogoutBtn').addEventListener('click', async ()=>{
-  if(supabaseClient) await supabaseClient.auth.signOut();
-  setSyncUser(null);
-  setSyncStatus('');
-});
+function setSyncStatus(text){ /* nessuna interfaccia di sincronizzazione in questa pagina */ }
 
 // se la scheda viene nascosta (cambio app, chiusura) con una sincronizzazione in coda, la anticipiamo subito
 document.addEventListener('visibilitychange', ()=>{
@@ -1517,24 +1423,6 @@ function openTemplatesModal(){
 }
 function closeTemplatesModal(){ templatesModalOverlay.classList.remove('show'); }
 
-/* ---- tema chiaro/scuro ---- */
-const themeToggle = document.getElementById('themeToggle');
-function isDarkNow(){
-  const attr = document.documentElement.getAttribute('data-theme');
-  if(attr === 'dark') return true;
-  if(attr === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-function updateThemeToggleIcon(){
-  themeToggle.textContent = isDarkNow() ? '☀️' : '🌙';
-}
-themeToggle.addEventListener('click', ()=>{
-  const next = isDarkNow() ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  try{ localStorage.setItem(LS_THEME, next); }catch(e){}
-  updateThemeToggleIcon();
-});
-updateThemeToggleIcon();
 
 document.getElementById('templatesBtn').addEventListener('click', openTemplatesModal);
 document.getElementById('templatesModalClose').addEventListener('click', closeTemplatesModal);
@@ -1604,7 +1492,6 @@ templatesList.addEventListener('click', (e)=>{
   }
 });
 
-const saveBtn = document.getElementById('saveBtn');
 const saveMsg = document.getElementById('saveMsg');
 const patientNameInput = document.getElementById('patientName');
 const patientDateInput = document.getElementById('patientDate');
@@ -1618,7 +1505,7 @@ function collectTableState(){
   }));
 }
 
-function performSave(silent){
+function performSave(){
   const ok1 = lsSet(LS_TABLE, collectTableState());
   const ok2 = lsSet(LS_IMAGES, customImages);
   const ok3 = lsSet(LS_REMOVED, removedDefaults);
@@ -1626,20 +1513,15 @@ function performSave(silent){
   dirty = false;
   const ok = ok1 && ok2 && ok3 && ok4;
   clearTimeout(saveMsgTimer);
-  if(ok){
-    saveMsg.textContent = silent ? 'Salvato automaticamente ✓' : 'Salvato ✓ (immagini, esercizi personalizzati e tabella)';
-  } else {
-    saveMsg.textContent = 'Attenzione: spazio di salvataggio del browser esaurito, non tutto è stato salvato.';
-  }
-  saveMsgTimer = setTimeout(()=>{ saveMsg.textContent=''; }, silent ? 2200 : 4000);
+  saveMsg.textContent = ok ? 'Salvato automaticamente ✓' : 'Attenzione: spazio di salvataggio del browser esaurito, non tutto è stato salvato.';
+  saveMsgTimer = setTimeout(()=>{ saveMsg.textContent=''; }, 2200);
   return ok;
 }
-saveBtn.addEventListener('click', ()=> performSave(false));
 
 let autoSaveTimer = null;
 function scheduleAutoSave(){
   clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(()=> performSave(true), 900);
+  autoSaveTimer = setTimeout(performSave, 900);
 }
 
 patientNameInput.addEventListener('input', markDirty);

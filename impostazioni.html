@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impostazioni</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1c3f66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<style>
+  :root{
+    --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
+    --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    --danger:#b3412f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+      --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --danger:#c8543c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+    --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --danger:#c8543c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:24px 20px 60px; transition:background-color .2s ease, color .2s ease;
+  }
+  .wrap{max-width:560px; margin:0 auto;}
+  .backLink{display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600; margin-bottom:18px;}
+  .backLink:hover{color:var(--accent);}
+  h1{font-size:20px; margin:0 0 20px;}
+
+  .settingsSection{
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px;
+    margin-bottom:16px;
+  }
+  .settingsSectionTitle{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); margin-bottom:16px;}
+  .settingsRow{display:flex; align-items:center; justify-content:space-between; gap:16px;}
+  .settingsRowLabel{font-size:14px; font-weight:700;}
+  .settingsRowSub{font-size:11.5px; color:var(--sub); margin-top:2px;}
+  .settingsNote{font-size:12.5px; color:var(--sub); line-height:1.5; margin:0 0 16px;}
+
+  .themeSwitch{
+    position:relative; width:50px; height:28px; border-radius:20px; border:none;
+    background:var(--line); cursor:pointer; flex:none; padding:0; transition:background-color .2s ease;
+  }
+  .themeSwitch.on{background:var(--accent);}
+  .themeSwitchKnob{
+    position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .2s ease;
+  }
+  .themeSwitch.on .themeSwitchKnob{transform:translateX(22px);}
+
+  .formField{display:flex; flex-direction:column; gap:4px; margin-bottom:12px;}
+  .formField .label{font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); font-weight:600;}
+  .formField input{
+    font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--bg);
+    border:1px solid var(--line); border-radius:8px; padding:9px 10px; outline:none; transition:border-color .15s ease;
+  }
+  .formField input:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+
+  .btnRow{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+  .btn{
+    font-family:inherit; font-size:13px; font-weight:600; padding:9px 16px; border-radius:8px;
+    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+    transition:border-color .15s ease, opacity .15s ease;
+  }
+  .btn:hover{border-color:var(--accent);}
+  .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
+  .btn.primary:hover{opacity:.92;}
+
+  .syncMessage{font-size:12.5px; color:var(--danger); margin-top:12px; min-height:16px;}
+  .syncStatusOk{color:var(--sub); font-size:12.5px; margin-top:4px;}
+</style>
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('esercizi_fisio_tool_v1__theme');
+    if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <a class="backLink" href="index.html">← Dashboard</a>
+  <h1>Impostazioni</h1>
+
+  <div class="settingsSection">
+    <div class="settingsSectionTitle">Aspetto</div>
+    <div class="settingsRow">
+      <div>
+        <div class="settingsRowLabel">Tema scuro</div>
+        <div class="settingsRowSub">Vale per tutta l'app, su questo dispositivo</div>
+      </div>
+      <button class="themeSwitch" id="themeSwitch" role="switch" aria-checked="false" title="Cambia tema chiaro/scuro">
+        <span class="themeSwitchKnob"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="settingsSection">
+    <div class="settingsSectionTitle">Sincronizzazione</div>
+    <p class="settingsNote">Accedi per sincronizzare tra i tuoi dispositivi gli esercizi personalizzati, le immagini caricate, gli esercizi nascosti dal menù, i modelli salvati e la tabella che stai compilando. Nome paziente e data restano invece solo su questo dispositivo.</p>
+
+    <div id="syncLoggedOut">
+      <div class="formField">
+        <span class="label">Email</span>
+        <input type="email" id="syncEmail" placeholder="nome@esempio.it" autocomplete="username">
+      </div>
+      <div class="formField">
+        <span class="label">Password</span>
+        <input type="password" id="syncPassword" placeholder="Almeno 6 caratteri" autocomplete="current-password">
+      </div>
+      <div class="btnRow">
+        <button type="button" id="syncSignupBtn" class="btn">Registrati</button>
+        <button type="button" id="syncLoginBtn" class="btn primary">Accedi</button>
+      </div>
+    </div>
+
+    <div id="syncLoggedIn" style="display:none;">
+      <div class="settingsRow">
+        <div>
+          <div class="settingsRowLabel">Collegato come</div>
+          <div class="settingsRowSub" id="syncUserEmail"></div>
+        </div>
+        <button type="button" id="syncLogoutBtn" class="btn">Esci</button>
+      </div>
+    </div>
+
+    <p class="syncMessage" id="syncMessage"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ---- tema ---- */
+const themeSwitch = document.getElementById('themeSwitch');
+function isDarkNow(){
+  const attr = document.documentElement.getAttribute('data-theme');
+  if(attr === 'dark') return true;
+  if(attr === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function updateThemeSwitch(){
+  const dark = isDarkNow();
+  themeSwitch.classList.toggle('on', dark);
+  themeSwitch.setAttribute('aria-checked', dark ? 'true' : 'false');
+}
+themeSwitch.addEventListener('click', ()=>{
+  const next = isDarkNow() ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('esercizi_fisio_tool_v1__theme', next); }catch(e){}
+  updateThemeSwitch();
+});
+updateThemeSwitch();
+
+/* ---- sincronizzazione (stessa logica di accesso usata nella scheda, qui come pagina invece che modale) ---- */
+const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
+
+const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+const syncLoggedOut = document.getElementById('syncLoggedOut');
+const syncLoggedIn = document.getElementById('syncLoggedIn');
+const syncEmailInput = document.getElementById('syncEmail');
+const syncPasswordInput = document.getElementById('syncPassword');
+const syncUserEmailEl = document.getElementById('syncUserEmail');
+const syncMessage = document.getElementById('syncMessage');
+
+function setSyncMessage(text){ syncMessage.textContent = text || ''; }
+
+function showLoggedIn(user){
+  syncLoggedOut.style.display = 'none';
+  syncLoggedIn.style.display = '';
+  syncUserEmailEl.textContent = user.email;
+}
+function showLoggedOut(){
+  syncLoggedOut.style.display = '';
+  syncLoggedIn.style.display = 'none';
+}
+
+document.getElementById('syncLoginBtn').addEventListener('click', async ()=>{
+  if(!supabaseClient){ setSyncMessage('Sincronizzazione non disponibile: controlla la connessione internet e ricarica la pagina.'); return; }
+  const email = syncEmailInput.value.trim();
+  const password = syncPasswordInput.value;
+  if(!email || !password){ setSyncMessage('Inserisci email e password.'); return; }
+  setSyncMessage('Accesso in corso…');
+  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
+  if(error){
+    setSyncMessage(/confirm/i.test(error.message)
+      ? 'Devi prima confermare l\'email: controlla la posta e clicca il link, poi riprova.'
+      : 'Accesso non riuscito: '+error.message);
+    return;
+  }
+  setSyncMessage('');
+  syncPasswordInput.value = '';
+  showLoggedIn(data.user);
+});
+
+document.getElementById('syncSignupBtn').addEventListener('click', async ()=>{
+  if(!supabaseClient){ setSyncMessage('Sincronizzazione non disponibile: controlla la connessione internet e ricarica la pagina.'); return; }
+  const email = syncEmailInput.value.trim();
+  const password = syncPasswordInput.value;
+  if(!email || !password){ setSyncMessage('Inserisci email e password.'); return; }
+  if(password.length < 6){ setSyncMessage('La password deve avere almeno 6 caratteri.'); return; }
+  setSyncMessage('Registrazione in corso…');
+  const {data, error} = await supabaseClient.auth.signUp({email, password});
+  if(error){ setSyncMessage('Registrazione non riuscita: '+error.message); return; }
+  if(data.session){
+    setSyncMessage('');
+    syncPasswordInput.value = '';
+    showLoggedIn(data.user);
+  } else {
+    setSyncMessage('Registrazione avviata: controlla la tua email, clicca il link di conferma, poi torna qui e premi "Accedi".');
+  }
+});
+
+document.getElementById('syncLogoutBtn').addEventListener('click', async ()=>{
+  if(supabaseClient) await supabaseClient.auth.signOut();
+  showLoggedOut();
+});
+
+(async function initSyncUI(){
+  if(!supabaseClient) return;
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(session && session.user){ showLoggedIn(session.user); }
+})();
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

@@ -42,24 +42,26 @@
     display:flex; flex-direction:column; align-items:center;
     padding:40px 20px 60px; transition:background-color .2s ease, color .2s ease;
   }
-  .themeToggle{
+  .settingsBtn{
     position:fixed; top:16px; right:16px; width:38px; height:38px; border-radius:10px;
-    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; font-size:16px;
-    z-index:10;
+    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
+    z-index:10; transition:border-color .15s ease;
   }
-  .themeToggle:hover{border-color:var(--accent);}
+  .settingsBtn:hover{border-color:var(--accent);}
+  .settingsBtn svg{width:19px; height:19px;}
 
   /* ---- intestazione: logo piccolo + separatore verticale + saluto ---- */
   .headerRow{
     display:flex; align-items:center; gap:16px; width:100%; max-width:640px; margin-bottom:30px;
   }
   .headerLogo{
-    width:52px; height:52px; flex:none; display:block; border-radius:50%;
+    width:60px; height:60px; flex:none; display:block; border-radius:50%;
     background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.14), inset 0 0 0 1px rgba(0,0,0,.04);
     padding:3px;
   }
   .headerDivider{width:1px; align-self:stretch; background:var(--line); flex:none;}
-  .headerGreeting h1{font-size:21px; font-weight:400; font-style:italic; margin:0 0 3px; letter-spacing:-.01em;}
+  .headerGreeting h1{font-size:24px; font-weight:400; font-style:italic; margin:0 0 3px; letter-spacing:-.01em;}
   .headerGreeting p{font-size:12.5px; color:var(--sub); margin:0;}
 
   /* ---- griglia azioni: card principale verticale a sinistra, due orizzontali impilate a destra ---- */
@@ -106,8 +108,8 @@
   .footerInfo p{font-size:12px; color:var(--sub); margin:0; line-height:1.5; max-width:40ch;}
 
   @media (max-width:480px){
-    .headerLogo{width:44px; height:44px;}
-    .headerGreeting h1{font-size:19px;}
+    .headerLogo{width:50px; height:50px;}
+    .headerGreeting h1{font-size:21px;}
     .primaryCard{min-height:200px; padding:16px;}
   }
 </style>
@@ -121,7 +123,9 @@
 </script>
 </head>
 <body>
-  <button class="themeToggle" id="themeToggle" title="Cambia tema chiaro/scuro">🌙</button>
+  <a class="settingsBtn" href="impostazioni.html" title="Impostazioni">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </a>
 
   <div class="headerRow">
     <img class="headerLogo" src="logo.png" alt="Logo">
@@ -172,24 +176,6 @@
   </div>
 
 <script>
-const themeToggle = document.getElementById('themeToggle');
-function isDarkNow(){
-  const attr = document.documentElement.getAttribute('data-theme');
-  if(attr === 'dark') return true;
-  if(attr === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-function updateThemeToggleIcon(){
-  themeToggle.textContent = isDarkNow() ? '☀️' : '🌙';
-}
-themeToggle.addEventListener('click', ()=>{
-  const next = isDarkNow() ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  try{ localStorage.setItem('esercizi_fisio_tool_v1__theme', next); }catch(e){}
-  updateThemeToggleIcon();
-});
-updateThemeToggleIcon();
-
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').catch(()=>{});
