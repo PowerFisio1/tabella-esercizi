@@ -16,16 +16,24 @@
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    --shadow-1: 0 1px 2px rgba(30,40,35,.05), 0 6px 14px rgba(30,40,35,.07);
+    --shadow-1-hover: 0 3px 6px rgba(30,40,35,.07), 0 12px 22px rgba(30,40,35,.11);
+    --shadow-primary: 0 2px 4px rgba(10,25,45,.10), 0 12px 26px rgba(10,25,45,.22), inset 0 1px 0 rgba(255,255,255,.10);
+    --shadow-primary-hover: 0 4px 8px rgba(10,25,45,.14), 0 18px 34px rgba(10,25,45,.28), inset 0 1px 0 rgba(255,255,255,.14);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
       --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.28);
+      --shadow-1-hover: 0 3px 6px rgba(0,0,0,.24), 0 14px 26px rgba(0,0,0,.34);
     }
   }
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
     --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.28);
+    --shadow-1-hover: 0 3px 6px rgba(0,0,0,.24), 0 14px 26px rgba(0,0,0,.34);
   }
   *{box-sizing:border-box;}
   body{
@@ -40,50 +48,60 @@
     z-index:10;
   }
   .themeToggle:hover{border-color:var(--accent);}
-  .brand{display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:22px;}
-  .brand img{width:170px; height:auto;}
 
-  .greeting{width:100%; max-width:640px; margin-bottom:24px;}
-  .greeting h1{font-size:23px; font-weight:800; margin:0 0 4px; letter-spacing:-.01em;}
-  .greeting p{font-size:13px; color:var(--sub); margin:0;}
+  /* ---- intestazione: logo piccolo + separatore verticale + saluto ---- */
+  .headerRow{
+    display:flex; align-items:center; gap:16px; width:100%; max-width:640px; margin-bottom:30px;
+  }
+  .headerLogo{width:52px; height:52px; flex:none; display:block;}
+  .headerDivider{width:1px; align-self:stretch; background:var(--line); flex:none;}
+  .headerGreeting h1{font-size:21px; font-weight:800; margin:0 0 3px; letter-spacing:-.01em;}
+  .headerGreeting p{font-size:12.5px; color:var(--sub); margin:0;}
 
-  .dashGrid{width:100%; max-width:640px; display:flex; flex-direction:column; gap:14px;}
+  /* ---- griglia azioni: card principale verticale a sinistra, due orizzontali impilate a destra ---- */
+  .actionGrid{
+    width:100%; max-width:640px; display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:stretch;
+  }
+  .stackedCards{display:flex; flex-direction:column; gap:14px;}
+
+  .cardEmoji{position:absolute; top:12px; right:14px; font-size:15px; line-height:1; opacity:.9;}
 
   .primaryCard{
-    display:flex; align-items:center; gap:16px; background:var(--accent); color:#fff;
-    border-radius:18px; padding:22px 20px; text-decoration:none;
-    transition:transform .15s ease, box-shadow .15s ease; box-shadow:0 4px 14px rgba(20,40,60,.12);
+    position:relative; display:flex; flex-direction:column; justify-content:space-between;
+    background:var(--accent); color:#fff; border-radius:18px; padding:20px 18px; text-decoration:none;
+    min-height:224px; box-shadow:var(--shadow-primary);
+    transition:transform .15s ease, box-shadow .15s ease;
   }
-  .primaryCard:hover{transform:translateY(-2px); box-shadow:0 12px 26px rgba(20,40,60,.22);}
+  .primaryCard:hover{transform:translateY(-3px); box-shadow:var(--shadow-primary-hover);}
   .primaryCard .primaryIcon{
-    width:52px; height:52px; border-radius:14px; background:rgba(255,255,255,.16);
+    width:48px; height:48px; border-radius:13px; background:rgba(255,255,255,.16);
     display:flex; align-items:center; justify-content:center; flex:none;
   }
-  .primaryCard .primaryIcon svg{width:26px; height:26px; stroke:#fff;}
-  .primaryCard .primaryText{flex:1; min-width:0;}
+  .primaryCard .primaryIcon svg{width:24px; height:24px; stroke:#fff;}
   .primaryBadge{
     display:inline-block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
-    background:rgba(255,255,255,.18); color:#fff; padding:3px 9px; border-radius:20px; margin-bottom:7px;
+    background:rgba(255,255,255,.18); color:#fff; padding:3px 9px; border-radius:20px; margin-bottom:8px;
+    align-self:flex-start;
   }
-  .primaryCard .primaryLabel{font-size:16.5px; font-weight:700; margin-bottom:3px;}
+  .primaryCard .primaryLabel{font-size:16.5px; font-weight:700; margin-bottom:4px;}
   .primaryCard .primarySub{font-size:12px; opacity:.82; line-height:1.4;}
-  .primaryCard .primaryArrow{font-size:20px; opacity:.75; flex:none;}
 
-  .secondaryGrid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .secondaryTile{
-    display:flex; flex-direction:column; gap:10px; background:var(--card); border:1px solid var(--line);
-    border-radius:16px; padding:20px 16px; text-decoration:none; color:var(--ink);
-    transition:border-color .15s ease, transform .15s ease;
+    position:relative; flex:1; display:flex; align-items:center; gap:12px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;
+    text-decoration:none; color:var(--ink); box-shadow:var(--shadow-1);
+    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
   }
-  .secondaryTile:hover{border-color:var(--accent); transform:translateY(-2px);}
+  .secondaryTile:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-1-hover);}
   .secondaryTile .tileIcon{
-    width:40px; height:40px; border-radius:11px; background:var(--accent-light); color:var(--accent);
+    width:38px; height:38px; border-radius:11px; background:var(--accent-light); color:var(--accent);
     display:flex; align-items:center; justify-content:center; flex:none;
   }
-  .secondaryTile .tileIcon svg{width:20px; height:20px;}
-  .secondaryTile .tileLabel{font-size:13.5px; font-weight:700;}
-  .secondaryTile .tileSub{font-size:11px; color:var(--sub); line-height:1.35;}
-  .secondaryTile.soon{opacity:.55; cursor:default; pointer-events:none;}
+  .secondaryTile .tileIcon svg{width:19px; height:19px;}
+  .secondaryTile .tileText{min-width:0; padding-right:18px;}
+  .secondaryTile .tileLabel{font-size:13px; font-weight:700;}
+  .secondaryTile .tileSub{font-size:10.5px; color:var(--sub); line-height:1.3;}
+  .secondaryTile.soon{opacity:.55; cursor:default; pointer-events:none; box-shadow:none;}
   .secondaryTile.soon .tileIcon{background:var(--line); color:var(--sub);}
 
   .footerInfo{display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:44px;}
@@ -91,9 +109,9 @@
   .footerInfo p{font-size:12px; color:var(--sub); margin:0; line-height:1.5; max-width:40ch;}
 
   @media (max-width:480px){
-    .secondaryGrid{grid-template-columns:1fr;}
-    .primaryCard{align-items:flex-start;}
-    .primaryCard .primaryArrow{display:none;}
+    .headerLogo{width:44px; height:44px;}
+    .headerGreeting h1{font-size:19px;}
+    .primaryCard{min-height:200px; padding:16px;}
   }
 </style>
 <script>
@@ -108,43 +126,49 @@
 <body>
   <button class="themeToggle" id="themeToggle" title="Cambia tema chiaro/scuro">🌙</button>
 
-  <div class="brand">
-    <img src="logo.png" alt="Logo">
+  <div class="headerRow">
+    <img class="headerLogo" src="logo.png" alt="Logo">
+    <div class="headerDivider"></div>
+    <div class="headerGreeting">
+      <h1>Ciao, Kamil 👋</h1>
+      <p>Cosa vuoi fare oggi?</p>
+    </div>
   </div>
 
-  <div class="greeting">
-    <h1>Ciao, Dott. Gontarski 👋</h1>
-    <p>Cosa vuoi fare oggi?</p>
-  </div>
-
-  <div class="dashGrid">
+  <div class="actionGrid">
     <a class="primaryCard" href="scheda.html">
+      <span class="cardEmoji">📝</span>
       <div class="primaryIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </div>
-      <div class="primaryText">
+      <div class="primaryTextBlock">
         <span class="primaryBadge">Più usato</span>
         <div class="primaryLabel">Crea una scheda</div>
         <div class="primarySub">Nuovo foglio esercizi per un paziente</div>
       </div>
-      <div class="primaryArrow">→</div>
     </a>
 
-    <div class="secondaryGrid">
+    <div class="stackedCards">
       <a class="secondaryTile" href="libreria.html">
+        <span class="cardEmoji">📚</span>
         <div class="tileIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         </div>
-        <div class="tileLabel">Libreria esercizi</div>
-        <div class="tileSub">Sfoglia e cerca tutti gli esercizi</div>
+        <div class="tileText">
+          <div class="tileLabel">Libreria esercizi</div>
+          <div class="tileSub">Sfoglia e cerca tutti gli esercizi</div>
+        </div>
       </a>
 
       <div class="secondaryTile soon">
+        <span class="cardEmoji">📅</span>
         <div class="tileIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
         </div>
-        <div class="tileLabel">Calendario</div>
-        <div class="tileSub">Prossimamente</div>
+        <div class="tileText">
+          <div class="tileLabel">Calendario</div>
+          <div class="tileSub">Prossimamente</div>
+        </div>
       </div>
     </div>
   </div>
