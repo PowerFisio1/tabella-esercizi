@@ -53,9 +53,13 @@
   .headerRow{
     display:flex; align-items:center; gap:16px; width:100%; max-width:640px; margin-bottom:30px;
   }
-  .headerLogo{width:52px; height:52px; flex:none; display:block;}
+  .headerLogo{
+    width:52px; height:52px; flex:none; display:block; border-radius:50%;
+    background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.14), inset 0 0 0 1px rgba(0,0,0,.04);
+    padding:3px;
+  }
   .headerDivider{width:1px; align-self:stretch; background:var(--line); flex:none;}
-  .headerGreeting h1{font-size:21px; font-weight:800; margin:0 0 3px; letter-spacing:-.01em;}
+  .headerGreeting h1{font-size:21px; font-weight:400; font-style:italic; margin:0 0 3px; letter-spacing:-.01em;}
   .headerGreeting p{font-size:12.5px; color:var(--sub); margin:0;}
 
   /* ---- griglia azioni: card principale verticale a sinistra, due orizzontali impilate a destra ---- */
@@ -63,8 +67,6 @@
     width:100%; max-width:640px; display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:stretch;
   }
   .stackedCards{display:flex; flex-direction:column; gap:14px;}
-
-  .cardEmoji{position:absolute; top:12px; right:14px; font-size:15px; line-height:1; opacity:.9;}
 
   .primaryCard{
     position:relative; display:flex; flex-direction:column; justify-content:space-between;
@@ -78,13 +80,8 @@
     display:flex; align-items:center; justify-content:center; flex:none;
   }
   .primaryCard .primaryIcon svg{width:24px; height:24px; stroke:#fff;}
-  .primaryBadge{
-    display:inline-block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
-    background:rgba(255,255,255,.18); color:#fff; padding:3px 9px; border-radius:20px; margin-bottom:8px;
-    align-self:flex-start;
-  }
-  .primaryCard .primaryLabel{font-size:16.5px; font-weight:700; margin-bottom:4px;}
-  .primaryCard .primarySub{font-size:12px; opacity:.82; line-height:1.4;}
+  .primaryCard .eyebrow{font-size:13px; font-weight:400; opacity:.8; margin-bottom:1px;}
+  .primaryCard .cardTitle{font-size:19px; font-weight:700;}
 
   .secondaryTile{
     position:relative; flex:1; display:flex; align-items:center; gap:12px;
@@ -98,9 +95,9 @@
     display:flex; align-items:center; justify-content:center; flex:none;
   }
   .secondaryTile .tileIcon svg{width:19px; height:19px;}
-  .secondaryTile .tileText{min-width:0; padding-right:18px;}
-  .secondaryTile .tileLabel{font-size:13px; font-weight:700;}
-  .secondaryTile .tileSub{font-size:10.5px; color:var(--sub); line-height:1.3;}
+  .secondaryTile .tileText{min-width:0;}
+  .secondaryTile .eyebrow{font-size:11px; font-weight:400; color:var(--sub); margin-bottom:1px;}
+  .secondaryTile .cardTitle{font-size:14.5px; font-weight:700;}
   .secondaryTile.soon{opacity:.55; cursor:default; pointer-events:none; box-shadow:none;}
   .secondaryTile.soon .tileIcon{background:var(--line); color:var(--sub);}
 
@@ -137,37 +134,33 @@
 
   <div class="actionGrid">
     <a class="primaryCard" href="scheda.html">
-      <span class="cardEmoji">📝</span>
       <div class="primaryIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </div>
       <div class="primaryTextBlock">
-        <span class="primaryBadge">Più usato</span>
-        <div class="primaryLabel">Crea una scheda</div>
-        <div class="primarySub">Nuovo foglio esercizi per un paziente</div>
+        <div class="eyebrow">Crea</div>
+        <div class="cardTitle">Scheda</div>
       </div>
     </a>
 
     <div class="stackedCards">
       <a class="secondaryTile" href="libreria.html">
-        <span class="cardEmoji">📚</span>
         <div class="tileIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         </div>
         <div class="tileText">
-          <div class="tileLabel">Libreria esercizi</div>
-          <div class="tileSub">Sfoglia e cerca tutti gli esercizi</div>
+          <div class="eyebrow">Sfoglia</div>
+          <div class="cardTitle">Libreria</div>
         </div>
       </a>
 
       <div class="secondaryTile soon">
-        <span class="cardEmoji">📅</span>
         <div class="tileIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
         </div>
         <div class="tileText">
-          <div class="tileLabel">Calendario</div>
-          <div class="tileSub">Prossimamente</div>
+          <div class="eyebrow">Presto</div>
+          <div class="cardTitle">Calendario</div>
         </div>
       </div>
     </div>
