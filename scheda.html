@@ -43,6 +43,8 @@
     margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--line); flex-wrap:wrap;
   }
   header p{margin:0; font-size:13px; color:var(--sub); max-width:62ch;}
+  .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
+  .backLink:hover{color:var(--accent);}
   .actions{display:flex; gap:8px; flex-wrap:wrap;}
   button{
     font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
@@ -392,9 +394,10 @@
     </div>
   </div>
   <header>
+    <a class="backLink" href="index.html">← Dashboard</a>
     <div class="actions">
-      <button id="templatesBtn">Modelli</button>
       <button id="addRow">+ Aggiungi riga</button>
+      <button id="templatesBtn">Modelli</button>
       <button id="printBtn" class="primary">Stampa / esporta PDF</button>
     </div>
   </header>
