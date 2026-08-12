@@ -110,7 +110,11 @@
   .secondaryTile.soon .tileIcon{background:var(--line); color:var(--sub);}
 
   .secondaryTile.libraryTile{
-    background:linear-gradient(160deg, rgba(28,63,102,.7), rgba(28,63,102,.84)), url('libreria-card-bg.png') center/cover;
+    /* overlay più leggero per far vedere di più la foto originale, e saturazione
+       ridotta per spegnere i toni caldi (marrone/dorato) dei libri: il bianco del
+       testo non viene alterato dal filtro, essendo già a saturazione zero */
+    background:linear-gradient(160deg, rgba(28,63,102,.48), rgba(28,63,102,.64)), url('libreria-card-bg.png') center/cover;
+    filter:saturate(35%);
     border-color:transparent; color:#fff;
   }
   .secondaryTile.libraryTile:hover{border-color:rgba(255,255,255,.4);}
