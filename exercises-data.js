@@ -501,23 +501,23 @@ add('Petto','chest_fly','Croci su panca',
  EK_dumbbell_fly?ek(EK_dumbbell_fly,'Pettorali'):null);
 
 /* ===================== ESERCIZI - SPALLE ===================== */
-add('Spalle','shoulder_press_db','Shoulder press con manubri',
+add('Spalla','shoulder_press_db','Shoulder press con manubri',
  'In piedi o seduto, spingi i manubri dall\'altezza delle spalle verso l\'alto, sopra la testa.',
  '3-4x6-10',
  EK_shoulder_press_db?ek(EK_shoulder_press_db,'Deltoidi, tricipiti'):null);
-add('Spalle','arnold_press','Arnold press',
+add('Spalla','arnold_press','Arnold press',
  'Seduto con un manubrio per mano, spingi verso l\'alto ruotando i polsi dall\'interno verso l\'esterno mentre sali.',
  '3x8-10',
  EK_arnold_press?ek(EK_arnold_press,'Deltoidi (tutti i capi)'):null);
-add('Spalle','front_raise','Alzate frontali',
+add('Spalla','front_raise','Alzate frontali',
  'In piedi, solleva il manubrio (o il bilanciere) davanti a te fino all\'altezza delle spalle, poi abbassalo lentamente.',
  '3x12-15',
  EK_front_raise?ek(EK_front_raise,'Deltoide anteriore'):null);
-add('Spalle','lateral_raise','Alzate laterali',
+add('Spalla','lateral_raise','Alzate laterali',
  'In piedi, solleva i manubri lateralmente fino all\'altezza delle spalle, poi abbassali lentamente.',
  '3x12-15',
  EK_lateral_raise?ek(EK_lateral_raise,'Deltoide mediale'):null);
-add('Spalle','rear_delt','Alzate posteriori',
+add('Spalla','rear_delt','Alzate posteriori',
  'Busto piegato in avanti, solleva i manubri lateralmente aprendo le braccia: senti il lavoro nella parte posteriore della spalla.',
  '3x12-15',
  EK_rear_delt?ek(EK_rear_delt,'Deltoide posteriore'):null);
@@ -527,180 +527,180 @@ add('Spalle','rear_delt','Alzate posteriori',
    Reno Orthopedic Center - Dr. Uppal (instabilità/lussazione anteriore di spalla) */
 
 /* -- Mobilizzazione passiva -- */
-add('Spalla - Riabilitazione','pendolo_codman','Pendolo (Codman)',
+add('Spalla','pendolo_codman','Pendolo (Codman)',
  'Piegati in avanti appoggiando la mano sana su un tavolo o una sedia. Lascia pendere il braccio dolorante completamente rilassato e fallo oscillare piano a cerchio e avanti-indietro, muovendo il busto e non la spalla.',
  '2-3x30-60 sec, 2-3 volte al giorno', null, 'Spalla (mobilizzazione dolce)');
-add('Spalla - Riabilitazione','flessione_passiva_assistita','Flessione spalla passiva (assistita)',
+add('Spalla','flessione_passiva_assistita','Flessione spalla passiva (assistita)',
  'Sdraiato sulla schiena, fatti sollevare lentamente il braccio dolorante in avanti verso l\'alto da un\'altra persona, tenendolo tu completamente rilassato. Fermati appena senti tensione, senza forzare.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Spalla (mobilizzazione passiva)');
-add('Spalla - Riabilitazione','extrarot_passiva_scapolare','Extrarotazione passiva nel piano scapolare',
+add('Spalla','extrarot_passiva_scapolare','Extrarotazione passiva nel piano scapolare',
  'Sdraiato sulla schiena con il gomito piegato a 90 gradi e appoggiato al fianco, un\'altra persona (o un bastone tenuto con l\'altra mano) ruota lentamente il tuo avambraccio verso l\'esterno, fermandosi al primo punto di tensione.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Cuffia dei rotatori (mobilizzazione)');
-add('Spalla - Riabilitazione','scivolamento_tavolo_seduto','Scivolamento su tavolo da seduto',
+add('Spalla','scivolamento_tavolo_seduto','Scivolamento su tavolo da seduto',
  'Seduto davanti a un tavolo con l\'avambraccio appoggiato su un asciugamano, fai scivolare lentamente il braccio in avanti sul piano del tavolo, come per allungarti verso qualcosa di lontano, poi torna indietro.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Spalla (mobilizzazione)');
-add('Spalla - Riabilitazione','scivolamento_orizzontale_tavolo','Scivolamento orizzontale su tavolo',
+add('Spalla','scivolamento_orizzontale_tavolo','Scivolamento orizzontale su tavolo',
  'Seduto di fianco a un tavolo con l\'avambraccio appoggiato su un asciugamano, fai scivolare lentamente il braccio verso il lato opposto del corpo, con movimento fluido e senza dolore.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Spalla (mobilizzazione)');
 
 /* -- Mobilizzazione e attivazione scapolare -- */
-add('Spalla - Riabilitazione','retrazione_scapolare','Retrazione scapolare (seduto/prono)',
+add('Spalla','retrazione_scapolare','Retrazione scapolare (seduto/prono)',
  'Seduto o a pancia in giù, stringi le scapole una verso l\'altra come se volessi tenere una matita tra di loro, mantieni qualche secondo e poi rilascia.',
  '2-3x10, tenendo 5 sec', null, 'Muscoli tra le scapole (romboidi, trapezio)');
-add('Spalla - Riabilitazione','scapular_setting_piedi','Scapular setting in piedi',
+add('Spalla','scapular_setting_piedi','Scapular setting in piedi',
  'In piedi con le braccia rilassate lungo i fianchi, abbassa e stringi leggermente le scapole verso il basso e verso la colonna, senza alzare le spalle verso le orecchie. Mantieni la posizione qualche secondo.',
  '2-3x10, tenendo 5 sec', null, 'Muscoli stabilizzatori della scapola');
-add('Spalla - Riabilitazione','basso_remo_isometrico','Basso remo isometrico',
+add('Spalla','basso_remo_isometrico','Basso remo isometrico',
  'Seduto con i gomiti piegati vicino ai fianchi, tira leggermente le scapole indietro e verso il basso come per iniziare un movimento di remo, senza muovere il braccio, e mantieni la contrazione.',
  '2-3x10, tenendo 5 sec', null, 'Muscoli tra le scapole');
-add('Spalla - Riabilitazione','shrugs','Scrollate (shrugs)',
+add('Spalla','shrugs','Scrollate (shrugs)',
  'In piedi con bilanciere o manubri (o a corpo libero nelle fasi iniziali), alza le spalle verso le orecchie senza piegare i gomiti, tieni un istante e poi rilascia.',
  '3x12-15',
  EK_shrugs?ek(EK_shrugs,'Trapezio superiore'):null);
 
 /* -- Isometria -- */
-add('Spalla - Riabilitazione','isometria_extrarotazione','Isometria extrarotazione',
+add('Spalla','isometria_extrarotazione','Isometria extrarotazione',
  'Gomito piegato a 90 gradi vicino al fianco, spingi l\'avambraccio verso l\'esterno contro una mano, uno stipite o un muro fermo, senza che il braccio si muova davvero. Senti il muscolo lavorare.',
  '3x10, tenendo 5-10 sec', null, 'Cuffia dei rotatori');
-add('Spalla - Riabilitazione','isometria_intrarotazione','Isometria intrarotazione',
+add('Spalla','isometria_intrarotazione','Isometria intrarotazione',
  'Gomito piegato a 90 gradi vicino al fianco, spingi l\'avambraccio verso l\'interno (verso la pancia) contro una mano, uno stipite o un muro fermo, senza muovere davvero il braccio.',
  '3x10, tenendo 5-10 sec', null, 'Cuffia dei rotatori');
-add('Spalla - Riabilitazione','isometria_flessione_spalla','Isometria flessione spalla',
+add('Spalla','isometria_flessione_spalla','Isometria flessione spalla',
  'In piedi, gomito piegato, spingi il braccio in avanti contro una parete o una mano ferma, senza che si muova.',
  '3x10, tenendo 5-10 sec', null, 'Spalla anteriore, deltoide');
-add('Spalla - Riabilitazione','isometria_estensione_spalla','Isometria estensione spalla',
+add('Spalla','isometria_estensione_spalla','Isometria estensione spalla',
  'In piedi, gomito piegato, spingi il braccio all\'indietro contro una parete o una mano ferma, senza che si muova.',
  '3x10, tenendo 5-10 sec', null, 'Spalla posteriore, dorsale');
-add('Spalla - Riabilitazione','squeeze_pallina_mano','Squeeze pallina',
+add('Spalla','squeeze_pallina_mano','Squeeze pallina',
  'Stringi una pallina morbida (antistress) nel palmo della mano del braccio operato, tieni la contrazione e rilascia. Aiuta a mantenere attivo tutto il braccio quando la spalla non può ancora muoversi.',
  '3x15-20', null, 'Avambraccio, mano (attivazione generale)');
 
 /* -- Stretching -- */
-add('Spalla - Riabilitazione','extrarot_stretch_bastone','Extrarotazione a 90° con bastone',
+add('Spalla','extrarot_stretch_bastone','Extrarotazione a 90° con bastone',
  'Sdraiato sulla schiena con il braccio a 90° di apertura laterale e il gomito piegato, usa un bastone tenuto con entrambe le mani per spingere delicatamente l\'avambraccio verso l\'esterno, fino a sentire un leggero allungamento.',
  '3x20-30 sec', null, 'Cuffia dei rotatori (stretching)');
-add('Spalla - Riabilitazione','mani_dietro_testa_stretch','Mani dietro la testa',
+add('Spalla','mani_dietro_testa_stretch','Mani dietro la testa',
  'Seduto o in piedi, porta entrambe le mani dietro la nuca e apri delicatamente i gomiti verso l\'esterno, fino a sentire un leggero allungamento davanti alla spalla.',
  '3x20-30 sec', null, 'Spalla anteriore (stretching)');
-add('Spalla - Riabilitazione','intrarot_asciugamano_stretch','Intrarotazione dietro la schiena con asciugamano',
+add('Spalla','intrarot_asciugamano_stretch','Intrarotazione dietro la schiena con asciugamano',
  'Tieni un asciugamano dietro la schiena, una mano sopra la spalla e una in basso dietro la schiena. Tira delicatamente verso l\'alto con la mano sana per allungare la spalla operata.',
  '3x20-30 sec', null, 'Cuffia dei rotatori (stretching)');
-add('Spalla - Riabilitazione','cross_body_stretch','Adduzione orizzontale (cross-body stretch)',
+add('Spalla','cross_body_stretch','Adduzione orizzontale (cross-body stretch)',
  'In piedi, porta il braccio dolorante disteso davanti al petto verso il lato opposto, aiutandoti con l\'altro braccio, fino a sentire un leggero allungamento nella parte posteriore della spalla.',
  '3x20-30 sec', null, 'Spalla posteriore, capsula (stretching)');
-add('Spalla - Riabilitazione','sleeper_stretch','Sleeper stretch',
+add('Spalla','sleeper_stretch','Sleeper stretch',
  'Sdraiato sul fianco del lato dolorante, con il braccio a 90° davanti a te e il gomito piegato, usa l\'altra mano per spingere delicatamente l\'avambraccio verso il basso, verso il lettino.',
  '3x20-30 sec', null, 'Spalla posteriore (stretching)');
-add('Spalla - Riabilitazione','doorway_stretch','Stiramento allo stipite della porta',
+add('Spalla','doorway_stretch','Stiramento allo stipite della porta',
  'In piedi in uno stipite di porta, appoggia l\'avambraccio al bordo con il gomito piegato a 90°, poi fai un piccolo passo in avanti finché non senti un leggero allungamento davanti al petto e alla spalla.',
  '3x20-30 sec per lato', null, 'Petto, spalla anteriore (stretching)');
 
 /* -- Attivo / attivo-assistito -- */
-add('Spalla - Riabilitazione','flessione_attiva_bastone','Flessione assistita con bastone',
+add('Spalla','flessione_attiva_bastone','Flessione assistita con bastone',
  'Sdraiato o seduto, tieni un bastone con entrambe le mani e usa il braccio sano per aiutare quello operato a sollevarsi in avanti verso l\'alto, il più possibile senza dolore.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Spalla (attivo-assistito)');
-add('Spalla - Riabilitazione','washcloth_press','Washcloth press',
+add('Spalla','washcloth_press','Washcloth press',
  'In piedi davanti a un muro o un tavolo, appoggia il palmo della mano su un panno e fai scivolare avanti e indietro o in cerchio, lasciando che il braccio si muova con leggerezza.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Spalla (attivo-assistito)');
-add('Spalla - Riabilitazione','elevazione_laterale_90','Elevazione in decubito laterale a 90°',
+add('Spalla','elevazione_laterale_90','Elevazione in decubito laterale a 90°',
  'Sdraiato sul fianco sano, solleva lentamente il braccio operato verso l\'alto fino a circa 90 gradi, poi riabbassalo con controllo.',
  '2-3x10', null, 'Deltoide, cuffia dei rotatori');
-add('Spalla - Riabilitazione','carrucole_pulley','Carrucole (pulley)',
+add('Spalla','carrucole_pulley','Carrucole (pulley)',
  'Seduto o in piedi sotto una carrucola fissata in alto, tira con il braccio sano la corda per sollevare passivamente il braccio operato, poi lascia riscendere con controllo.',
  '10-15 ripetizioni, 2 volte al giorno', null, 'Spalla (attivo-assistito)');
-add('Spalla - Riabilitazione','scivolamento_muro_parete','Scivolamento su parete (wall slide)',
+add('Spalla','scivolamento_muro_parete','Scivolamento su parete (wall slide)',
  'In piedi rivolto verso un muro, appoggia le dita o l\'avambraccio alla parete e fai scivolare il braccio verso l\'alto quanto possibile senza dolore, poi torna giù con controllo.',
  '2-3x10', null, 'Spalla (attivo-assistito)');
-add('Spalla - Riabilitazione','flessione_supina_attiva','Flessione supina attiva',
+add('Spalla','flessione_supina_attiva','Flessione supina attiva',
  'Sdraiato sulla schiena, solleva da solo il braccio operato in avanti verso il soffitto, il più in alto possibile senza dolore, poi riabbassalo lentamente.',
  '2-3x10', null, 'Deltoide anteriore, cuffia dei rotatori');
-add('Spalla - Riabilitazione','finger_walk_muro','Scalata al muro (finger walk)',
+add('Spalla','finger_walk_muro','Scalata al muro (finger walk)',
  'In piedi davanti a un muro, "cammina" con le dita sulla parete verso l\'alto il più possibile senza dolore, poi fai scendere la mano lentamente.',
  '2-3x10', null, 'Spalla (attivo-assistito)');
-add('Spalla - Riabilitazione','extrarot_attiva_laterale','Extrarotazione attiva in decubito laterale',
+add('Spalla','extrarot_attiva_laterale','Extrarotazione attiva in decubito laterale',
  'Sdraiato sul fianco sano con un asciugamano arrotolato sotto il braccio operato, ruota l\'avambraccio verso l\'alto allontanandolo dalla pancia, poi torna giù con controllo.',
  '2-3x10-12', null, 'Cuffia dei rotatori');
-add('Spalla - Riabilitazione','pugno_basso_protrazione','Pugno basso (protrazione scapolare)',
+add('Spalla','pugno_basso_protrazione','Pugno basso (protrazione scapolare)',
  'In piedi, braccio disteso in avanti all\'altezza della vita, spingi il pugno leggermente in avanti allontanando la scapola dalla colonna, poi rilascia.',
  '2-3x10-15', null, 'Dentato anteriore, scapola');
 
 /* -- Rinforzo progressivo -- */
-add('Spalla - Riabilitazione','remo_prono_fitball','Remo prono/su fitball',
+add('Spalla','remo_prono_fitball','Remo prono/su fitball',
  'Appoggiato a pancia in giù su un fitball o un lettino, con un peso leggero in mano, tira il gomito indietro verso l\'alto stringendo la scapola, poi ridistendi il braccio.',
  '3x10-12', null, 'Dorsali, romboidi');
-add('Spalla - Riabilitazione','estensione_spalla_elastico','Estensione spalla con elastico',
+add('Spalla','estensione_spalla_elastico','Estensione spalla con elastico',
  'In piedi su un elastico ancorato davanti a te, con il braccio teso, tira indietro portando il braccio lungo il fianco, poi torna avanti con controllo.',
  '3x12-15', null, 'Dorsale, deltoide posteriore');
-add('Spalla - Riabilitazione','tosaerba_elastico','"Tosaerba" con elastico',
+add('Spalla','tosaerba_elastico','"Tosaerba" con elastico',
  'Un piede sull\'elastico, tira l\'altra estremità verso il fianco opposto ruotando leggermente il busto, come per avviare un tosaerba, poi torna alla posizione di partenza.',
  '3x10-12 per lato', null, 'Dorsale, romboidi, rotazione del tronco');
-add('Spalla - Riabilitazione','rapina_elastico','"Rapina" con elastico',
+add('Spalla','rapina_elastico','"Rapina" con elastico',
  'In piedi su un elastico con i gomiti piegati ai fianchi, tira le mani verso l\'alto e indietro come per alzare le braccia in un gesto di resa, stringendo le scapole.',
  '3x10-12', null, 'Trapezio, romboidi, cuffia dei rotatori');
-add('Spalla - Riabilitazione','pugni_serratus','Pugni serratus / protrazione scapolare',
+add('Spalla','pugni_serratus','Pugni serratus / protrazione scapolare',
  'Sdraiato sulla schiena con il braccio teso verso il soffitto, spingi il pugno verso l\'alto staccando la scapola dal lettino, poi rilascia con controllo.',
  '2-3x12-15', null, 'Dentato anteriore');
-add('Spalla - Riabilitazione','pushup_plus_ginocchia','Push-up plus in ginocchio',
+add('Spalla','pushup_plus_ginocchia','Push-up plus in ginocchio',
  'In appoggio su mani e ginocchia, piega leggermente i gomiti abbassandoti, poi spingi tornando su e, arrivato in alto, spingi ancora un po\' allontanando le scapole dalla colonna.',
  '2-3x10-12', null, 'Dentato anteriore, petto, tricipiti');
-add('Spalla - Riabilitazione','pushup_muro_progressione','Push-up al muro (progressione)',
+add('Spalla','pushup_muro_progressione','Push-up al muro (progressione)',
  'In piedi con le mani appoggiate al muro all\'altezza delle spalle, piega i gomiti avvicinando il petto al muro, poi spingi per tornare alla posizione di partenza.',
  '2-3x10-15', null, 'Petto, spalle, tricipiti');
-add('Spalla - Riabilitazione','prone_i_overhead','Prone I (braccio teso overhead)',
+add('Spalla','prone_i_overhead','Prone I (braccio teso overhead)',
  'A pancia in giù su un lettino o panca, con il pollice verso l\'alto, solleva il braccio teso in avanti-alto disegnando una "I", stringendo la scapola verso il basso.',
  '2-3x8-10', null, 'Trapezio inferiore, cuffia dei rotatori');
-add('Spalla - Riabilitazione','ytw_raises','Y-T-W a terra (prono)',
+add('Spalla','ytw_raises','Y-T-W a terra (prono)',
  'Sdraiato a pancia in giù su una panca o sul tappetino, solleva le braccia disegnando in sequenza una Y, una T e una W, tenendo le scapole strette.',
  '2-3x8-10 per lettera', null, 'Cuffia dei rotatori, trapezio');
-add('Spalla - Riabilitazione','abbraccio_dinamico_elastico','Abbraccio dinamico con elastico',
+add('Spalla','abbraccio_dinamico_elastico','Abbraccio dinamico con elastico',
  'In piedi con un elastico ancorato dietro di te, braccia tese in avanti, spingi le mani in avanti e verso l\'esterno come per allargare un abbraccio, poi torna con controllo.',
  '3x10-12', null, 'Dentato anteriore, cuffia dei rotatori');
-add('Spalla - Riabilitazione','pulldown_braccio_teso','Pull-down a braccio teso',
+add('Spalla','pulldown_braccio_teso','Pull-down a braccio teso',
  'In piedi davanti a una carrucola alta o un elastico ancorato in alto, con il braccio teso, tira verso il basso fino al fianco, poi torna su con controllo.',
  '3x10-12', null, 'Dorsale, cuffia dei rotatori');
-add('Spalla - Riabilitazione','scaption_raise','Scaption raise',
+add('Spalla','scaption_raise','Scaption raise',
  'In piedi, solleva il braccio con il pollice verso l\'alto in diagonale, a circa metà tra il davanti e il lato del corpo, fino all\'altezza della spalla, poi riabbassalo con controllo.',
  '3x10-12', null, 'Deltoide, sovraspinato');
-add('Spalla - Riabilitazione','extrarot_resistita_90','Extrarotazione resistita a 90°',
+add('Spalla','extrarot_resistita_90','Extrarotazione resistita a 90°',
  'In piedi con il braccio sollevato lateralmente a 90° e il gomito piegato a 90°, tira l\'elastico ruotando l\'avambraccio verso l\'alto, poi torna giù con controllo.',
  '3x10-12', null, 'Cuffia dei rotatori');
-add('Spalla - Riabilitazione','intrarot_resistita_90','Intrarotazione resistita a 90°',
+add('Spalla','intrarot_resistita_90','Intrarotazione resistita a 90°',
  'In piedi con il braccio sollevato lateralmente a 90° e il gomito piegato a 90°, tira l\'elastico ruotando l\'avambraccio verso il basso, poi torna su con controllo.',
  '3x10-12', null, 'Cuffia dei rotatori');
-add('Spalla - Riabilitazione','shoulder_er_ir_band','Extra/intrarotazione di spalla con elastico (gomito al fianco)',
+add('Spalla','shoulder_er_ir_band','Extra/intrarotazione di spalla con elastico (gomito al fianco)',
  'Gomito fermo vicino al fianco, piegato a 90 gradi. Ruota l\'avambraccio verso l\'esterno e poi verso l\'interno tirando l\'elastico, con movimento lento.',
  '3x12-15 per lato', null, 'Cuffia dei rotatori');
-add('Spalla - Riabilitazione','shoulder_press','Military press (bilanciere)',
+add('Spalla','shoulder_press','Military press (bilanciere)',
  'In piedi o seduto, spingi il bilanciere dall\'altezza delle spalle verso l\'alto, sopra la testa.',
  '3-4x6-10',
  EK_shoulder_press?ek(EK_shoulder_press,'Deltoidi, tricipiti'):null);
 
 /* -- Stabilità dinamica / propriocezione -- */
-add('Spalla - Riabilitazione','stabilizzazione_ritmica_erir','Stabilizzazione ritmica ER/IR',
+add('Spalla','stabilizzazione_ritmica_erir','Stabilizzazione ritmica ER/IR',
  'Con il braccio sollevato in avanti, un\'altra persona applica piccole spinte alterne al polso mentre tu resisti mantenendo il braccio fermo, senza farlo tremare troppo.',
  '3x20-30 sec', null, 'Cuffia dei rotatori (controllo motorio)');
-add('Spalla - Riabilitazione','isometria_quadrupedia_alternata','Isometria alternata in quadrupedia',
+add('Spalla','isometria_quadrupedia_alternata','Isometria alternata in quadrupedia',
  'In appoggio su mani e ginocchia, solleva leggermente una mano dal pavimento mantenendo l\'equilibrio, poi appoggiala e ripeti con l\'altra.',
  '2-3x10 per lato', null, 'Stabilità di spalla e core');
-add('Spalla - Riabilitazione','stabilizzazione_palla_muro','Stabilizzazione con palla al muro',
+add('Spalla','stabilizzazione_palla_muro','Stabilizzazione con palla al muro',
  'Appoggia una palla medica o da ginnastica al muro con il palmo della mano, mantieni una leggera pressione mentre disegni piccoli cerchi con la palla senza farla cadere.',
  '3x20-30 sec', null, 'Cuffia dei rotatori, stabilità scapolare');
-add('Spalla - Riabilitazione','pnf_diagonale_d1','Diagonale PNF D1',
+add('Spalla','pnf_diagonale_d1','Diagonale PNF D1',
  'Con un elastico o un peso leggero, porta il braccio da basso e verso l\'interno fino ad alto e verso l\'esterno, in un unico movimento diagonale fluido, poi torna indietro.',
  '3x10-12', null, 'Cuffia dei rotatori, controllo motorio');
-add('Spalla - Riabilitazione','pnf_diagonale_d2','Diagonale PNF D2',
+add('Spalla','pnf_diagonale_d2','Diagonale PNF D2',
  'Con un elastico o un peso leggero, porta il braccio da basso e verso l\'esterno fino ad alto sopra la testa verso l\'interno, in un unico movimento diagonale fluido, poi torna indietro.',
  '3x10-12', null, 'Cuffia dei rotatori, controllo motorio');
-add('Spalla - Riabilitazione','field_goals_spalla','"Field goals"',
+add('Spalla','field_goals_spalla','"Field goals"',
  'In piedi con i gomiti piegati a 90° e le braccia ai lati come in un "goal", solleva le braccia verso l\'alto mantenendo l\'angolo dei gomiti, poi riabbassa con controllo.',
  '2-3x10-12', null, 'Cuffia dei rotatori, deltoidi');
 
 /* -- Ritorno allo sport -- */
-add('Spalla - Riabilitazione','chinup','Trazioni presa supina (Chin-up)',
+add('Spalla','chinup','Trazioni presa supina (Chin-up)',
  'Appeso alla sbarra con presa supina (palmi verso di te) larghezza spalle, tirati su fino a portare il mento sopra la sbarra, poi scendi lentamente.',
  '3x5-10',
  EK_chinup?ek(EK_chinup,'Dorsali, bicipiti'):null);
-add('Spalla - Riabilitazione','pliometria_spalla_muro','Pliometria di spalla (lancio/rimbalzo al muro)',
+add('Spalla','pliometria_spalla_muro','Pliometria di spalla (lancio/rimbalzo al muro)',
  'In piedi vicino a un muro, lancia una palla medica leggera contro il muro con un movimento controllato e riprendila al rimbalzo, aumentando gradualmente la velocità.',
  '3x8-10', null, 'Cuffia dei rotatori, potenza (fase avanzata)');
 
@@ -1053,50 +1053,50 @@ add('Pliometria - intensiva','lateral_jump_elastico','Salto laterale con elastic
    ischiocrurali) */
 
 /* -- Isometria per tendinopatia rotulea (utile anche per altre tendinopatie del ginocchio) -- */
-add('Ginocchio - Riabilitazione','quad_set_tendinopatia','Quad set da seduto (tendinopatia rotulea)',
+add('Gambe','quad_set_tendinopatia','Quad set da seduto (tendinopatia rotulea)',
  'Seduto a terra con la gamba dolorante tesa davanti a te e l\'altra piegata, solleva il tallone da terra e spingi il ginocchio verso il pavimento contraendo il quadricipite.',
  '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
-add('Ginocchio - Riabilitazione','bug_squash','Bug squash (isometria quadricipite al muro)',
+add('Gambe','bug_squash','Bug squash (isometria quadricipite al muro)',
  'Sdraiato sulla schiena vicino a un muro, piega il ginocchio dolorante e appoggia la pianta del piede al muro. Spingi il piede contro il muro come se dovessi schiacciare un insetto, senza muovere il ginocchio.',
  '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
-add('Ginocchio - Riabilitazione','wall_squat_bipodalico','Wall squat a due gambe (isometria)',
+add('Gambe','wall_squat_bipodalico','Wall squat a due gambe (isometria)',
  'Schiena al muro, piedi leggermente più larghi delle spalle, scendi flettendo le ginocchia tra 60 e 90 gradi sollevandoti sulle punte, senza portare le ginocchia oltre le punte dei piedi.',
  '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
-add('Ginocchio - Riabilitazione','wall_squat_monopodalico','Wall squat a una gamba (isometria)',
+add('Gambe','wall_squat_monopodalico','Wall squat a una gamba (isometria)',
  'Come il wall squat a due gambe, ma solleva da terra la gamba sana e mantieni tutto il peso sulla gamba dolorante.',
  '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
-add('Ginocchio - Riabilitazione','decline_squat','Squat in decline',
+add('Gambe','decline_squat','Squat in decline',
  'In piedi con i talloni appoggiati su un piccolo rialzo inclinato, scendi lentamente in uno squat tenendo le punte dei piedi in avanti, senza far cadere le ginocchia verso l\'interno.',
  '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
 
 /* -- Rinforzo post-operatorio / dopo trauma al ginocchio -- */
-add('Ginocchio - Riabilitazione','heel_slide','Scivolamento del tallone (heel slide)',
+add('Gambe','heel_slide','Scivolamento del tallone (heel slide)',
  'Seduto o sdraiato con la gamba tesa davanti a te, fai scivolare il tallone verso di te piegando il ginocchio il più possibile senza dolore, poi distendi di nuovo lentamente.',
  '3x10-15', null, 'Mobilità del ginocchio');
-add('Ginocchio - Riabilitazione','isometria_multiangolo_quad','Isometria del quadricipite a ginocchio piegato',
+add('Gambe','isometria_multiangolo_quad','Isometria del quadricipite a ginocchio piegato',
  'Seduto con il ginocchio piegato a circa 60-90 gradi (per esempio sul bordo di una sedia, con la caviglia bloccata o tenuta da un elastico), spingi in avanti come per distendere il ginocchio, senza muoverlo davvero.',
  '3x10, tenendo 5-10 sec', null, 'Quadricipite (isometria multi-angolo)');
-add('Ginocchio - Riabilitazione','mini_squat','Mini squat (0-60°)',
+add('Gambe','mini_squat','Mini squat (0-60°)',
  'In piedi, scendi in uno squat controllato limitando la flessione del ginocchio a circa 60 gradi, poi risali lentamente.',
  '3x10-15', null, 'Quadricipite, glutei');
-add('Ginocchio - Riabilitazione','step_up_march','Step-up con marcia',
+add('Gambe','step_up_march','Step-up con marcia',
  'Sali su un gradino basso con la gamba interessata, una volta in cima solleva il ginocchio dell\'altra gamba come per marciare, poi scendi controllando il movimento.',
  '3x10 per lato', null, 'Quadricipite, glutei, controllo del ginocchio');
-add('Ginocchio - Riabilitazione','lateral_step_up','Step-up laterale',
+add('Gambe','lateral_step_up','Step-up laterale',
  'In piedi di fianco a un gradino basso, sali lateralmente spingendo con la gamba più vicina al gradino, poi scendi con controllo.',
  '3x10 per lato', null, 'Quadricipite, medio gluteo');
 
 /* -- Coscia posteriore: progressione dopo lesione ai femorali -- */
-add('Ginocchio - Riabilitazione','glute_set','Glute set (contrazione isometrica del gluteo)',
+add('Gambe','glute_set','Glute set (contrazione isometrica del gluteo)',
  'Sdraiato o in piedi, contrai con forza i glutei stringendoli, tieni qualche secondo, poi rilascia. Va padroneggiato bene prima di riprendere a rinforzare i femorali dopo un infortunio.',
  '3x10-15, tenendo 5 sec', null, 'Glutei (attivazione)');
-add('Ginocchio - Riabilitazione','isometria_femorali','Isometria femorali (leg curl contro resistenza)',
+add('Gambe','isometria_femorali','Isometria femorali (leg curl contro resistenza)',
  'Sdraiato a pancia in giù o seduto, piega il ginocchio a circa 90 gradi e spingi il tallone contro una resistenza ferma (una mano, una cavigliera bloccata), senza muovere davvero la gamba.',
  '3x10, tenendo 5-10 sec', null, 'Ischiocrurali (isometria)');
-add('Ginocchio - Riabilitazione','bridge_thera_band','Ponte glutei con elastico alle cosce',
+add('Gambe','bridge_thera_band','Ponte glutei con elastico alle cosce',
  'Come il ponte glutei classico, ma con un elastico intorno alle cosce appena sopra le ginocchia: spingi leggermente le ginocchia verso l\'esterno mentre sollevi il bacino.',
  '3x12-15', null, 'Glutei, medio gluteo, ischiocrurali');
-add('Ginocchio - Riabilitazione','bridge_single_leg','Ponte a una gamba',
+add('Gambe','bridge_single_leg','Ponte a una gamba',
  'Come il ponte glutei classico, ma con una gamba sollevata e tesa in aria: spingi con il tallone della gamba a terra per sollevare il bacino.',
  '3x8-10 per lato', null, 'Glutei, ischiocrurali (monopodalico)');
 
@@ -1106,47 +1106,47 @@ add('Ginocchio - Riabilitazione','bridge_single_leg','Ponte a una gamba',
    per lesioni acute degli adduttori) */
 
 /* -- Flessori dell'anca / ileopsoas -- */
-add('Anca e Inguine - Riabilitazione','hip_flexor_stretch','Stiramento flessori dell\'anca (affondo da in ginocchio)',
+add('Anca','hip_flexor_stretch','Stiramento flessori dell\'anca (affondo da in ginocchio)',
  'In ginocchio con una gamba avanti e il piede appoggiato a terra, contrai gli addominali, appiattisci la parte bassa della schiena e spingi leggermente il bacino in avanti finché non senti uno stiramento davanti all\'anca della gamba dietro. Tieni il busto dritto.',
  '3x20-30 sec per lato', null, 'Flessori dell\'anca, ileopsoas (stretching)');
-add('Anca e Inguine - Riabilitazione','resisted_hip_flexion','Flessione d\'anca resistita (elastico)',
+add('Anca','resisted_hip_flexion','Flessione d\'anca resistita (elastico)',
  'In piedi con la schiena verso una porta o un punto fisso, aggancia un elastico alla caviglia. Tenendo il ginocchio teso, porta la gamba in avanti contro la resistenza, poi torna indietro con controllo.',
  '3x10 per lato', null, 'Flessori dell\'anca, ileopsoas');
-add('Anca e Inguine - Riabilitazione','psoas_march','Marcia isometrica (psoas march)',
+add('Anca','psoas_march','Marcia isometrica (psoas march)',
  'In piedi, solleva un ginocchio all\'altezza dell\'anca come per marciare e mantieni la posizione in equilibrio sull\'altra gamba, tenendo bacino e busto ben fermi.',
  '3x20-30 sec per lato', null, 'Ileopsoas, controllo lombo-pelvico');
-add('Anca e Inguine - Riabilitazione','leg_swing_ap','Slancio gamba avanti-indietro (leg swing)',
+add('Anca','leg_swing_ap','Slancio gamba avanti-indietro (leg swing)',
  'In piedi, appoggiato con una mano a un sostegno stabile, slancia la gamba avanti e indietro come un calcio controllato, aumentando gradualmente ampiezza e velocità, tenendo il busto fermo.',
  '4x20 slanci per lato', null, 'Flessori ed estensori dell\'anca (mobilità attiva)');
-add('Anca e Inguine - Riabilitazione','leg_swing_laterale','Slancio gamba laterale',
+add('Anca','leg_swing_laterale','Slancio gamba laterale',
  'In piedi, appoggiato con una mano a un sostegno stabile davanti a te, slancia la gamba lateralmente da un lato all\'altro davanti al corpo, punte dei piedi sempre in avanti, aumentando gradualmente ampiezza e velocità.',
  '4x20 slanci per lato', null, 'Adduttori, abduttori (mobilità attiva)');
-add('Anca e Inguine - Riabilitazione','hip_circles','Cerchi d\'anca',
+add('Anca','hip_circles','Cerchi d\'anca',
  'In piedi con i piedi larghi circa una volta e mezza le spalle, mani sui fianchi, muovi bacino e anche disegnando cerchi ampi, aumentando gradualmente dimensione e velocità.',
  '3x10 cerchi per verso', null, 'Anca (mobilità)');
 
 /* -- Adduttori (inguine) -- */
-add('Anca e Inguine - Riabilitazione','adductor_ball_squeeze','Isometria adduttori (schiaccia palla)',
+add('Anca','adductor_ball_squeeze','Isometria adduttori (schiaccia palla)',
  'Sdraiato con le ginocchia piegate, metti un cuscino o una palla morbida tra le ginocchia e stringila con forza, tieni qualche secondo, poi rilascia.',
  '3x10-15, tenendo 5-10 sec', null, 'Adduttori (isometria)');
-add('Anca e Inguine - Riabilitazione','kicking_tension_arc','Calcio con elastico (tension arc)',
+add('Anca','kicking_tension_arc','Calcio con elastico (tension arc)',
  'In piedi su una gamba, con un elastico basso agganciato alla caviglia della gamba libera e un secondo elastico alto tenuto con la mano opposta, porta rapidamente gamba e braccio in avanti insieme come in un calcio, poi torna indietro lentamente senza appoggiare il piede tra una ripetizione e l\'altra.',
  '3x10-15 per lato', null, 'Adduttori, coordinazione (fase avanzata)');
-add('Anca e Inguine - Riabilitazione','one_leg_coordination','Coordinazione a una gamba (sci di fondo)',
+add('Anca','one_leg_coordination','Coordinazione a una gamba (sci di fondo)',
  'In piedi su una gamba con l\'altra leggermente piegata, piega e distendi il ginocchio d\'appoggio mentre l\'altra gamba e le braccia oscillano in coordinazione, come nello sci di fondo.',
  '3x20-30 sec per lato', null, 'Adduttori, equilibrio, coordinazione');
 
 /* -- Abduttori / medio gluteo -- */
-add('Anca e Inguine - Riabilitazione','side_lying_hip_abduction_iso','Isometria abduttori (sollevamento gamba laterale)',
+add('Anca','side_lying_hip_abduction_iso','Isometria abduttori (sollevamento gamba laterale)',
  'Sdraiato su un fianco con le gambe allineate e tese, solleva la gamba superiore di circa 20-30 gradi e mantieni la posizione, senza ruotare il bacino all\'indietro.',
  '3x20-30 sec per lato', null, 'Medio gluteo, abduttori (isometria)');
-add('Anca e Inguine - Riabilitazione','standing_hip_abduction_iso','Isometria abduttori in piedi (spinta al muro)',
+add('Anca','standing_hip_abduction_iso','Isometria abduttori in piedi (spinta al muro)',
  'In piedi di fianco a un muro con il lato esterno della gamba interessata vicino alla parete, spingi la gamba contro il muro verso l\'esterno senza muoverla davvero.',
  '3x10, tenendo 5-10 sec', null, 'Medio gluteo, abduttori (isometria)');
-add('Anca e Inguine - Riabilitazione','hip_hike','Hip hike (elevazione del bacino)',
+add('Anca','hip_hike','Hip hike (elevazione del bacino)',
  'In piedi su un gradino con una gamba, lascia scendere il bacino dal lato della gamba libera, poi risollevalo contraendo il fianco della gamba d\'appoggio, senza piegare il ginocchio.',
  '3x10-15 per lato', null, 'Medio gluteo, controllo del bacino');
-add('Anca e Inguine - Riabilitazione','lateral_band_walk','Camminata laterale con elastico (monster walk)',
+add('Anca','lateral_band_walk','Camminata laterale con elastico (monster walk)',
  'Con un elastico intorno alle caviglie o appena sopra le ginocchia, piega leggermente le ginocchia e cammina lateralmente a piccoli passi, mantenendo tensione costante sull\'elastico.',
  '3x10-15 passi per lato', null, 'Medio gluteo, abduttori');
 
@@ -1213,15 +1213,15 @@ add('Caviglia e Polpaccio - Riabilitazione','star_excursion','Star excursion bal
  '3x8 direzioni per lato', null, 'Equilibrio, controllo neuromuscolare');
 
 const groupsOrder = [
-  'Petto','Spalle','Spalla - Riabilitazione','Schiena','Braccia','Gambe','Ginocchio - Riabilitazione','Core',
-  'Caviglia ed equilibrio','Caviglia e Polpaccio - Riabilitazione','Anca','Anca e Inguine - Riabilitazione',
+  'Petto','Spalla','Schiena','Braccia','Gambe','Core',
+  'Caviglia ed equilibrio','Caviglia e Polpaccio - Riabilitazione','Anca',
   'Pliometria - estensiva','Pliometria - intensiva','Altro'
 ];
 /* ---- colore identificativo per categoria (dot nel menù + bordo riga) ---- */
 const GROUP_COLORS = {
-  'Petto':'#c97a3d', 'Spalle':'#c9a227', 'Spalla - Riabilitazione':'#2f9e8f', 'Schiena':'#3b6fa3', 'Braccia':'#7b5ea7',
-  'Gambe':'#6b8e3a', 'Ginocchio - Riabilitazione':'#5866b3', 'Core':'#b85c7a', 'Caviglia ed equilibrio':'#4a8fa6',
-  'Caviglia e Polpaccio - Riabilitazione':'#4a8f5c', 'Anca':'#a5754f', 'Anca e Inguine - Riabilitazione':'#9a4f9e',
+  'Petto':'#c97a3d', 'Spalla':'#c9a227', 'Schiena':'#3b6fa3', 'Braccia':'#7b5ea7',
+  'Gambe':'#6b8e3a', 'Core':'#b85c7a', 'Caviglia ed equilibrio':'#4a8fa6',
+  'Caviglia e Polpaccio - Riabilitazione':'#4a8f5c', 'Anca':'#a5754f',
   'Pliometria - estensiva':'#8aa33c', 'Pliometria - intensiva':'#cc5030', 'Altro':'#8a8f87'
 };
 

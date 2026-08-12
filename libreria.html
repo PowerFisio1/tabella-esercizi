@@ -270,7 +270,8 @@
 const libraryEl = document.getElementById('library');
 const searchInput = document.getElementById('searchInput');
 const resultsCount = document.getElementById('resultsCount');
-const collapsedGroupsLib = new Set(['Spalla - Riabilitazione']);
+// all'apertura della libreria si vedono solo le categorie, chiuse: l'utente apre quelle che gli servono
+const collapsedGroupsLib = new Set(groupsOrder);
 
 /* =====================================================================
    PERSISTENZA E SYNC — stesse chiavi/motore di scheda.html: gli esercizi
@@ -308,12 +309,15 @@ let customImages = lsGet(LS_IMAGES, {});
    permette di ricalcolare EX da zero ogni volta che arrivano dati sincronizzati da un altro
    dispositivo, senza accumulare esercizi rimossi/sostituiti altrove */
 const EX_DEFAULTS = Object.assign({}, EX);
+// vecchi nomi di gruppo accorpati in uno unico: rimappa eventuali esercizi personalizzati
+// salvati in precedenza col nome vecchio, così non spariscono dal menù
+const GROUP_RENAME = {'Spalle':'Spalla', 'Spalla - Riabilitazione':'Spalla', 'Anca e Inguine - Riabilitazione':'Anca', 'Ginocchio - Riabilitazione':'Gambe'};
 function rebuildExFromLocal(){
   Object.keys(EX).forEach(k=>{ if(!(k in EX_DEFAULTS)) delete EX[k]; });
   Object.assign(EX, EX_DEFAULTS);
   // merge esercizi personalizzati: possono avere un proprio svg quando "sostituiscono"
   // (modifica) un esercizio di libreria, per non perderne l'illustrazione originale
-  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:c.svg||null}; });
+  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:GROUP_RENAME[c.group]||c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:c.svg||null}; });
   lsGet(LS_HIDDEN, []).forEach(k=>{ delete EX[k]; });
 }
 rebuildExFromLocal();
@@ -323,7 +327,7 @@ const PLYO_GENERIC_KW = ['salto','salti','saltell','jump','pliometr','balzo','ba
 const PLYO_LIGHT_KW = ['skip','pogo','corda','ankle hop'];
 const MUSCLE_KW = {
   'Petto': ['petto','pettoral','panca','chest','bench','croci','piegament','push up','pushup','push-up'],
-  'Spalle': ['spalle','spalla','deltoid','shoulder','military','alzate','shrug','scrollate','arnold'],
+  'Spalla': ['spalle','spalla','deltoid','shoulder','military','alzate','shrug','scrollate','arnold'],
   'Schiena': ['schiena','dorsal','dorso','row','rematore','trazion','pull up','pull-up','chin up','lat machine','stacco','deadlift'],
   'Braccia': ['bicipit','tricipit','curl','braccia','avambracc','french press','dip'],
   'Gambe': ['gamba','gambe','quadricipit','femoral','ischiocrurali','polpacc','calf','squat','affond','lunge','leg','glute','glutei'],

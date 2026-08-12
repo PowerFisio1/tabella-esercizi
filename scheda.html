@@ -537,12 +537,16 @@ function autoGrowTextarea(ta){
    dispositivo, senza accumulare esercizi rimossi/sostituiti altrove */
 const EX_DEFAULTS = Object.assign({}, EX);
 
+// vecchi nomi di gruppo accorpati in uno unico: rimappa eventuali esercizi personalizzati
+// salvati in precedenza col nome vecchio, così non spariscono dal menù
+const GROUP_RENAME = {'Spalle':'Spalla', 'Spalla - Riabilitazione':'Spalla', 'Anca e Inguine - Riabilitazione':'Anca', 'Ginocchio - Riabilitazione':'Gambe'};
+
 function rebuildExFromLocal(){
   Object.keys(EX).forEach(k=>{ if(!(k in EX_DEFAULTS)) delete EX[k]; });
   Object.assign(EX, EX_DEFAULTS);
   // merge esercizi personalizzati ("Altro"): possono avere un proprio svg (es. quando
   // sostituiscono un esercizio di libreria modificato dalla pagina Libreria)
-  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:c.svg||null}; });
+  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:GROUP_RENAME[c.group]||c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:c.svg||null}; });
   // rimuovi dal menù gli esercizi (di libreria o personalizzati) tolti in precedenza
   lsGet(LS_HIDDEN, []).forEach(k=>{ delete EX[k]; });
 }
@@ -553,7 +557,7 @@ const PLYO_GENERIC_KW = ['salto','salti','saltell','jump','pliometr','balzo','ba
 const PLYO_LIGHT_KW = ['skip','pogo','corda','ankle hop'];
 const MUSCLE_KW = {
   'Petto': ['petto','pettoral','panca','chest','bench','croci','piegament','push up','pushup','push-up'],
-  'Spalle': ['spalle','spalla','deltoid','shoulder','military','alzate','shrug','scrollate','arnold'],
+  'Spalla': ['spalle','spalla','deltoid','shoulder','military','alzate','shrug','scrollate','arnold'],
   'Schiena': ['schiena','dorsal','dorso','row','rematore','trazion','pull up','pull-up','chin up','lat machine','stacco','deadlift'],
   'Braccia': ['bicipit','tricipit','curl','braccia','avambracc','french press','dip'],
   'Gambe': ['gamba','gambe','quadricipit','femoral','ischiocrurali','polpacc','calf','squat','affond','lunge','leg','glute','glutei'],
@@ -724,7 +728,7 @@ document.getElementById('cropModalConfirm').addEventListener('click', ()=>{
 
 // ---------- build dropdown (hidden native select, kept for state) + custom picker panel ----------
 /* ---- gruppi mostrati "chiusi" di default nel picker (l'utente può riaprirli cliccando l'intestazione) ---- */
-let collapsedGroups = new Set(['Spalla - Riabilitazione']);
+let collapsedGroups = new Set(['Spalla']);
 function buildGroupOptions(){
   return groupsOrder.map(g=> '<option value="'+g+'">'+escapeHtml(g)+'</option>').join('');
 }
