@@ -948,6 +948,12 @@ add('Pliometria - estensiva','hurdle_bassi','Hurdle hops bassi',
 add('Pliometria - estensiva','step_up_leggero','Step-up con salto leggero',
  'Sali su un rialzo basso con un piccolo stacco finale, atterra in modo controllato, alternando la gamba guida.',
  '3x8 per lato', null, 'Quadricipiti, glutei');
+add('Pliometria - estensiva','drop_landing','Atterraggio controllato da un gradino (drop landing)',
+ 'In piedi su un gradino basso, scendi con entrambi i piedi e atterra a terra piegando bene ginocchia e anche per assorbire l\'impatto, tenendo la posizione di atterraggio un paio di secondi prima di rialzarti.',
+ '3x8-10', null, 'Controllo dell\'atterraggio (propedeutico ai salti)');
+add('Pliometria - estensiva','hop_line_monopodalico','Hop avanti-indietro su una gamba (linea o cono)',
+ 'Su una gamba sola, salta avanti e indietro oltre una linea o un piccolo cono a terra, con contatti rapidi e controllati.',
+ '3x10-12 per lato', null, 'Polpacci, controllo caviglia/ginocchio (monopodalico)');
 
 /* ===================== PLIOMETRIA INTENSIVA ===================== */
 add('Pliometria - intensiva','squat_jump','Squat jump',
@@ -1001,6 +1007,18 @@ add('Pliometria - intensiva','hurdle_sprint','Hurdle hop to sprint',
 add('Pliometria - intensiva','cod_jump','Change of direction jump',
  'Salta cambiando direzione di 45-90 gradi, concentrandoti sul frenare bene e controllare il ginocchio prima di ripartire.',
  '4x6 (3 per verso)', null, 'Controllo ginocchio, decelerazione');
+add('Pliometria - intensiva','vertical_jump','Salto verticale',
+ 'Da fermo, piega le ginocchia e salta più in alto possibile aiutandoti con le braccia, atterra in modo morbido.',
+ '4-5x5', null, 'Quadricipiti, glutei, polpacci (potenza)');
+add('Pliometria - intensiva','crossover_hop_distance','Crossover hop for distance (zig-zag)',
+ 'Su una gamba sola, salta in avanti oltre una linea centrale immaginaria alternando il lato a ogni balzo come uno zig-zag, atterrando in modo controllato sulla stessa gamba a ogni salto.',
+ '3x3 balzi consecutivi per lato', null, 'Quadricipiti, glutei, controllo ginocchio (monopodalico)');
+add('Pliometria - intensiva','scissor_jump','Scissor jump',
+ 'In posizione di affondo, salta cambiando la gamba avanti e quella dietro a mezz\'aria come una forbice, atterrando nella posizione di affondo opposta.',
+ '4x8-10', null, 'Quadricipiti, glutei, coordinazione');
+add('Pliometria - intensiva','lateral_jump_elastico','Salto laterale con elastico resistito',
+ 'Con un elastico fissato alla vita o alla caviglia che offre resistenza lateralmente, salta lateralmente su una gamba sola contro la resistenza, atterrando in modo controllato.',
+ '3x8 per lato', null, 'Abduttori, glutei (laterale, resistito)');
 
 /* ===================== ESERCIZI - GINOCCHIO: RIABILITAZIONE =====================
    Fonti: UW Medicine Sports Medicine Clinic (isometria per tendinopatia rotulea),
@@ -1143,6 +1161,21 @@ add('Caviglia e Polpaccio - Riabilitazione','heel_drop_ginocchio_piegato','Heel 
 add('Caviglia e Polpaccio - Riabilitazione','isometria_calf_raise','Isometria calf raise (tendine d\'Achille)',
  'In piedi sulle punte dei piedi, a metà del sollevamento, mantieni la posizione ferma senza scendere né salire ulteriormente.',
  '3-5x30-45 sec', null, 'Polpaccio, tendine d\'Achille (isometria)');
+
+/* -- Dal calf raise al salto: progressione di ritorno allo sport dopo infortunio a
+   caviglia/tendine d'Achille (Mass General Brigham, "Beginner Level Plyometrics") -- */
+add('Caviglia e Polpaccio - Riabilitazione','rebounding_heel_raise_bipodalico','Rimbalzi da sollevamento tallone, bipodalico',
+ 'In piedi, esegui piccoli rimbalzi elastici sollevandoti ripetutamente sulle punte dei piedi con entrambe le gambe, senza un vero e proprio distacco da terra: è il passo intermedio tra il calf raise e il salto vero e proprio. Da iniziare una volta che il calf raise in piedi a due gambe risulta facile.',
+ '3x15', null, 'Polpaccio, tendine d\'Achille (transizione al salto)');
+add('Caviglia e Polpaccio - Riabilitazione','rebounding_heel_raise_monopodalico','Rimbalzi da sollevamento tallone, monopodalico',
+ 'Come i rimbalzi da sollevamento tallone, ma su una gamba sola: rimbalza ripetutamente sulla punta del piede della gamba interessata.',
+ '3x15 per lato', null, 'Polpaccio, tendine d\'Achille (transizione al salto)');
+add('Caviglia e Polpaccio - Riabilitazione','hop_in_place_bipodalico','Hop sul posto, bipodalico',
+ 'Piccoli salti sul posto con entrambi i piedi insieme, staccando appena da terra, atterrando morbidamente sulle punte. Puoi aiutarti inizialmente appoggiando le mani a un sostegno.',
+ '3x10-15', null, 'Polpaccio, tendine d\'Achille');
+add('Caviglia e Polpaccio - Riabilitazione','hop_in_place_monopodalico','Hop sul posto, monopodalico',
+ 'Come l\'hop sul posto, ma su una gamba sola: è l\'ultimo passo prima della pliometria vera e propria dopo un infortunio al polpaccio o al tendine d\'Achille.',
+ '3x8-10 per lato', null, 'Polpaccio, tendine d\'Achille');
 
 /* -- Equilibrio e propriocezione dopo infortunio alla caviglia -- */
 add('Caviglia e Polpaccio - Riabilitazione','joint_position_retraining','Rieducazione della posizione articolare',
