@@ -910,20 +910,20 @@ add('Core','pallof_press','Pallof press (anti-rotazione)',
  'In piedi di fianco a un elastico agganciato, spingi le mani in avanti resistendo alla rotazione del busto, poi torna indietro lentamente.',
  '3x10-12 per lato', null, 'Core, obliqui (anti-rotazione)');
 
-/* ===================== ESERCIZI - CAVIGLIA ED EQUILIBRIO ===================== */
-add('Caviglia ed equilibrio','ankle_circles','Cerchi di caviglia',
+/* ===================== ESERCIZI - EQUILIBRIO E COORDINAZIONE ===================== */
+add('Equilibrio e Coordinazione','ankle_circles','Cerchi di caviglia',
  'Gamba tesa, muovi la caviglia disegnando dei cerchi ampi, in entrambe le direzioni.',
  '2x10 cerchi per verso, per lato',
  EK_ankle_circles?ek(EK_ankle_circles,'Mobilità caviglia'):null);
-add('Caviglia ed equilibrio','knee_circles','Cerchi di ginocchio',
+add('Equilibrio e Coordinazione','knee_circles','Cerchi di ginocchio',
  'In piedi con un leggero appoggio, disegna dei cerchi con il ginocchio piegato, in entrambe le direzioni.',
  '2x8 cerchi per verso, per lato',
  EK_knee_circles?ek(EK_knee_circles,'Mobilità ginocchio'):null);
-add('Caviglia ed equilibrio','balance_board','Tavoletta propriocettiva',
+add('Equilibrio e Coordinazione','balance_board','Tavoletta propriocettiva',
  'In appoggio su una gamba sola su una tavoletta instabile, mantieni l\'equilibrio con il ginocchio leggermente piegato.',
  '3x20-30" per lato',
  EK_balance_board?ek(EK_balance_board,'Propriocezione, stabilizzatori caviglia'):null);
-add('Caviglia ed equilibrio','inversione_eversione','Inversione / eversione caviglia',
+add('Equilibrio e Coordinazione','inversione_eversione','Inversione / eversione caviglia',
  'Muovi la caviglia verso l\'interno e poi verso l\'esterno contro un elastico, con movimento controllato.',
  '3x15 per lato',
  EK_inversion_eversion?ekImg(EK_inversion_eversion,'Inversione/eversione caviglia'):null);
@@ -1214,13 +1214,13 @@ add('Caviglia e Polpaccio - Riabilitazione','star_excursion','Star excursion bal
 
 const groupsOrder = [
   'Petto','Spalla','Schiena','Braccia','Gambe','Core',
-  'Caviglia ed equilibrio','Caviglia e Polpaccio - Riabilitazione','Anca',
+  'Equilibrio e Coordinazione','Caviglia e Polpaccio - Riabilitazione','Anca',
   'Pliometria - estensiva','Pliometria - intensiva','Altro'
 ];
 /* ---- colore identificativo per categoria (dot nel menù + bordo riga) ---- */
 const GROUP_COLORS = {
   'Petto':'#c97a3d', 'Spalla':'#c9a227', 'Schiena':'#3b6fa3', 'Braccia':'#7b5ea7',
-  'Gambe':'#6b8e3a', 'Core':'#b85c7a', 'Caviglia ed equilibrio':'#4a8fa6',
+  'Gambe':'#6b8e3a', 'Core':'#b85c7a', 'Equilibrio e Coordinazione':'#4a8fa6',
   'Caviglia e Polpaccio - Riabilitazione':'#4a8f5c', 'Anca':'#a5754f',
   'Pliometria - estensiva':'#8aa33c', 'Pliometria - intensiva':'#cc5030', 'Altro':'#8a8f87'
 };

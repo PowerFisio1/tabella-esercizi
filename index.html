@@ -16,6 +16,9 @@
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    /* colore fisso del brand, uguale in chiaro e scuro: non deve seguire --accent
+       (che in scuro diventa un azzurro più chiaro) sulle card della dashboard */
+    --brand-navy:#1c3f66; --brand-navy-light:#e4ebf2;
     --shadow-1: 0 1px 2px rgba(30,40,35,.05), 0 6px 14px rgba(30,40,35,.07);
     --shadow-1-hover: 0 3px 6px rgba(30,40,35,.07), 0 12px 22px rgba(30,40,35,.11);
     --shadow-primary: 0 2px 4px rgba(10,25,45,.10), 0 12px 26px rgba(10,25,45,.22), inset 0 1px 0 rgba(255,255,255,.10);
@@ -72,7 +75,9 @@
 
   .primaryCard{
     position:relative; display:flex; flex-direction:column; justify-content:space-between;
-    background:var(--accent) url('primary-card-bg.jpg') center/cover; background-blend-mode:multiply;
+    /* overlay blu navy semi-trasparente sopra la foto, non un blend-mode legato al tema:
+       così la foto resta ben visibile e chiara anche in tema chiaro, invece di scurirsi */
+    background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76)), url('primary-card-bg.jpg') center/cover;
     color:#fff; border-radius:18px; padding:20px 18px; text-decoration:none;
     min-height:224px; box-shadow:var(--shadow-primary);
     transition:transform .15s ease, box-shadow .15s ease;
@@ -94,7 +99,7 @@
   }
   .secondaryTile:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-1-hover);}
   .secondaryTile .tileIcon{
-    width:38px; height:38px; border-radius:11px; background:var(--accent-light); color:var(--accent);
+    width:38px; height:38px; border-radius:11px; background:var(--brand-navy-light); color:var(--brand-navy);
     display:flex; align-items:center; justify-content:center; flex:none;
   }
   .secondaryTile .tileIcon svg{width:19px; height:19px;}
@@ -103,6 +108,14 @@
   .secondaryTile .cardTitle{font-size:14.5px; font-weight:700;}
   .secondaryTile.soon{opacity:.55; cursor:default; pointer-events:none; box-shadow:none;}
   .secondaryTile.soon .tileIcon{background:var(--line); color:var(--sub);}
+
+  .secondaryTile.libraryTile{
+    background:linear-gradient(160deg, rgba(28,63,102,.7), rgba(28,63,102,.84)), url('libreria-card-bg.png') center/cover;
+    border-color:transparent; color:#fff;
+  }
+  .secondaryTile.libraryTile:hover{border-color:rgba(255,255,255,.4);}
+  .secondaryTile.libraryTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
+  .secondaryTile.libraryTile .eyebrow{color:rgba(255,255,255,.8);}
 
   .footerInfo{display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:44px;}
   .footerInfo h1{font-size:17px; font-weight:700; font-style:italic; margin:0 0 6px;}
@@ -149,7 +162,7 @@
     </a>
 
     <div class="stackedCards">
-      <a class="secondaryTile" href="libreria.html">
+      <a class="secondaryTile libraryTile" href="libreria.html">
         <div class="tileIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         </div>

@@ -311,7 +311,7 @@ let customImages = lsGet(LS_IMAGES, {});
 const EX_DEFAULTS = Object.assign({}, EX);
 // vecchi nomi di gruppo accorpati in uno unico: rimappa eventuali esercizi personalizzati
 // salvati in precedenza col nome vecchio, così non spariscono dal menù
-const GROUP_RENAME = {'Spalle':'Spalla', 'Spalla - Riabilitazione':'Spalla', 'Anca e Inguine - Riabilitazione':'Anca', 'Ginocchio - Riabilitazione':'Gambe'};
+const GROUP_RENAME = {'Spalle':'Spalla', 'Spalla - Riabilitazione':'Spalla', 'Anca e Inguine - Riabilitazione':'Anca', 'Ginocchio - Riabilitazione':'Gambe', 'Caviglia ed equilibrio':'Equilibrio e Coordinazione'};
 function rebuildExFromLocal(){
   Object.keys(EX).forEach(k=>{ if(!(k in EX_DEFAULTS)) delete EX[k]; });
   Object.assign(EX, EX_DEFAULTS);
@@ -332,7 +332,7 @@ const MUSCLE_KW = {
   'Braccia': ['bicipit','tricipit','curl','braccia','avambracc','french press','dip'],
   'Gambe': ['gamba','gambe','quadricipit','femoral','ischiocrurali','polpacc','calf','squat','affond','lunge','leg','glute','glutei'],
   'Core': ['addomin','core','plank','crunch','obliqu','sit up','situp'],
-  'Caviglia ed equilibrio': ['caviglia','equilibrio','proprioce','tavoletta','balance','ginocchio'],
+  'Equilibrio e Coordinazione': ['caviglia','equilibrio','proprioce','tavoletta','balance','ginocchio'],
   'Anca': ['anca','anche','hip','abduttor','adduttor']
 };
 function classifyExercise(text){
@@ -397,7 +397,7 @@ function buildLibrary(){
     h.addEventListener('click', ()=>{
       const g = h.dataset.group;
       if(collapsedGroupsLib.has(g)) collapsedGroupsLib.delete(g); else collapsedGroupsLib.add(g);
-      h.classList.toggle('collapsed', collapsedGroupsLib.has(g));
+      filterLibrary();
     });
   });
   filterLibrary();
@@ -415,7 +415,11 @@ function filterLibrary(){
     });
     section.style.display = groupHasVisible ? '' : 'none';
     const header = section.querySelector('.groupHeader');
-    section.querySelector('.cardGrid').style.display = (q || !header.classList.contains('collapsed')) ? '' : 'none';
+    // mentre si cerca, il gruppo si apre da solo per mostrare subito l'esercizio trovato;
+    // senza ricerca torna allo stato aperto/chiuso scelto dall'utente (di default chiuso)
+    const isCollapsed = q ? false : collapsedGroupsLib.has(header.dataset.group);
+    header.classList.toggle('collapsed', isCollapsed);
+    section.querySelector('.cardGrid').style.display = isCollapsed ? 'none' : '';
   });
   resultsCount.textContent = q ? (visibleCount + (visibleCount===1 ? ' esercizio trovato' : ' esercizi trovati')) : '';
 }
