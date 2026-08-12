@@ -109,17 +109,26 @@
   .secondaryTile.soon{opacity:.55; cursor:default; pointer-events:none; box-shadow:none;}
   .secondaryTile.soon .tileIcon{background:var(--line); color:var(--sub);}
 
+  /* la foto (sotto, desaturata per spegnere i toni caldi marrone/dorato) e l'overlay blu
+     navy (sopra, alla stessa opacità della card "Crea Scheda", non filtrato quindi resta
+     blu navy pieno) sono due livelli separati: il filtro va solo sulla foto, non sul navy */
   .secondaryTile.libraryTile{
-    /* overlay più leggero per far vedere di più la foto originale, e saturazione
-       ridotta per spegnere i toni caldi (marrone/dorato) dei libri: il bianco del
-       testo non viene alterato dal filtro, essendo già a saturazione zero */
-    background:linear-gradient(160deg, rgba(28,63,102,.48), rgba(28,63,102,.64)), url('libreria-card-bg.png') center/cover;
+    position:relative; overflow:hidden;
+    background:var(--card); border-color:transparent; color:#fff;
+  }
+  .secondaryTile.libraryTile::before{
+    content:''; position:absolute; inset:0; z-index:0;
+    background:url('libreria-card-bg.png') center/cover;
     filter:saturate(35%);
-    border-color:transparent; color:#fff;
+  }
+  .secondaryTile.libraryTile::after{
+    content:''; position:absolute; inset:0; z-index:1;
+    background:linear-gradient(160deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
   }
   .secondaryTile.libraryTile:hover{border-color:rgba(255,255,255,.4);}
   .secondaryTile.libraryTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
   .secondaryTile.libraryTile .eyebrow{color:rgba(255,255,255,.8);}
+  .secondaryTile.libraryTile .tileIcon, .secondaryTile.libraryTile .tileText{position:relative; z-index:2;}
 
   .footerInfo{display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:44px;}
   .footerInfo h1{font-size:17px; font-weight:700; font-style:italic; margin:0 0 6px;}
