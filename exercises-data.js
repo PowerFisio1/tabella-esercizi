@@ -1002,14 +1002,166 @@ add('Pliometria - intensiva','cod_jump','Change of direction jump',
  'Salta cambiando direzione di 45-90 gradi, concentrandoti sul frenare bene e controllare il ginocchio prima di ripartire.',
  '4x6 (3 per verso)', null, 'Controllo ginocchio, decelerazione');
 
+/* ===================== ESERCIZI - GINOCCHIO: RIABILITAZIONE =====================
+   Fonti: UW Medicine Sports Medicine Clinic (isometria per tendinopatia rotulea),
+   Mass General Brigham Sports Medicine (protocolli post-operatori LCA e lesioni
+   ischiocrurali) */
+
+/* -- Isometria per tendinopatia rotulea (utile anche per altre tendinopatie del ginocchio) -- */
+add('Ginocchio - Riabilitazione','quad_set_tendinopatia','Quad set da seduto (tendinopatia rotulea)',
+ 'Seduto a terra con la gamba dolorante tesa davanti a te e l\'altra piegata, solleva il tallone da terra e spingi il ginocchio verso il pavimento contraendo il quadricipite.',
+ '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
+add('Ginocchio - Riabilitazione','bug_squash','Bug squash (isometria quadricipite al muro)',
+ 'Sdraiato sulla schiena vicino a un muro, piega il ginocchio dolorante e appoggia la pianta del piede al muro. Spingi il piede contro il muro come se dovessi schiacciare un insetto, senza muovere il ginocchio.',
+ '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
+add('Ginocchio - Riabilitazione','wall_squat_bipodalico','Wall squat a due gambe (isometria)',
+ 'Schiena al muro, piedi leggermente più larghi delle spalle, scendi flettendo le ginocchia tra 60 e 90 gradi sollevandoti sulle punte, senza portare le ginocchia oltre le punte dei piedi.',
+ '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
+add('Ginocchio - Riabilitazione','wall_squat_monopodalico','Wall squat a una gamba (isometria)',
+ 'Come il wall squat a due gambe, ma solleva da terra la gamba sana e mantieni tutto il peso sulla gamba dolorante.',
+ '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
+add('Ginocchio - Riabilitazione','decline_squat','Squat in decline',
+ 'In piedi con i talloni appoggiati su un piccolo rialzo inclinato, scendi lentamente in uno squat tenendo le punte dei piedi in avanti, senza far cadere le ginocchia verso l\'interno.',
+ '5x45 sec, riposo fino a 2 min tra le ripetizioni', null, 'Quadricipite, tendine rotuleo');
+
+/* -- Rinforzo post-operatorio / dopo trauma al ginocchio -- */
+add('Ginocchio - Riabilitazione','heel_slide','Scivolamento del tallone (heel slide)',
+ 'Seduto o sdraiato con la gamba tesa davanti a te, fai scivolare il tallone verso di te piegando il ginocchio il più possibile senza dolore, poi distendi di nuovo lentamente.',
+ '3x10-15', null, 'Mobilità del ginocchio');
+add('Ginocchio - Riabilitazione','isometria_multiangolo_quad','Isometria del quadricipite a ginocchio piegato',
+ 'Seduto con il ginocchio piegato a circa 60-90 gradi (per esempio sul bordo di una sedia, con la caviglia bloccata o tenuta da un elastico), spingi in avanti come per distendere il ginocchio, senza muoverlo davvero.',
+ '3x10, tenendo 5-10 sec', null, 'Quadricipite (isometria multi-angolo)');
+add('Ginocchio - Riabilitazione','mini_squat','Mini squat (0-60°)',
+ 'In piedi, scendi in uno squat controllato limitando la flessione del ginocchio a circa 60 gradi, poi risali lentamente.',
+ '3x10-15', null, 'Quadricipite, glutei');
+add('Ginocchio - Riabilitazione','step_up_march','Step-up con marcia',
+ 'Sali su un gradino basso con la gamba interessata, una volta in cima solleva il ginocchio dell\'altra gamba come per marciare, poi scendi controllando il movimento.',
+ '3x10 per lato', null, 'Quadricipite, glutei, controllo del ginocchio');
+add('Ginocchio - Riabilitazione','lateral_step_up','Step-up laterale',
+ 'In piedi di fianco a un gradino basso, sali lateralmente spingendo con la gamba più vicina al gradino, poi scendi con controllo.',
+ '3x10 per lato', null, 'Quadricipite, medio gluteo');
+
+/* -- Coscia posteriore: progressione dopo lesione ai femorali -- */
+add('Ginocchio - Riabilitazione','glute_set','Glute set (contrazione isometrica del gluteo)',
+ 'Sdraiato o in piedi, contrai con forza i glutei stringendoli, tieni qualche secondo, poi rilascia. Va padroneggiato bene prima di riprendere a rinforzare i femorali dopo un infortunio.',
+ '3x10-15, tenendo 5 sec', null, 'Glutei (attivazione)');
+add('Ginocchio - Riabilitazione','isometria_femorali','Isometria femorali (leg curl contro resistenza)',
+ 'Sdraiato a pancia in giù o seduto, piega il ginocchio a circa 90 gradi e spingi il tallone contro una resistenza ferma (una mano, una cavigliera bloccata), senza muovere davvero la gamba.',
+ '3x10, tenendo 5-10 sec', null, 'Ischiocrurali (isometria)');
+add('Ginocchio - Riabilitazione','bridge_thera_band','Ponte glutei con elastico alle cosce',
+ 'Come il ponte glutei classico, ma con un elastico intorno alle cosce appena sopra le ginocchia: spingi leggermente le ginocchia verso l\'esterno mentre sollevi il bacino.',
+ '3x12-15', null, 'Glutei, medio gluteo, ischiocrurali');
+add('Ginocchio - Riabilitazione','bridge_single_leg','Ponte a una gamba',
+ 'Come il ponte glutei classico, ma con una gamba sollevata e tesa in aria: spingi con il tallone della gamba a terra per sollevare il bacino.',
+ '3x8-10 per lato', null, 'Glutei, ischiocrurali (monopodalico)');
+
+/* ===================== ESERCIZI - ANCA E INGUINE: RIABILITAZIONE =====================
+   Fonti: NewYork-Presbyterian/Weill Cornell Medical Center - Dr. Jaspal Singh (lesione
+   dei flessori dell'anca), Aspetar Orthopaedic & Sports Medicine Hospital (protocollo
+   per lesioni acute degli adduttori) */
+
+/* -- Flessori dell'anca / ileopsoas -- */
+add('Anca e Inguine - Riabilitazione','hip_flexor_stretch','Stiramento flessori dell\'anca (affondo da in ginocchio)',
+ 'In ginocchio con una gamba avanti e il piede appoggiato a terra, contrai gli addominali, appiattisci la parte bassa della schiena e spingi leggermente il bacino in avanti finché non senti uno stiramento davanti all\'anca della gamba dietro. Tieni il busto dritto.',
+ '3x20-30 sec per lato', null, 'Flessori dell\'anca, ileopsoas (stretching)');
+add('Anca e Inguine - Riabilitazione','resisted_hip_flexion','Flessione d\'anca resistita (elastico)',
+ 'In piedi con la schiena verso una porta o un punto fisso, aggancia un elastico alla caviglia. Tenendo il ginocchio teso, porta la gamba in avanti contro la resistenza, poi torna indietro con controllo.',
+ '3x10 per lato', null, 'Flessori dell\'anca, ileopsoas');
+add('Anca e Inguine - Riabilitazione','psoas_march','Marcia isometrica (psoas march)',
+ 'In piedi, solleva un ginocchio all\'altezza dell\'anca come per marciare e mantieni la posizione in equilibrio sull\'altra gamba, tenendo bacino e busto ben fermi.',
+ '3x20-30 sec per lato', null, 'Ileopsoas, controllo lombo-pelvico');
+add('Anca e Inguine - Riabilitazione','leg_swing_ap','Slancio gamba avanti-indietro (leg swing)',
+ 'In piedi, appoggiato con una mano a un sostegno stabile, slancia la gamba avanti e indietro come un calcio controllato, aumentando gradualmente ampiezza e velocità, tenendo il busto fermo.',
+ '4x20 slanci per lato', null, 'Flessori ed estensori dell\'anca (mobilità attiva)');
+add('Anca e Inguine - Riabilitazione','leg_swing_laterale','Slancio gamba laterale',
+ 'In piedi, appoggiato con una mano a un sostegno stabile davanti a te, slancia la gamba lateralmente da un lato all\'altro davanti al corpo, punte dei piedi sempre in avanti, aumentando gradualmente ampiezza e velocità.',
+ '4x20 slanci per lato', null, 'Adduttori, abduttori (mobilità attiva)');
+add('Anca e Inguine - Riabilitazione','hip_circles','Cerchi d\'anca',
+ 'In piedi con i piedi larghi circa una volta e mezza le spalle, mani sui fianchi, muovi bacino e anche disegnando cerchi ampi, aumentando gradualmente dimensione e velocità.',
+ '3x10 cerchi per verso', null, 'Anca (mobilità)');
+
+/* -- Adduttori (inguine) -- */
+add('Anca e Inguine - Riabilitazione','adductor_ball_squeeze','Isometria adduttori (schiaccia palla)',
+ 'Sdraiato con le ginocchia piegate, metti un cuscino o una palla morbida tra le ginocchia e stringila con forza, tieni qualche secondo, poi rilascia.',
+ '3x10-15, tenendo 5-10 sec', null, 'Adduttori (isometria)');
+add('Anca e Inguine - Riabilitazione','kicking_tension_arc','Calcio con elastico (tension arc)',
+ 'In piedi su una gamba, con un elastico basso agganciato alla caviglia della gamba libera e un secondo elastico alto tenuto con la mano opposta, porta rapidamente gamba e braccio in avanti insieme come in un calcio, poi torna indietro lentamente senza appoggiare il piede tra una ripetizione e l\'altra.',
+ '3x10-15 per lato', null, 'Adduttori, coordinazione (fase avanzata)');
+add('Anca e Inguine - Riabilitazione','one_leg_coordination','Coordinazione a una gamba (sci di fondo)',
+ 'In piedi su una gamba con l\'altra leggermente piegata, piega e distendi il ginocchio d\'appoggio mentre l\'altra gamba e le braccia oscillano in coordinazione, come nello sci di fondo.',
+ '3x20-30 sec per lato', null, 'Adduttori, equilibrio, coordinazione');
+
+/* -- Abduttori / medio gluteo -- */
+add('Anca e Inguine - Riabilitazione','side_lying_hip_abduction_iso','Isometria abduttori (sollevamento gamba laterale)',
+ 'Sdraiato su un fianco con le gambe allineate e tese, solleva la gamba superiore di circa 20-30 gradi e mantieni la posizione, senza ruotare il bacino all\'indietro.',
+ '3x20-30 sec per lato', null, 'Medio gluteo, abduttori (isometria)');
+add('Anca e Inguine - Riabilitazione','standing_hip_abduction_iso','Isometria abduttori in piedi (spinta al muro)',
+ 'In piedi di fianco a un muro con il lato esterno della gamba interessata vicino alla parete, spingi la gamba contro il muro verso l\'esterno senza muoverla davvero.',
+ '3x10, tenendo 5-10 sec', null, 'Medio gluteo, abduttori (isometria)');
+add('Anca e Inguine - Riabilitazione','hip_hike','Hip hike (elevazione del bacino)',
+ 'In piedi su un gradino con una gamba, lascia scendere il bacino dal lato della gamba libera, poi risollevalo contraendo il fianco della gamba d\'appoggio, senza piegare il ginocchio.',
+ '3x10-15 per lato', null, 'Medio gluteo, controllo del bacino');
+add('Anca e Inguine - Riabilitazione','lateral_band_walk','Camminata laterale con elastico (monster walk)',
+ 'Con un elastico intorno alle caviglie o appena sopra le ginocchia, piega leggermente le ginocchia e cammina lateralmente a piccoli passi, mantenendo tensione costante sull\'elastico.',
+ '3x10-15 passi per lato', null, 'Medio gluteo, abduttori');
+
+/* ===================== ESERCIZI - CAVIGLIA E POLPACCIO: RIABILITAZIONE =====================
+   Fonti: Mass General Brigham Sports Medicine (protocollo post-operatorio frattura
+   di caviglia con ORIF), protocollo di Alfredson per la tendinopatia achillea
+   (calf raise eccentrico a ginocchio teso/piegato) */
+
+/* -- Fase precoce (dopo frattura o intervento, anche con tutore/stivaletto) -- */
+add('Caviglia e Polpaccio - Riabilitazione','ankle_pumps','Pompe di caviglia (ankle pumps)',
+ 'Sdraiato o seduto con la gamba sollevata, muovi il piede su e giù come se pigiassi un pedale, per favorire la circolazione e ridurre il gonfiore.',
+ '3x15-20, più volte al giorno', null, 'Circolazione, mobilità caviglia');
+add('Caviglia e Polpaccio - Riabilitazione','seated_heel_raise_precoce','Sollevamento tallone da seduto (fase precoce)',
+ 'Seduto con il piede appoggiato a terra, solleva il tallone mantenendo le dita a contatto con il pavimento, poi riappoggia. Utile nelle prime settimane, anche con tutore o stivaletto.',
+ '3x15-20', null, 'Polpaccio (attivazione precoce)');
+add('Caviglia e Polpaccio - Riabilitazione','seated_toe_raise','Sollevamento punte da seduto',
+ 'Seduto con il piede appoggiato a terra, solleva la parte anteriore del piede e le dita mantenendo il tallone a terra, poi riappoggia.',
+ '3x15-20', null, 'Tibiale anteriore (attivazione precoce)');
+add('Caviglia e Polpaccio - Riabilitazione','ankle_dorsiflex_elastico','Dorsiflessione caviglia con elastico',
+ 'Seduto con l\'elastico agganciato attorno alla parte superiore del piede e fissato di fronte a te, porta il piede verso di te contro la resistenza, poi torna lentamente.',
+ '3x15 per lato', null, 'Tibiale anteriore');
+add('Caviglia e Polpaccio - Riabilitazione','ankle_plantarflex_elastico','Plantarflessione caviglia con elastico',
+ 'Seduto con l\'elastico intorno alla pianta del piede tenuto con le mani, spingi il piede in avanti contro la resistenza come per premere un pedale, poi torna lentamente.',
+ '3x15 per lato', null, 'Polpaccio (gastrocnemio, soleo)');
+
+/* -- Calf raise: da seduto (soleo) e in piedi (gastrocnemio + soleo) -- */
+add('Caviglia e Polpaccio - Riabilitazione','seated_calf_raise_soleo','Calf raise da seduto (soleo)',
+ 'Seduto con le ginocchia piegate a circa 90 gradi e un peso appoggiato sulle cosce (o su una macchina dedicata), solleva i talloni il più possibile restando seduto, tieni un istante, poi scendi lentamente. A ginocchio piegato lavora soprattutto il soleo.',
+ '3x15-20', null, 'Soleo');
+add('Caviglia e Polpaccio - Riabilitazione','standing_calf_raise_progression','Calf raise in piedi, carico crescente',
+ 'In piedi, sollevati sulle punte dei piedi. Nelle prime settimane dopo un infortunio distribuisci il peso soprattutto sulla gamba sana, poi sposta gradualmente sempre più peso sulla gamba interessata (25% - 50% - 75%), fino ad arrivare al calf raise su una gamba sola.',
+ '3x15, aumentando il carico nell\'arco di alcune settimane', null, 'Gastrocnemio, soleo (progressione post-infortunio)');
+add('Caviglia e Polpaccio - Riabilitazione','heel_drop_ginocchio_teso','Heel drop a ginocchio teso (gastrocnemio)',
+ 'In piedi sulle punte dei piedi sul bordo di un gradino, con il ginocchio ben teso, lascia scendere lentamente il tallone sotto il livello del gradino, poi risali aiutandoti con la gamba sana. Il ginocchio teso lavora soprattutto il gastrocnemio.',
+ '3x15, scendendo in circa 3 secondi', null, 'Gastrocnemio, tendine d\'Achille');
+add('Caviglia e Polpaccio - Riabilitazione','heel_drop_ginocchio_piegato','Heel drop a ginocchio piegato (soleo)',
+ 'Come l\'heel drop a ginocchio teso, ma con il ginocchio piegato durante la discesa: isola maggiormente il soleo rispetto al gastrocnemio.',
+ '3x15, scendendo in circa 3 secondi', null, 'Soleo, tendine d\'Achille');
+add('Caviglia e Polpaccio - Riabilitazione','isometria_calf_raise','Isometria calf raise (tendine d\'Achille)',
+ 'In piedi sulle punte dei piedi, a metà del sollevamento, mantieni la posizione ferma senza scendere né salire ulteriormente.',
+ '3-5x30-45 sec', null, 'Polpaccio, tendine d\'Achille (isometria)');
+
+/* -- Equilibrio e propriocezione dopo infortunio alla caviglia -- */
+add('Caviglia e Polpaccio - Riabilitazione','joint_position_retraining','Rieducazione della posizione articolare',
+ 'In piedi su una gamba sola, mantieni l\'equilibrio per qualche secondo, poi ripeti a occhi chiusi: aiuta a recuperare la sensibilità della caviglia dopo l\'infortunio.',
+ '3x20-30 sec per lato, poi ripeti a occhi chiusi', null, 'Propriocezione della caviglia');
+add('Caviglia e Polpaccio - Riabilitazione','star_excursion','Star excursion balance (equilibrio a stella)',
+ 'In equilibrio su una gamba, con l\'altra gamba tocca leggermente il pavimento il più lontano possibile in diverse direzioni intorno a te (avanti, di lato, indietro), poi torna in equilibrio, senza appoggiare il peso sulla gamba che si allunga.',
+ '3x8 direzioni per lato', null, 'Equilibrio, controllo neuromuscolare');
+
 const groupsOrder = [
-  'Petto','Spalle','Spalla - Riabilitazione','Schiena','Braccia','Gambe','Core','Caviglia ed equilibrio','Anca',
+  'Petto','Spalle','Spalla - Riabilitazione','Schiena','Braccia','Gambe','Ginocchio - Riabilitazione','Core',
+  'Caviglia ed equilibrio','Caviglia e Polpaccio - Riabilitazione','Anca','Anca e Inguine - Riabilitazione',
   'Pliometria - estensiva','Pliometria - intensiva','Altro'
 ];
 /* ---- colore identificativo per categoria (dot nel menù + bordo riga) ---- */
 const GROUP_COLORS = {
   'Petto':'#c97a3d', 'Spalle':'#c9a227', 'Spalla - Riabilitazione':'#2f9e8f', 'Schiena':'#3b6fa3', 'Braccia':'#7b5ea7',
-  'Gambe':'#6b8e3a', 'Core':'#b85c7a', 'Caviglia ed equilibrio':'#4a8fa6', 'Anca':'#a5754f',
+  'Gambe':'#6b8e3a', 'Ginocchio - Riabilitazione':'#5866b3', 'Core':'#b85c7a', 'Caviglia ed equilibrio':'#4a8fa6',
+  'Caviglia e Polpaccio - Riabilitazione':'#4a8f5c', 'Anca':'#a5754f', 'Anca e Inguine - Riabilitazione':'#9a4f9e',
   'Pliometria - estensiva':'#8aa33c', 'Pliometria - intensiva':'#cc5030', 'Altro':'#8a8f87'
 };
 
