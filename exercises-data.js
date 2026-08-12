@@ -827,6 +827,27 @@ add('Gambe','wall_sit','Wall sit',
 add('Gambe','nordic_curl','Nordic hamstring curl',
  'In ginocchio con le caviglie bloccate, scendi in avanti il più lentamente possibile controllando con la parte posteriore della coscia, aiutandoti con le mani a terra a fine movimento.',
  '3x5-8', null, 'Ischiocrurali');
+add('Gambe','nordic_curl_assistito','Nordic curl assistito (con le mani)',
+ 'Come il Nordic hamstring curl, ma usa le mani per accompagnare la discesa e aiutarti a risalire, riducendo il carico sui femorali: utile per chi non riesce ancora a controllare la versione completa.',
+ '3x6-8', null, 'Ischiocrurali (progressione)');
+add('Gambe','nordic_curl_slider','Nordic curl con dischi scorrevoli (slider)',
+ 'In ginocchio su una superficie liscia, con un disco scorrevole (o un asciugamano) sotto ciascun piede al posto delle caviglie bloccate, scendi in avanti lentamente controllando con la parte posteriore della coscia, lasciando scivolare i piedi in avanti man mano che scendi.',
+ '3x6-10', null, 'Ischiocrurali (con scivolamento)');
+add('Gambe','nordic_curl_eccentrico','Nordic curl, sola fase eccentrica',
+ 'Scendi in avanti il più lentamente possibile come nel Nordic hamstring curl classico, ma una volta arrivato quasi a terra appoggiati con le mani e torna in ginocchio senza risalire attivamente: concentra tutto lo sforzo sulla sola discesa controllata.',
+ '3x5-6', null, 'Ischiocrurali (solo eccentrica)');
+add('Gambe','nordic_curl_fitball','Nordic curl su fitball',
+ 'In ginocchio con gli stinchi appoggiati su una fitball tenuta ferma (da un\'altra persona o contro un muro), scendi in avanti controllando con la parte posteriore della coscia, poi torna su. La palla rende il movimento più graduale e sicuro rispetto alla versione classica.',
+ '3x6-10', null, 'Ischiocrurali (progressione facilitata)');
+add('Gambe','reverse_nordic','Reverse Nordic curl',
+ 'In ginocchio con busto e fianchi ben allineati (senza piegarti sulle anche), lasciati cadere lentamente all\'indietro il più possibile controllando il movimento con il quadricipite, poi risali contraendo le cosce. Tieni le mani vicino ai fianchi come rete di sicurezza.',
+ '3x6-10', null, 'Quadricipite, tendine rotuleo (eccentrico)');
+add('Gambe','reverse_nordic_assistito','Reverse Nordic curl assistito con elastico',
+ 'Come il Reverse Nordic curl, ma con un elastico ancorato davanti a te e tenuto con le mani, che ti aiuta a risalire dalla posizione più inclinata: riduce il carico e permette di scendere più indietro in sicurezza.',
+ '3x8-10', null, 'Quadricipite (progressione assistita)');
+add('Gambe','reverse_nordic_eccentrico','Reverse Nordic curl, sola fase eccentrica',
+ 'Scendi lentamente all\'indietro come nel Reverse Nordic curl classico, poi usa le mani per aiutarti a tornare su senza risalire attivamente con il quadricipite: concentra lo sforzo sulla sola discesa controllata.',
+ '3x6-8', null, 'Quadricipite (solo eccentrica)');
 add('Gambe','quad_set','Quad set (contrazione isometrica del quadricipite)',
  'Seduto o sdraiato con la gamba tesa, contrai il muscolo davanti alla coscia spingendo il ginocchio verso il basso, tieni 5-10 secondi senza sentire dolore.',
  '3x10-15',
@@ -922,6 +943,12 @@ add('Anca','clam_shell','Clam shell',
 add('Anca','copenhagen_plank','Copenhagen plank (adduttori)',
  'Fianco a terra, la gamba superiore appoggiata su una panca, solleva il bacino mantenendo il corpo allineato. Chi inizia può tenere il ginocchio piegato.',
  '3x15-30" per lato (anche a ginocchio piegato per iniziare)', null, 'Adduttori, core');
+add('Anca','copenhagen_leva_lunga','Copenhagen plank a leva lunga (avanzato)',
+ 'Come il Copenhagen plank classico, ma con la gamba superiore completamente tesa e il piede, non il ginocchio, appoggiato sulla panca: la leva più lunga aumenta molto il carico sugli adduttori.',
+ '3x15-30 sec per lato', null, 'Adduttori (avanzato)');
+add('Anca','copenhagen_dinamico','Copenhagen plank dinamico',
+ 'Come il Copenhagen plank, ma invece di mantenere la posizione ferma, sali e scendi ripetutamente con il bacino in modo controllato.',
+ '3x10-15 per lato', null, 'Adduttori, core (dinamico)');
 
 /* ===================== PLIOMETRIA ESTENSIVA ===================== */
 add('Pliometria - estensiva','skip_basso','Skipping basso',
