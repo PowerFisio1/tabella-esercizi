@@ -503,6 +503,7 @@ const LS_REMOVED = LS_PREFIX+'removedDefaultImages'; // [exerciseKey, ...] immag
 const LS_PATIENT = LS_PREFIX+'patientInfo';     // {name, date}
 const LS_TEMPLATES = LS_PREFIX+'templates';     // [{name, rows:[{key,desc}]}]
 const LS_THEME = LS_PREFIX+'theme';             // 'dark' | 'light' — se assente, segue il sistema
+const LS_LOCAL_UPDATED_AT = LS_PREFIX+'localUpdatedAt'; // timestamp dell'ultima modifica genuinamente locale (non applicata dal cloud), per non farla sovrascrivere da un pull con dati più vecchi
 
 function lsGet(key, fallback){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
@@ -511,7 +512,10 @@ function lsGet(key, fallback){
 function lsSet(key, value){
   try{
     localStorage.setItem(key, JSON.stringify(value));
-    if(SYNC_KEYS.includes(key)) scheduleCloudSync();
+    if(SYNC_KEYS.includes(key)){
+      if(!applyingRemoteSync) localStorage.setItem(LS_LOCAL_UPDATED_AT, JSON.stringify(new Date().toISOString()));
+      scheduleCloudSync();
+    }
     return true;
   }
   catch(e){ return false; }
@@ -536,8 +540,9 @@ const EX_DEFAULTS = Object.assign({}, EX);
 function rebuildExFromLocal(){
   Object.keys(EX).forEach(k=>{ if(!(k in EX_DEFAULTS)) delete EX[k]; });
   Object.assign(EX, EX_DEFAULTS);
-  // merge esercizi personalizzati ("Altro")
-  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:null}; });
+  // merge esercizi personalizzati ("Altro"): possono avere un proprio svg (es. quando
+  // sostituiscono un esercizio di libreria modificato dalla pagina Libreria)
+  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:c.svg||null}; });
   // rimuovi dal menù gli esercizi (di libreria o personalizzati) tolti in precedenza
   lsGet(LS_HIDDEN, []).forEach(k=>{ delete EX[k]; });
 }
@@ -1277,6 +1282,15 @@ function applyTableStateToGrid(rows){
 
 /* applica una riga di dati arrivata dal cloud (pull iniziale o evento Realtime) allo stato locale */
 function applyRemoteRow(data){
+  const localUpdatedAt = lsGet(LS_LOCAL_UPDATED_AT, null);
+  if(localUpdatedAt && data.updated_at && localUpdatedAt > data.updated_at){
+    // questo dispositivo ha modifiche locali più recenti di quelle sul cloud (tipicamente
+    // perché un invio precedente non è arrivato a destinazione prima che l'app si chiudesse):
+    // non sovrascriverle. Rilanciamo invece l'invio, che "sana" il cloud coi dati locali.
+    setSyncStatus('Dati locali più recenti del cloud: sincronizzo verso il cloud.');
+    pushLibraryToCloud();
+    return;
+  }
   if(dirty){
     // ci sono modifiche locali non ancora salvate/inviate (es. hai appena selezionato un
     // esercizio e il salvataggio automatico non è ancora partito): non sovrascriverle con
@@ -1356,11 +1370,14 @@ function setSyncUser(user){
 }
 function setSyncStatus(text){ /* nessuna interfaccia di sincronizzazione in questa pagina */ }
 
-// se la scheda viene nascosta (cambio app, chiusura) con una sincronizzazione in coda, la anticipiamo subito
+// se la scheda viene nascosta (cambio app, chiusura) con un salvataggio o una sincronizzazione
+// in coda, li anticipiamo subito: altrimenti, uscendo entro il breve ritardo del debounce,
+// la modifica appena fatta rischia di non venire mai scritta prima che il sistema sospenda o
+// chiuda la pagina (comune su mobile dopo qualche minuto in background)
 document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState === 'hidden' && cloudSyncTimer){
-    clearTimeout(cloudSyncTimer);
-    pushLibraryToCloud();
+  if(document.visibilityState === 'hidden'){
+    if(autoSaveTimer){ clearTimeout(autoSaveTimer); autoSaveTimer = null; performSave(); }
+    if(cloudSyncTimer){ clearTimeout(cloudSyncTimer); pushLibraryToCloud(); }
   }
 });
 

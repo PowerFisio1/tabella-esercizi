@@ -16,16 +16,19 @@
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    --danger:#b3412f;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
       --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --danger:#c8543c;
     }
   }
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
     --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --danger:#c8543c;
   }
   *{box-sizing:border-box;}
   body{
@@ -69,6 +72,96 @@
   .exReps{font-size:11.5px; font-weight:700; color:var(--accent);}
   .exDesc{font-size:12px; color:var(--sub); line-height:1.4;}
   .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
+
+  button{
+    font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+    border-radius:8px; padding:9px 14px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink);
+    transition:border-color .15s ease, background-color .15s ease, opacity .15s ease;
+  }
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
+  button.primary:hover{opacity:.92;}
+
+  .exCardActions{display:flex; gap:6px; margin-top:2px;}
+  .exCardActions button{flex:1; font-size:11.5px; padding:6px 8px; border-radius:6px;}
+  .exCardActions .exCardDelete:hover{border-color:var(--danger); color:var(--danger);}
+
+  .modalOverlay{
+    display:none; position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:1000;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modalOverlay.show{display:flex;}
+  .modalCard{
+    background:var(--card); color:var(--ink); border-radius:14px; padding:22px; max-width:360px; width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); max-height:calc(100vh - 40px); overflow-y:auto;
+  }
+  .modalCard p{margin:0 0 10px; font-size:14px; line-height:1.5; color:var(--ink);}
+  .modalCard .modalNote{font-size:12px; color:var(--sub);}
+  .modalActions{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
+  .modalActions button{font-family:inherit; font-size:13px; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;}
+  .modalActions button:hover{border-color:var(--accent);}
+  .modalActions .danger{background:var(--danger); color:#fff; border-color:var(--danger);}
+  .modalActions .danger:hover{opacity:.9;}
+
+  .exModalCard{max-width:440px;}
+  .exFormGrid{display:flex; flex-direction:column; gap:12px; margin:14px 0;}
+  .exFormField{display:flex; flex-direction:column; gap:4px;}
+  .exFormField .label{font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); font-weight:600;}
+  .exFormInput{
+    font-family:inherit; font-size:13px; color:var(--ink); background:var(--card);
+    border:1px solid var(--line); border-radius:8px; padding:8px 9px; outline:none; transition:border-color .15s ease;
+    width:100%;
+  }
+  .exFormInput:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+  textarea.exFormInput{resize:vertical; min-height:70px; line-height:1.45;}
+  .exFormImgRow{display:flex; align-items:center; gap:12px;}
+  .exFormImgActions{display:flex; flex-direction:column; gap:6px;}
+  .exFormImgActions button{font-size:12px; padding:6px 10px;}
+
+  .pic{width:100px; cursor:pointer; border-radius:8px; transition:opacity .12s; flex:none;}
+  .pic:hover{opacity:.82;}
+  .pic svg{width:100px; height:auto; display:block;}
+  .pic > img{width:100px; max-width:100%; height:auto; display:block; border-radius:6px;}
+  .pic .ekfig{width:100px; background:#ffffff; border-radius:6px; padding:6px;}
+  .pic .ekfig svg{width:100%; height:auto; display:block;}
+  .placeholder{
+    width:100px; height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    font-size:9.5px; color:var(--sub); text-align:center; line-height:1.3;
+    border:1.5px dashed var(--line); border-radius:8px; padding:6px;
+  }
+  .placeholder svg{width:20px; height:20px; stroke:var(--sub); flex:none;}
+  .pic:hover .placeholder{border-color:var(--accent); color:var(--accent);}
+  .pic:hover .placeholder svg{stroke:var(--accent);}
+
+  .cropCard{max-width:480px;}
+  .cropStageOuter{
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    margin:14px 0; padding:14px; overflow:hidden;
+  }
+  .cropStage{position:relative; user-select:none; -webkit-user-select:none; touch-action:none;}
+  .cropStage img{display:block; width:100%; height:100%; pointer-events:none;}
+  .cropBar{position:absolute; background:rgba(10,16,15,.6); pointer-events:none;}
+  .cropBox{
+    position:absolute; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.45);
+    cursor:move; box-sizing:border-box;
+  }
+  .cropHandle{
+    position:absolute; width:18px; height:18px; margin:-9px; background:#fff;
+    border:2px solid var(--accent); border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  .cropHandleNW{left:0; top:0; cursor:nwse-resize;}
+  .cropHandleNE{left:100%; top:0; cursor:nesw-resize;}
+  .cropHandleSW{left:0; top:100%; cursor:nesw-resize;}
+  .cropHandleSE{left:100%; top:100%; cursor:nwse-resize;}
+  .cropDimsRow{text-align:center; font-size:12px; font-weight:700; color:var(--sub); font-variant-numeric:tabular-nums;}
+
+  @media screen and (max-width: 720px){
+    .modalCard{padding:18px;}
+    .exFormImgRow{flex-wrap:wrap;}
+    .cropStageOuter{padding:8px;}
+  }
 </style>
 <script>
 (function(){
@@ -83,6 +176,7 @@
 <div class="wrap">
   <div class="topBar">
     <a class="backLink" href="index.html">← Dashboard</a>
+    <button type="button" id="addExerciseBtn" class="primary">+ Aggiungi esercizio</button>
   </div>
   <h1>Libreria esercizi</h1>
   <div class="searchWrap">
@@ -92,6 +186,85 @@
   <div id="library"></div>
 </div>
 
+<div class="modalOverlay" id="exModalOverlay">
+  <div class="modalCard exModalCard">
+    <p id="exModalTitle">Nuovo esercizio</p>
+    <div class="exFormGrid">
+      <label class="exFormField">
+        <span class="label">Nome</span>
+        <input type="text" id="exFormName" class="exFormInput" placeholder="Nome esercizio…">
+      </label>
+      <label class="exFormField">
+        <span class="label">Categoria</span>
+        <select id="exFormGroup" class="exFormInput"></select>
+      </label>
+      <label class="exFormField">
+        <span class="label">Ripetizioni predefinite</span>
+        <input type="text" id="exFormReps" class="exFormInput" placeholder="Serie x ripetizioni">
+      </label>
+      <label class="exFormField">
+        <span class="label">Descrizione</span>
+        <textarea id="exFormDesc" class="exFormInput" placeholder="Descrizione in linguaggio semplice…"></textarea>
+      </label>
+      <div class="exFormField">
+        <span class="label">Immagine</span>
+        <div class="exFormImgRow">
+          <div class="pic" id="exFormPic"></div>
+          <div class="exFormImgActions">
+            <button type="button" id="exFormImgUpload">Carica immagine</button>
+            <button type="button" id="exFormImgRemove">Rimuovi immagine</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*" id="exFormFileInput" hidden>
+      </div>
+    </div>
+    <p class="modalNote" id="exModalMsg"></p>
+    <div class="modalActions">
+      <button type="button" id="exModalCancel">Annulla</button>
+      <button type="button" id="exModalSave" class="primary">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="deleteModalOverlay">
+  <div class="modalCard">
+    <p>Rimuovere definitivamente <b id="deleteModalName"></b> dalla libreria?</p>
+    <p class="modalNote">Non comparirà più tra gli esercizi selezionabili su questo computer e sui tuoi altri dispositivi sincronizzati. Se cambi idea, puoi sempre richiedermelo in chat.</p>
+    <div class="modalActions">
+      <button type="button" id="deleteModalCancel">Annulla</button>
+      <button type="button" id="deleteModalConfirm" class="danger">Rimuovi definitivamente</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="cropModalOverlay">
+  <div class="modalCard cropCard">
+    <p>Ritaglia immagine</p>
+    <p class="modalNote">Trascina gli angoli per scegliere l'area, o l'interno per spostarla, poi conferma.</p>
+    <div class="cropStageOuter">
+      <div class="cropStage" id="cropStage">
+        <img id="cropImageEl" alt="" draggable="false">
+        <div class="cropBar" id="cropBarTop"></div>
+        <div class="cropBar" id="cropBarBottom"></div>
+        <div class="cropBar" id="cropBarLeft"></div>
+        <div class="cropBar" id="cropBarRight"></div>
+        <div class="cropBox" id="cropBoxEl">
+          <span class="cropHandle cropHandleNW" data-type="nw"></span>
+          <span class="cropHandle cropHandleNE" data-type="ne"></span>
+          <span class="cropHandle cropHandleSW" data-type="sw"></span>
+          <span class="cropHandle cropHandleSE" data-type="se"></span>
+        </div>
+      </div>
+    </div>
+    <div class="cropDimsRow" id="cropDimsLabel"></div>
+    <div class="modalActions">
+      <button type="button" id="cropModalCancel">Annulla</button>
+      <button type="button" id="cropModalConfirm" class="primary">Usa questa immagine</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="exercises-data.js"></script>
 <script>
 const libraryEl = document.getElementById('library');
@@ -99,21 +272,105 @@ const searchInput = document.getElementById('searchInput');
 const resultsCount = document.getElementById('resultsCount');
 const collapsedGroupsLib = new Set(['Spalla - Riabilitazione']);
 
+/* =====================================================================
+   PERSISTENZA E SYNC — stesse chiavi/motore di scheda.html: gli esercizi
+   aggiunti/modificati/eliminati qui si riflettono automaticamente anche
+   nella tendina di "Crea scheda" e sugli altri dispositivi collegati.
+   ===================================================================== */
+const LS_PREFIX = 'esercizi_fisio_tool_v1__';
+const LS_IMAGES = LS_PREFIX+'customImages';
+const LS_CUSTOM = LS_PREFIX+'customExercises';
+const LS_TABLE  = LS_PREFIX+'tableState';
+const LS_HIDDEN = LS_PREFIX+'hiddenKeys';
+const LS_REMOVED = LS_PREFIX+'removedDefaultImages';
+const LS_TEMPLATES = LS_PREFIX+'templates';
+const LS_LOCAL_UPDATED_AT = LS_PREFIX+'localUpdatedAt';
+
+function lsGet(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function lsSet(key, value){
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+    if(SYNC_KEYS.includes(key)){
+      if(!applyingRemoteSync) localStorage.setItem(LS_LOCAL_UPDATED_AT, JSON.stringify(new Date().toISOString()));
+      scheduleCloudSync();
+    }
+    return true;
+  }
+  catch(e){ return false; }
+}
+
+let customImages = lsGet(LS_IMAGES, {});
+
+/* istantanea dei 143 esercizi di libreria, prima di applicare personalizzazioni locali/cloud:
+   permette di ricalcolare EX da zero ogni volta che arrivano dati sincronizzati da un altro
+   dispositivo, senza accumulare esercizi rimossi/sostituiti altrove */
+const EX_DEFAULTS = Object.assign({}, EX);
+function rebuildExFromLocal(){
+  Object.keys(EX).forEach(k=>{ if(!(k in EX_DEFAULTS)) delete EX[k]; });
+  Object.assign(EX, EX_DEFAULTS);
+  // merge esercizi personalizzati: possono avere un proprio svg quando "sostituiscono"
+  // (modifica) un esercizio di libreria, per non perderne l'illustrazione originale
+  lsGet(LS_CUSTOM, []).forEach(c=>{ EX[c.key] = {group:c.group, label:c.label, desc:c.desc||'', reps:c.reps||'', svg:c.svg||null}; });
+  lsGet(LS_HIDDEN, []).forEach(k=>{ delete EX[k]; });
+}
+rebuildExFromLocal();
+
+/* ---- classificazione automatica per parole chiave (identica a scheda.html) ---- */
+const PLYO_GENERIC_KW = ['salto','salti','saltell','jump','pliometr','balzo','balzi','hop','bound'];
+const PLYO_LIGHT_KW = ['skip','pogo','corda','ankle hop'];
+const MUSCLE_KW = {
+  'Petto': ['petto','pettoral','panca','chest','bench','croci','piegament','push up','pushup','push-up'],
+  'Spalle': ['spalle','spalla','deltoid','shoulder','military','alzate','shrug','scrollate','arnold'],
+  'Schiena': ['schiena','dorsal','dorso','row','rematore','trazion','pull up','pull-up','chin up','lat machine','stacco','deadlift'],
+  'Braccia': ['bicipit','tricipit','curl','braccia','avambracc','french press','dip'],
+  'Gambe': ['gamba','gambe','quadricipit','femoral','ischiocrurali','polpacc','calf','squat','affond','lunge','leg','glute','glutei'],
+  'Core': ['addomin','core','plank','crunch','obliqu','sit up','situp'],
+  'Caviglia ed equilibrio': ['caviglia','equilibrio','proprioce','tavoletta','balance','ginocchio'],
+  'Anca': ['anca','anche','hip','abduttor','adduttor']
+};
+function classifyExercise(text){
+  const t = (text||'').toLowerCase();
+  if(!t.trim()) return 'Altro';
+  if(PLYO_GENERIC_KW.some(k=>t.includes(k))){
+    return PLYO_LIGHT_KW.some(k=>t.includes(k)) ? 'Pliometria - estensiva' : 'Pliometria - intensiva';
+  }
+  for(const g of Object.keys(MUSCLE_KW)){
+    if(MUSCLE_KW[g].some(k=>t.includes(k))) return g;
+  }
+  return 'Altro';
+}
+function buildGroupOptionsLib(){
+  return groupsOrder.map(g=> '<option value="'+g+'">'+escapeHtml(g)+'</option>').join('');
+}
+
+/* ---- rendering libreria ---- */
 function placeholderIcon(){
   return '<svg class="placeholderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5.5-5.5a2 2 0 0 0-2.8 0L3 19"/></svg>';
 }
+function formPlaceholderHTML(){
+  return '<div class="placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5.5-5.5a2 2 0 0 0-2.8 0L3 19"/></svg>nessuna immagine —<br>clicca per caricarne una</div>';
+}
 
 function exerciseCardHTML(key, ex){
-  const pic = ex.svg ? ex.svg : placeholderIcon();
+  const custom = customImages[key];
+  const pic = custom ? '<img src="'+custom+'" alt="">' : (ex.svg ? ex.svg : placeholderIcon());
   return '<div class="exCard" data-key="'+key+'" data-search="'+escapeHtml((ex.label+' '+ex.desc).toLowerCase())+'">'
     + '<div class="exPic">'+pic+'</div>'
     + '<div class="exName">'+escapeHtml(ex.label)+'</div>'
     + (ex.reps ? '<div class="exReps">'+escapeHtml(ex.reps)+'</div>' : '')
     + '<div class="exDesc">'+escapeHtml(ex.desc||'')+'</div>'
+    + '<div class="exCardActions">'
+    +   '<button type="button" class="exCardEdit" data-key="'+key+'">Modifica</button>'
+    +   '<button type="button" class="exCardDelete" data-key="'+key+'">Elimina</button>'
+    + '</div>'
     + '</div>';
 }
 
 function buildLibrary(){
+  rebuildExFromLocal();
   if(!groupsOrder.length){ libraryEl.innerHTML = '<div class="emptyState">Nessun esercizio trovato.</div>'; return; }
   let html = '';
   groupsOrder.forEach(g=>{
@@ -131,7 +388,7 @@ function buildLibrary(){
       + '</div>'
     + '</div>';
   });
-  libraryEl.innerHTML = html;
+  libraryEl.innerHTML = html || '<div class="emptyState">Nessun esercizio trovato.</div>';
   libraryEl.querySelectorAll('.groupHeader').forEach(h=>{
     h.addEventListener('click', ()=>{
       const g = h.dataset.group;
@@ -139,6 +396,7 @@ function buildLibrary(){
       h.classList.toggle('collapsed', collapsedGroupsLib.has(g));
     });
   });
+  filterLibrary();
 }
 
 function filterLibrary(){
@@ -153,13 +411,458 @@ function filterLibrary(){
     });
     section.style.display = groupHasVisible ? '' : 'none';
     const header = section.querySelector('.groupHeader');
-    // durante la ricerca ignora i gruppi compressi: mostra sempre i risultati
     section.querySelector('.cardGrid').style.display = (q || !header.classList.contains('collapsed')) ? '' : 'none';
   });
   resultsCount.textContent = q ? (visibleCount + (visibleCount===1 ? ' esercizio trovato' : ' esercizi trovati')) : '';
 }
-
 searchInput.addEventListener('input', filterLibrary);
+
+/* azioni Modifica/Elimina sulle card: delegate sul contenitore, che resta lo stesso nodo
+   anche quando buildLibrary() ne rigenera il contenuto */
+libraryEl.addEventListener('click', (e)=>{
+  const editBtn = e.target.closest('.exCardEdit');
+  if(editBtn){ openExModal(editBtn.dataset.key); return; }
+  const delBtn = e.target.closest('.exCardDelete');
+  if(delBtn){ openDeleteModal(delBtn.dataset.key); return; }
+});
+
+/* ---- elimina/nascondi esercizio ---- */
+function removeExerciseFromLibrary(key){
+  if(!key) return;
+  const hidden = lsGet(LS_HIDDEN, []);
+  if(!hidden.includes(key)) hidden.push(key);
+  lsSet(LS_HIDDEN, hidden);
+  if(key.startsWith('custom_')){
+    lsSet(LS_CUSTOM, lsGet(LS_CUSTOM, []).filter(c=>c.key!==key));
+  }
+  const images = lsGet(LS_IMAGES, {});
+  if(images[key]){ delete images[key]; lsSet(LS_IMAGES, images); }
+  customImages = lsGet(LS_IMAGES, {});
+  buildLibrary();
+}
+
+let pendingDeleteKey = null;
+function openDeleteModal(key){
+  const ex = EX[key];
+  if(!ex) return;
+  pendingDeleteKey = key;
+  document.getElementById('deleteModalName').textContent = ex.label;
+  document.getElementById('deleteModalOverlay').classList.add('show');
+}
+function closeDeleteModal(){
+  document.getElementById('deleteModalOverlay').classList.remove('show');
+  pendingDeleteKey = null;
+}
+document.getElementById('deleteModalCancel').addEventListener('click', closeDeleteModal);
+document.getElementById('deleteModalConfirm').addEventListener('click', ()=>{
+  if(pendingDeleteKey){ removeExerciseFromLibrary(pendingDeleteKey); }
+  closeDeleteModal();
+});
+document.getElementById('deleteModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'deleteModalOverlay') closeDeleteModal();
+});
+
+/* ---- popup di ritaglio immagine (identico a scheda.html, senza il concetto di "riga":
+   qui c'è un solo slot immagine, quello della modale di aggiunta/modifica) ---- */
+const IMG_MAX_DIM = 480;
+let cropImg = null;
+let cropBox = {x:0, y:0, w:0, h:0};
+let cropDisplayScale = 1;
+let cropStageW = 0, cropStageH = 0;
+let cropDrag = null;
+
+const cropModalOverlay = document.getElementById('cropModalOverlay');
+const cropStage = document.getElementById('cropStage');
+const cropImageEl = document.getElementById('cropImageEl');
+const cropBoxEl = document.getElementById('cropBoxEl');
+const cropDimsLabel = document.getElementById('cropDimsLabel');
+const cropBarTop = document.getElementById('cropBarTop');
+const cropBarBottom = document.getElementById('cropBarBottom');
+const cropBarLeft = document.getElementById('cropBarLeft');
+const cropBarRight = document.getElementById('cropBarRight');
+
+function clampNum(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+function updateCropBoxUI(){
+  cropBoxEl.style.left = cropBox.x + 'px';
+  cropBoxEl.style.top = cropBox.y + 'px';
+  cropBoxEl.style.width = cropBox.w + 'px';
+  cropBoxEl.style.height = cropBox.h + 'px';
+
+  cropBarTop.style.left = '0px'; cropBarTop.style.top = '0px';
+  cropBarTop.style.width = cropStageW + 'px'; cropBarTop.style.height = cropBox.y + 'px';
+
+  cropBarBottom.style.left = '0px'; cropBarBottom.style.top = (cropBox.y + cropBox.h) + 'px';
+  cropBarBottom.style.width = cropStageW + 'px'; cropBarBottom.style.height = (cropStageH - (cropBox.y + cropBox.h)) + 'px';
+
+  cropBarLeft.style.left = '0px'; cropBarLeft.style.top = cropBox.y + 'px';
+  cropBarLeft.style.width = cropBox.x + 'px'; cropBarLeft.style.height = cropBox.h + 'px';
+
+  cropBarRight.style.left = (cropBox.x + cropBox.w) + 'px'; cropBarRight.style.top = cropBox.y + 'px';
+  cropBarRight.style.width = (cropStageW - (cropBox.x + cropBox.w)) + 'px'; cropBarRight.style.height = cropBox.h + 'px';
+
+  const nw = Math.round(cropBox.w / cropDisplayScale);
+  const nh = Math.round(cropBox.h / cropDisplayScale);
+  cropDimsLabel.textContent = nw + ' × ' + nh + ' px';
+}
+
+function openCropModal(dataURL){
+  const img = new Image();
+  img.onload = ()=>{
+    cropImg = img;
+    const maxW = Math.min(420, window.innerWidth - 76);
+    const maxH = Math.min(360, window.innerHeight - 280);
+    const scale = Math.min(1, maxW / img.naturalWidth, maxH / img.naturalHeight);
+    const dispW = Math.max(40, Math.round(img.naturalWidth * scale));
+    const dispH = Math.max(40, Math.round(img.naturalHeight * scale));
+    cropDisplayScale = dispW / img.naturalWidth;
+    cropStageW = dispW; cropStageH = dispH;
+    cropImageEl.src = dataURL;
+    cropStage.style.width = dispW + 'px';
+    cropStage.style.height = dispH + 'px';
+    cropBox = {x:0, y:0, w:dispW, h:dispH};
+    updateCropBoxUI();
+    cropModalOverlay.classList.add('show');
+  };
+  img.src = dataURL;
+}
+function closeCropModal(){
+  const fi = document.getElementById('exFormFileInput');
+  if(fi) fi.value = '';
+  cropModalOverlay.classList.remove('show');
+  cropImg = null; cropDrag = null;
+}
+document.getElementById('cropModalCancel').addEventListener('click', closeCropModal);
+cropModalOverlay.addEventListener('click', (e)=>{ if(e.target.id === 'cropModalOverlay') closeCropModal(); });
+
+function cropPointerPos(e){
+  const t = e.touches ? e.touches[0] : e;
+  return {x: t.clientX, y: t.clientY};
+}
+function onCropDragStart(type, e){
+  e.preventDefault();
+  e.stopPropagation();
+  const p = cropPointerPos(e);
+  cropDrag = {type, startX:p.x, startY:p.y, startBox:{...cropBox}};
+  document.addEventListener('mousemove', onCropDragMove);
+  document.addEventListener('mouseup', onCropDragEnd);
+  document.addEventListener('touchmove', onCropDragMove, {passive:false});
+  document.addEventListener('touchend', onCropDragEnd);
+}
+function onCropDragMove(e){
+  if(!cropDrag) return;
+  e.preventDefault();
+  const p = cropPointerPos(e);
+  const dx = p.x - cropDrag.startX, dy = p.y - cropDrag.startY;
+  const sb = cropDrag.startBox;
+  const MIN = 30;
+  let x, y, w, h;
+  if(cropDrag.type === 'move'){
+    x = clampNum(sb.x + dx, 0, cropStageW - sb.w);
+    y = clampNum(sb.y + dy, 0, cropStageH - sb.h);
+    w = sb.w; h = sb.h;
+  } else {
+    let left = sb.x, top = sb.y, right = sb.x + sb.w, bottom = sb.y + sb.h;
+    if(cropDrag.type.indexOf('w') >= 0) left = clampNum(sb.x + dx, 0, right - MIN);
+    if(cropDrag.type.indexOf('e') >= 0) right = clampNum(sb.x + sb.w + dx, left + MIN, cropStageW);
+    if(cropDrag.type.indexOf('n') >= 0) top = clampNum(sb.y + dy, 0, bottom - MIN);
+    if(cropDrag.type.indexOf('s') >= 0) bottom = clampNum(sb.y + sb.h + dy, top + MIN, cropStageH);
+    x = left; y = top; w = right - left; h = bottom - top;
+  }
+  cropBox = {x,y,w,h};
+  updateCropBoxUI();
+}
+function onCropDragEnd(){
+  cropDrag = null;
+  document.removeEventListener('mousemove', onCropDragMove);
+  document.removeEventListener('mouseup', onCropDragEnd);
+  document.removeEventListener('touchmove', onCropDragMove);
+  document.removeEventListener('touchend', onCropDragEnd);
+}
+cropBoxEl.addEventListener('mousedown', (e)=>{ if(e.target === cropBoxEl) onCropDragStart('move', e); });
+cropBoxEl.addEventListener('touchstart', (e)=>{ if(e.target === cropBoxEl) onCropDragStart('move', e); }, {passive:false});
+cropBoxEl.querySelectorAll('.cropHandle').forEach(handle=>{
+  const type = handle.dataset.type;
+  handle.addEventListener('mousedown', (e)=> onCropDragStart(type, e));
+  handle.addEventListener('touchstart', (e)=> onCropDragStart(type, e), {passive:false});
+});
+
+document.getElementById('cropModalConfirm').addEventListener('click', ()=>{
+  if(!cropImg){ closeCropModal(); return; }
+  const nx = cropBox.x / cropDisplayScale, ny = cropBox.y / cropDisplayScale;
+  const nw = cropBox.w / cropDisplayScale, nh = cropBox.h / cropDisplayScale;
+  const outScale = Math.min(1, IMG_MAX_DIM / nw, IMG_MAX_DIM / nh);
+  const outW = Math.max(1, Math.round(nw * outScale));
+  const outH = Math.max(1, Math.round(nh * outScale));
+  const canvas = document.createElement('canvas');
+  canvas.width = outW; canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, outW, outH);
+  ctx.drawImage(cropImg, nx, ny, nw, nh, 0, 0, outW, outH);
+  const dataURL = canvas.toDataURL('image/jpeg', 0.85);
+  exFormImageDataURL = dataURL;
+  updateExFormPicPreview();
+  closeCropModal();
+});
+
+/* ---- modale aggiungi/modifica esercizio ---- */
+let editingKey = null;            // null = nuovo esercizio, altrimenti chiave in modifica
+let exFormGroupTouched = false;
+let exFormImageDataURL = undefined; // undefined = nessuna modifica; null = immagine rimossa; stringa = nuova immagine
+
+function currentExFormPicHTML(){
+  if(typeof exFormImageDataURL === 'string') return '<img src="'+exFormImageDataURL+'" alt="">';
+  if(exFormImageDataURL === null) return formPlaceholderHTML();
+  if(editingKey){
+    const custom = customImages[editingKey];
+    if(custom) return '<img src="'+custom+'" alt="">';
+    const ex = EX[editingKey];
+    if(ex && ex.svg) return ex.svg;
+  }
+  return formPlaceholderHTML();
+}
+function updateExFormPicPreview(){
+  document.getElementById('exFormPic').innerHTML = currentExFormPicHTML();
+}
+
+function openExModal(key){
+  editingKey = key || null;
+  editModalOpen = true;
+  exFormImageDataURL = undefined;
+  exFormGroupTouched = !!key;
+  document.getElementById('exModalTitle').textContent = key ? 'Modifica esercizio' : 'Nuovo esercizio';
+  document.getElementById('exModalMsg').textContent = '';
+  const nameInput = document.getElementById('exFormName');
+  const groupSelect = document.getElementById('exFormGroup');
+  const repsInput = document.getElementById('exFormReps');
+  const descInput = document.getElementById('exFormDesc');
+  groupSelect.innerHTML = buildGroupOptionsLib();
+  if(key && EX[key]){
+    const ex = EX[key];
+    nameInput.value = ex.label;
+    groupSelect.value = ex.group;
+    repsInput.value = ex.reps || '';
+    descInput.value = ex.desc || '';
+  } else {
+    nameInput.value = ''; groupSelect.value = 'Altro'; repsInput.value = ''; descInput.value = '';
+  }
+  updateExFormPicPreview();
+  document.getElementById('exModalOverlay').classList.add('show');
+  nameInput.focus();
+}
+function closeExModal(){
+  document.getElementById('exModalOverlay').classList.remove('show');
+  editModalOpen = false;
+  editingKey = null;
+}
+document.getElementById('addExerciseBtn').addEventListener('click', ()=> openExModal(null));
+document.getElementById('exModalCancel').addEventListener('click', closeExModal);
+document.getElementById('exModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='exModalOverlay') closeExModal(); });
+
+document.getElementById('exFormName').addEventListener('input', (e)=>{
+  if(editingKey) return; // in modifica rispettiamo la categoria già scelta, niente riclassificazione automatica
+  if(!exFormGroupTouched){ document.getElementById('exFormGroup').value = classifyExercise(e.target.value); }
+});
+document.getElementById('exFormGroup').addEventListener('change', ()=>{ exFormGroupTouched = true; });
+
+document.getElementById('exFormPic').addEventListener('click', ()=> document.getElementById('exFormFileInput').click());
+document.getElementById('exFormImgUpload').addEventListener('click', ()=> document.getElementById('exFormFileInput').click());
+document.getElementById('exFormImgRemove').addEventListener('click', ()=>{ exFormImageDataURL = null; updateExFormPicPreview(); });
+document.getElementById('exFormFileInput').addEventListener('change', ()=>{
+  const input = document.getElementById('exFormFileInput');
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=> openCropModal(e.target.result);
+  reader.readAsDataURL(file);
+});
+
+function applyImageChange(key){
+  if(exFormImageDataURL === undefined) return; // nessuna modifica rispetto all'immagine attuale
+  const images = lsGet(LS_IMAGES, {});
+  if(exFormImageDataURL === null){ delete images[key]; }
+  else { images[key] = exFormImageDataURL; }
+  lsSet(LS_IMAGES, images);
+  customImages = lsGet(LS_IMAGES, {});
+}
+
+document.getElementById('exModalSave').addEventListener('click', ()=>{
+  const name = document.getElementById('exFormName').value.trim();
+  if(!name){ document.getElementById('exModalMsg').textContent = 'Inserisci un nome.'; return; }
+  const group = document.getElementById('exFormGroup').value || 'Altro';
+  const reps = document.getElementById('exFormReps').value;
+  const desc = document.getElementById('exFormDesc').value;
+
+  if(editingKey && editingKey.startsWith('custom_')){
+    // esercizio già personalizzato: aggiorna la voce esistente
+    const list = lsGet(LS_CUSTOM, []);
+    const idx = list.findIndex(c=>c.key===editingKey);
+    const prevSvg = idx>=0 ? (list[idx].svg||null) : null;
+    const entry = {key:editingKey, group, label:name, desc, reps, svg:prevSvg};
+    if(idx>=0) list[idx] = entry; else list.push(entry);
+    lsSet(LS_CUSTOM, list);
+    applyImageChange(editingKey);
+  } else if(editingKey){
+    // esercizio di libreria: non tocchiamo exercises-data.js. Creiamo una copia
+    // personalizzata coi campi modificati, portando con sé l'illustrazione/immagine
+    // esistente se non se ne carica una nuova, e nascondiamo l'originale.
+    const originalEx = EX[editingKey];
+    const newKey = 'custom_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const keepingOriginalPic = exFormImageDataURL === undefined;
+    const svgToCarry = (keepingOriginalPic && !customImages[editingKey] && originalEx) ? (originalEx.svg||null) : null;
+    const list = lsGet(LS_CUSTOM, []);
+    list.push({key:newKey, group, label:name, desc, reps, svg:svgToCarry});
+    lsSet(LS_CUSTOM, list);
+    if(keepingOriginalPic && customImages[editingKey]){
+      const images = lsGet(LS_IMAGES, {});
+      images[newKey] = images[editingKey];
+      lsSet(LS_IMAGES, images);
+      customImages = lsGet(LS_IMAGES, {});
+    }
+    const hidden = lsGet(LS_HIDDEN, []);
+    if(!hidden.includes(editingKey)) hidden.push(editingKey);
+    lsSet(LS_HIDDEN, hidden);
+    if(!keepingOriginalPic) applyImageChange(newKey);
+  } else {
+    // nuovo esercizio
+    const newKey = 'custom_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const list = lsGet(LS_CUSTOM, []);
+    list.push({key:newKey, group, label:name, desc, reps, svg:null});
+    lsSet(LS_CUSTOM, list);
+    applyImageChange(newKey);
+  }
+  closeExModal();
+  buildLibrary();
+});
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    if(cropModalOverlay.classList.contains('show')) closeCropModal();
+    else if(document.getElementById('exModalOverlay').classList.contains('show')) closeExModal();
+    else if(document.getElementById('deleteModalOverlay').classList.contains('show')) closeDeleteModal();
+  }
+});
+
+/* ===================== SYNC (Supabase) — stessa tabella/colonne di scheda.html =====================
+   Se non c'è connessione o l'utente non ha fatto login, la pagina funziona comunque solo con
+   i dati salvati sul dispositivo (localStorage). */
+const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
+const SYNC_TABLE = 'exercise_library_sync';
+const SYNC_KEYS = [LS_CUSTOM, LS_IMAGES, LS_HIDDEN, LS_REMOVED, LS_TEMPLATES, LS_TABLE];
+
+const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+let syncUser = null;
+let applyingRemoteSync = false;
+let cloudSyncTimer = null;
+let lastPushedUpdatedAt = null;
+let realtimeChannel = null;
+let editModalOpen = false; // se true, un pull/evento remoto viene rimandato per non perdere una modifica in corso nella modale
+
+function scheduleCloudSync(){
+  if(!supabaseClient || !syncUser || applyingRemoteSync) return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(pushLibraryToCloud, 1200);
+}
+
+async function pushLibraryToCloud(){
+  cloudSyncTimer = null;
+  if(!supabaseClient || !syncUser) return;
+  const updatedAt = new Date().toISOString();
+  try{
+    const {error} = await supabaseClient.from(SYNC_TABLE).upsert({
+      user_id: syncUser.id,
+      custom_exercises: lsGet(LS_CUSTOM, []),
+      custom_images: lsGet(LS_IMAGES, {}),
+      hidden_keys: lsGet(LS_HIDDEN, []),
+      removed_default_images: lsGet(LS_REMOVED, []),
+      templates: lsGet(LS_TEMPLATES, []),
+      table_state: lsGet(LS_TABLE, []),
+      updated_at: updatedAt
+    });
+    if(!error) lastPushedUpdatedAt = updatedAt;
+  } catch(e){ /* offline: i dati restano solo locali, si sincronizzeranno al prossimo tentativo */ }
+}
+
+/* applica una riga di dati arrivata dal cloud (pull iniziale o evento Realtime) allo stato locale */
+function applyRemoteRow(data){
+  if(editModalOpen) return; // modifica in corso nella modale: verrà applicata al prossimo pull/evento
+  const localUpdatedAt = lsGet(LS_LOCAL_UPDATED_AT, null);
+  if(localUpdatedAt && data.updated_at && localUpdatedAt > data.updated_at){
+    // dati locali più recenti di quelli sul cloud (es. un invio precedente non è arrivato a
+    // destinazione): non sovrascrivere, rilanciamo l'invio per sanare il cloud
+    pushLibraryToCloud();
+    return;
+  }
+  applyingRemoteSync = true;
+  lsSet(LS_CUSTOM, data.custom_exercises || []);
+  lsSet(LS_IMAGES, data.custom_images || {});
+  lsSet(LS_HIDDEN, data.hidden_keys || []);
+  lsSet(LS_REMOVED, data.removed_default_images || []);
+  lsSet(LS_TEMPLATES, data.templates || []);
+  lsSet(LS_TABLE, data.table_state || []);
+  customImages = lsGet(LS_IMAGES, {});
+  applyingRemoteSync = false;
+  buildLibrary();
+}
+
+async function pullLibraryFromCloud(){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    const {data, error} = await supabaseClient.from(SYNC_TABLE).select('*').eq('user_id', syncUser.id).maybeSingle();
+    if(error || !data) return;
+    applyRemoteRow(data);
+  } catch(e){ /* offline: si riprova al prossimo evento Realtime o al prossimo avvio */ }
+}
+
+function subscribeRealtime(){
+  if(!supabaseClient || !syncUser || realtimeChannel) return;
+  realtimeChannel = supabaseClient
+    .channel('exercise_library_sync_'+syncUser.id)
+    .on('postgres_changes', {event:'*', schema:'public', table:SYNC_TABLE, filter:'user_id=eq.'+syncUser.id}, (payload)=>{
+      if(!payload.new) return;
+      if(payload.new.updated_at && lastPushedUpdatedAt && payload.new.updated_at <= lastPushedUpdatedAt) return;
+      applyRemoteRow(payload.new);
+    })
+    .subscribe();
+}
+function unsubscribeRealtime(){
+  if(realtimeChannel && supabaseClient){ supabaseClient.removeChannel(realtimeChannel); }
+  realtimeChannel = null;
+}
+
+// se la pagina viene nascosta (cambio app, chiusura) con una sincronizzazione in coda, la anticipiamo subito
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden' && cloudSyncTimer){
+    clearTimeout(cloudSyncTimer);
+    pushLibraryToCloud();
+  }
+});
+
+// all'apertura, se una sessione è già attiva (login fatto da impostazioni.html) ricarica i dati sincronizzati
+(async function initSyncSession(){
+  if(!supabaseClient) return;
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(session && session.user){
+    syncUser = {id:session.user.id, email:session.user.email};
+    subscribeRealtime();
+    await pullLibraryFromCloud();
+  }
+  supabaseClient.auth.onAuthStateChange((event, changedSession)=>{
+    if(event === 'SIGNED_OUT'){
+      syncUser = null;
+      unsubscribeRealtime();
+    } else if(event === 'SIGNED_IN' && changedSession && changedSession.user && !syncUser){
+      syncUser = {id:changedSession.user.id, email:changedSession.user.email};
+      subscribeRealtime();
+      pullLibraryFromCloud();
+    }
+  });
+})();
 
 buildLibrary();
 
