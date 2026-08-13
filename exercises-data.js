@@ -1150,78 +1150,78 @@ add('Anca','lateral_band_walk','Camminata laterale con elastico (monster walk)',
  'Con un elastico intorno alle caviglie o appena sopra le ginocchia, piega leggermente le ginocchia e cammina lateralmente a piccoli passi, mantenendo tensione costante sull\'elastico.',
  '3x10-15 passi per lato', null, 'Medio gluteo, abduttori');
 
-/* ===================== ESERCIZI - CAVIGLIA E POLPACCIO: RIABILITAZIONE =====================
+/* ===================== ESERCIZI - CAVIGLIA E POLPACCIO =====================
    Fonti: Mass General Brigham Sports Medicine (protocollo post-operatorio frattura
    di caviglia con ORIF), protocollo di Alfredson per la tendinopatia achillea
    (calf raise eccentrico a ginocchio teso/piegato) */
 
 /* -- Fase precoce (dopo frattura o intervento, anche con tutore/stivaletto) -- */
-add('Caviglia e Polpaccio - Riabilitazione','ankle_pumps','Pompe di caviglia (ankle pumps)',
+add('Caviglia e Polpaccio','ankle_pumps','Pompe di caviglia (ankle pumps)',
  'Sdraiato o seduto con la gamba sollevata, muovi il piede su e giù come se pigiassi un pedale, per favorire la circolazione e ridurre il gonfiore.',
  '3x15-20, più volte al giorno', null, 'Circolazione, mobilità caviglia');
-add('Caviglia e Polpaccio - Riabilitazione','seated_heel_raise_precoce','Sollevamento tallone da seduto (fase precoce)',
+add('Caviglia e Polpaccio','seated_heel_raise_precoce','Sollevamento tallone da seduto (fase precoce)',
  'Seduto con il piede appoggiato a terra, solleva il tallone mantenendo le dita a contatto con il pavimento, poi riappoggia. Utile nelle prime settimane, anche con tutore o stivaletto.',
  '3x15-20', null, 'Polpaccio (attivazione precoce)');
-add('Caviglia e Polpaccio - Riabilitazione','seated_toe_raise','Sollevamento punte da seduto',
+add('Caviglia e Polpaccio','seated_toe_raise','Sollevamento punte da seduto',
  'Seduto con il piede appoggiato a terra, solleva la parte anteriore del piede e le dita mantenendo il tallone a terra, poi riappoggia.',
  '3x15-20', null, 'Tibiale anteriore (attivazione precoce)');
-add('Caviglia e Polpaccio - Riabilitazione','ankle_dorsiflex_elastico','Dorsiflessione caviglia con elastico',
+add('Caviglia e Polpaccio','ankle_dorsiflex_elastico','Dorsiflessione caviglia con elastico',
  'Seduto con l\'elastico agganciato attorno alla parte superiore del piede e fissato di fronte a te, porta il piede verso di te contro la resistenza, poi torna lentamente.',
  '3x15 per lato', null, 'Tibiale anteriore');
-add('Caviglia e Polpaccio - Riabilitazione','ankle_plantarflex_elastico','Plantarflessione caviglia con elastico',
+add('Caviglia e Polpaccio','ankle_plantarflex_elastico','Plantarflessione caviglia con elastico',
  'Seduto con l\'elastico intorno alla pianta del piede tenuto con le mani, spingi il piede in avanti contro la resistenza come per premere un pedale, poi torna lentamente.',
  '3x15 per lato', null, 'Polpaccio (gastrocnemio, soleo)');
 
 /* -- Calf raise: da seduto (soleo) e in piedi (gastrocnemio + soleo) -- */
-add('Caviglia e Polpaccio - Riabilitazione','seated_calf_raise_soleo','Calf raise da seduto (soleo)',
+add('Caviglia e Polpaccio','seated_calf_raise_soleo','Calf raise da seduto (soleo)',
  'Seduto con le ginocchia piegate a circa 90 gradi e un peso appoggiato sulle cosce (o su una macchina dedicata), solleva i talloni il più possibile restando seduto, tieni un istante, poi scendi lentamente. A ginocchio piegato lavora soprattutto il soleo.',
  '3x15-20', null, 'Soleo');
-add('Caviglia e Polpaccio - Riabilitazione','standing_calf_raise_progression','Calf raise in piedi, carico crescente',
+add('Caviglia e Polpaccio','standing_calf_raise_progression','Calf raise in piedi, carico crescente',
  'In piedi, sollevati sulle punte dei piedi. Nelle prime settimane dopo un infortunio distribuisci il peso soprattutto sulla gamba sana, poi sposta gradualmente sempre più peso sulla gamba interessata (25% - 50% - 75%), fino ad arrivare al calf raise su una gamba sola.',
  '3x15, aumentando il carico nell\'arco di alcune settimane', null, 'Gastrocnemio, soleo (progressione post-infortunio)');
-add('Caviglia e Polpaccio - Riabilitazione','heel_drop_ginocchio_teso','Heel drop a ginocchio teso (gastrocnemio)',
+add('Caviglia e Polpaccio','heel_drop_ginocchio_teso','Heel drop a ginocchio teso (gastrocnemio)',
  'In piedi sulle punte dei piedi sul bordo di un gradino, con il ginocchio ben teso, lascia scendere lentamente il tallone sotto il livello del gradino, poi risali aiutandoti con la gamba sana. Il ginocchio teso lavora soprattutto il gastrocnemio.',
  '3x15, scendendo in circa 3 secondi', null, 'Gastrocnemio, tendine d\'Achille');
-add('Caviglia e Polpaccio - Riabilitazione','heel_drop_ginocchio_piegato','Heel drop a ginocchio piegato (soleo)',
+add('Caviglia e Polpaccio','heel_drop_ginocchio_piegato','Heel drop a ginocchio piegato (soleo)',
  'Come l\'heel drop a ginocchio teso, ma con il ginocchio piegato durante la discesa: isola maggiormente il soleo rispetto al gastrocnemio.',
  '3x15, scendendo in circa 3 secondi', null, 'Soleo, tendine d\'Achille');
-add('Caviglia e Polpaccio - Riabilitazione','isometria_calf_raise','Isometria calf raise (tendine d\'Achille)',
+add('Caviglia e Polpaccio','isometria_calf_raise','Isometria calf raise (tendine d\'Achille)',
  'In piedi sulle punte dei piedi, a metà del sollevamento, mantieni la posizione ferma senza scendere né salire ulteriormente.',
  '3-5x30-45 sec', null, 'Polpaccio, tendine d\'Achille (isometria)');
 
 /* -- Dal calf raise al salto: progressione di ritorno allo sport dopo infortunio a
    caviglia/tendine d'Achille (Mass General Brigham, "Beginner Level Plyometrics") -- */
-add('Caviglia e Polpaccio - Riabilitazione','rebounding_heel_raise_bipodalico','Rimbalzi da sollevamento tallone, bipodalico',
+add('Caviglia e Polpaccio','rebounding_heel_raise_bipodalico','Rimbalzi da sollevamento tallone, bipodalico',
  'In piedi, esegui piccoli rimbalzi elastici sollevandoti ripetutamente sulle punte dei piedi con entrambe le gambe, senza un vero e proprio distacco da terra: è il passo intermedio tra il calf raise e il salto vero e proprio. Da iniziare una volta che il calf raise in piedi a due gambe risulta facile.',
  '3x15', null, 'Polpaccio, tendine d\'Achille (transizione al salto)');
-add('Caviglia e Polpaccio - Riabilitazione','rebounding_heel_raise_monopodalico','Rimbalzi da sollevamento tallone, monopodalico',
+add('Caviglia e Polpaccio','rebounding_heel_raise_monopodalico','Rimbalzi da sollevamento tallone, monopodalico',
  'Come i rimbalzi da sollevamento tallone, ma su una gamba sola: rimbalza ripetutamente sulla punta del piede della gamba interessata.',
  '3x15 per lato', null, 'Polpaccio, tendine d\'Achille (transizione al salto)');
-add('Caviglia e Polpaccio - Riabilitazione','hop_in_place_bipodalico','Hop sul posto, bipodalico',
+add('Caviglia e Polpaccio','hop_in_place_bipodalico','Hop sul posto, bipodalico',
  'Piccoli salti sul posto con entrambi i piedi insieme, staccando appena da terra, atterrando morbidamente sulle punte. Puoi aiutarti inizialmente appoggiando le mani a un sostegno.',
  '3x10-15', null, 'Polpaccio, tendine d\'Achille');
-add('Caviglia e Polpaccio - Riabilitazione','hop_in_place_monopodalico','Hop sul posto, monopodalico',
+add('Caviglia e Polpaccio','hop_in_place_monopodalico','Hop sul posto, monopodalico',
  'Come l\'hop sul posto, ma su una gamba sola: è l\'ultimo passo prima della pliometria vera e propria dopo un infortunio al polpaccio o al tendine d\'Achille.',
  '3x8-10 per lato', null, 'Polpaccio, tendine d\'Achille');
 
 /* -- Equilibrio e propriocezione dopo infortunio alla caviglia -- */
-add('Caviglia e Polpaccio - Riabilitazione','joint_position_retraining','Rieducazione della posizione articolare',
+add('Caviglia e Polpaccio','joint_position_retraining','Rieducazione della posizione articolare',
  'In piedi su una gamba sola, mantieni l\'equilibrio per qualche secondo, poi ripeti a occhi chiusi: aiuta a recuperare la sensibilità della caviglia dopo l\'infortunio.',
  '3x20-30 sec per lato, poi ripeti a occhi chiusi', null, 'Propriocezione della caviglia');
-add('Caviglia e Polpaccio - Riabilitazione','star_excursion','Star excursion balance (equilibrio a stella)',
+add('Caviglia e Polpaccio','star_excursion','Star excursion balance (equilibrio a stella)',
  'In equilibrio su una gamba, con l\'altra gamba tocca leggermente il pavimento il più lontano possibile in diverse direzioni intorno a te (avanti, di lato, indietro), poi torna in equilibrio, senza appoggiare il peso sulla gamba che si allunga.',
  '3x8 direzioni per lato', null, 'Equilibrio, controllo neuromuscolare');
 
 const groupsOrder = [
   'Petto','Spalla','Schiena','Braccia','Gambe','Core',
-  'Equilibrio e Coordinazione','Caviglia e Polpaccio - Riabilitazione','Anca',
+  'Equilibrio e Coordinazione','Caviglia e Polpaccio','Anca',
   'Pliometria - estensiva','Pliometria - intensiva','Altro'
 ];
 /* ---- colore identificativo per categoria (dot nel menù + bordo riga) ---- */
 const GROUP_COLORS = {
   'Petto':'#c97a3d', 'Spalla':'#c9a227', 'Schiena':'#3b6fa3', 'Braccia':'#7b5ea7',
   'Gambe':'#6b8e3a', 'Core':'#b85c7a', 'Equilibrio e Coordinazione':'#4a8fa6',
-  'Caviglia e Polpaccio - Riabilitazione':'#4a8f5c', 'Anca':'#a5754f',
+  'Caviglia e Polpaccio':'#4a8f5c', 'Anca':'#a5754f',
   'Pliometria - estensiva':'#8aa33c', 'Pliometria - intensiva':'#cc5030', 'Altro':'#8a8f87'
 };
 

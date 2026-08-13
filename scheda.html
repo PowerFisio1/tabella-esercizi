@@ -555,7 +555,7 @@ const EX_DEFAULTS = Object.assign({}, EX);
 
 // vecchi nomi di gruppo accorpati in uno unico: rimappa eventuali esercizi personalizzati
 // salvati in precedenza col nome vecchio, così non spariscono dal menù
-const GROUP_RENAME = {'Spalle':'Spalla', 'Spalla - Riabilitazione':'Spalla', 'Anca e Inguine - Riabilitazione':'Anca', 'Ginocchio - Riabilitazione':'Gambe', 'Caviglia ed equilibrio':'Equilibrio e Coordinazione'};
+const GROUP_RENAME = {'Spalle':'Spalla', 'Spalla - Riabilitazione':'Spalla', 'Anca e Inguine - Riabilitazione':'Anca', 'Ginocchio - Riabilitazione':'Gambe', 'Caviglia ed equilibrio':'Equilibrio e Coordinazione', 'Caviglia e Polpaccio - Riabilitazione':'Caviglia e Polpaccio'};
 
 function rebuildExFromLocal(){
   Object.keys(EX).forEach(k=>{ if(!(k in EX_DEFAULTS)) delete EX[k]; });
