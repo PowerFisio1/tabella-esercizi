@@ -73,16 +73,44 @@
   }
   .stackedCards{display:flex; flex-direction:column; gap:14px;}
 
+  /* ---- effetto "pila di fogli": un secondo foglio smussato e ruotato che sbircia da
+     dietro la card, per dare l'idea di uno stack invece di un rettangolo piatto ---- */
+  /* flex column con un solo figlio: lo stira a riempire tutta larghezza e altezza
+     disponibili nella cella, esattamente come faceva la card stessa prima di essere
+     avvolta in questo contenitore */
+  .cardStack{position:relative; display:flex; flex-direction:column; flex:1;}
+  .cardStack > a{flex:1;}
+  .cardStack::before{
+    content:''; position:absolute; inset:0; z-index:-1;
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
+    box-shadow:var(--shadow-1); transform:translate(-7px, 9px) rotate(-2deg);
+    transition:transform .2s ease;
+  }
+  .cardStack:hover::before{transform:translate(-9px, 12px) rotate(-3deg);}
+
   .primaryCard{
-    position:relative; display:flex; flex-direction:column; justify-content:space-between;
-    /* overlay blu navy semi-trasparente sopra la foto, non un blend-mode legato al tema:
-       così la foto resta ben visibile e chiara anche in tema chiaro, invece di scurirsi */
-    background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76)), url('primary-card-bg.jpg') center/cover;
+    position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
     color:#fff; border-radius:18px; padding:20px 18px; text-decoration:none;
     min-height:224px; box-shadow:var(--shadow-primary);
     transition:transform .15s ease, box-shadow .15s ease;
   }
+  .primaryCard::before{
+    /* la foto, isolata su un suo livello: così si può ingrandire leggermente
+       al passaggio del mouse senza spostare anche testo e icona */
+    content:''; position:absolute; inset:0; z-index:0;
+    background:url('primary-card-bg.jpg') center/cover;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .primaryCard::after{
+    /* overlay blu navy semi-trasparente sopra la foto, non un blend-mode legato al tema:
+       così la foto resta ben visibile e chiara anche in tema chiaro, invece di scurirsi */
+    content:''; position:absolute; inset:0; z-index:1;
+    background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
+  }
   .primaryCard:hover{transform:translateY(-3px); box-shadow:var(--shadow-primary-hover);}
+  .primaryCard:hover::before{transform:scale(1.06);}
+  .primaryCard:active{transform:scale(.98);}
+  .primaryCard .primaryIcon, .primaryCard .primaryTextBlock{position:relative; z-index:2;}
   .primaryCard .primaryIcon{
     width:48px; height:48px; border-radius:13px; background:rgba(255,255,255,.16);
     display:flex; align-items:center; justify-content:center; flex:none;
@@ -120,12 +148,15 @@
     content:''; position:absolute; inset:0; z-index:0;
     background:url('libreria-card-bg.png') center/cover;
     filter:saturate(35%);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
   }
   .secondaryTile.libraryTile::after{
     content:''; position:absolute; inset:0; z-index:1;
     background:linear-gradient(160deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
   }
   .secondaryTile.libraryTile:hover{border-color:rgba(255,255,255,.4);}
+  .secondaryTile.libraryTile:hover::before{transform:scale(1.06);}
+  .secondaryTile.libraryTile:active{transform:scale(.98);}
   .secondaryTile.libraryTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
   .secondaryTile.libraryTile .eyebrow{color:rgba(255,255,255,.8);}
   .secondaryTile.libraryTile .tileIcon, .secondaryTile.libraryTile .tileText{position:relative; z-index:2;}
@@ -164,26 +195,30 @@
   </div>
 
   <div class="actionGrid">
-    <a class="primaryCard" href="scheda.html">
-      <div class="primaryIcon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      </div>
-      <div class="primaryTextBlock">
-        <div class="eyebrow">Crea</div>
-        <div class="cardTitle">Scheda</div>
-      </div>
-    </a>
-
-    <div class="stackedCards">
-      <a class="secondaryTile libraryTile" href="libreria.html">
-        <div class="tileIcon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <div class="cardStack">
+      <a class="primaryCard" href="scheda.html">
+        <div class="primaryIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         </div>
-        <div class="tileText">
-          <div class="eyebrow">Sfoglia</div>
-          <div class="cardTitle">Libreria</div>
+        <div class="primaryTextBlock">
+          <div class="eyebrow">Crea</div>
+          <div class="cardTitle">Scheda</div>
         </div>
       </a>
+    </div>
+
+    <div class="stackedCards">
+      <div class="cardStack">
+        <a class="secondaryTile libraryTile" href="libreria.html">
+          <div class="tileIcon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div class="tileText">
+            <div class="eyebrow">Sfoglia</div>
+            <div class="cardTitle">Libreria</div>
+          </div>
+        </a>
+      </div>
 
       <div class="secondaryTile soon">
         <div class="tileIcon">
