@@ -73,21 +73,6 @@
   }
   .stackedCards{display:flex; flex-direction:column; gap:14px;}
 
-  /* ---- effetto "pila di fogli": un secondo foglio smussato e ruotato che sbircia da
-     dietro la card, per dare l'idea di uno stack invece di un rettangolo piatto ---- */
-  /* flex column con un solo figlio: lo stira a riempire tutta larghezza e altezza
-     disponibili nella cella, esattamente come faceva la card stessa prima di essere
-     avvolta in questo contenitore */
-  .cardStack{position:relative; display:flex; flex-direction:column; flex:1;}
-  .cardStack > a{flex:1;}
-  .cardStack::before{
-    content:''; position:absolute; inset:0; z-index:-1;
-    background:var(--card); border:1px solid var(--line); border-radius:18px;
-    box-shadow:var(--shadow-1); transform:translate(-7px, 9px) rotate(-2deg);
-    transition:transform .2s ease;
-  }
-  .cardStack:hover::before{transform:translate(-9px, 12px) rotate(-3deg);}
-
   .primaryCard{
     position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
     color:#fff; border-radius:18px; padding:20px 18px; text-decoration:none;
@@ -195,30 +180,26 @@
   </div>
 
   <div class="actionGrid">
-    <div class="cardStack">
-      <a class="primaryCard" href="scheda.html">
-        <div class="primaryIcon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </div>
-        <div class="primaryTextBlock">
-          <div class="eyebrow">Crea</div>
-          <div class="cardTitle">Scheda</div>
-        </div>
-      </a>
-    </div>
+    <a class="primaryCard" href="scheda.html">
+      <div class="primaryIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </div>
+      <div class="primaryTextBlock">
+        <div class="eyebrow">Crea</div>
+        <div class="cardTitle">Scheda</div>
+      </div>
+    </a>
 
     <div class="stackedCards">
-      <div class="cardStack">
-        <a class="secondaryTile libraryTile" href="libreria.html">
-          <div class="tileIcon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          </div>
-          <div class="tileText">
-            <div class="eyebrow">Sfoglia</div>
-            <div class="cardTitle">Libreria</div>
-          </div>
-        </a>
-      </div>
+      <a class="secondaryTile libraryTile" href="libreria.html">
+        <div class="tileIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div class="tileText">
+          <div class="eyebrow">Sfoglia</div>
+          <div class="cardTitle">Libreria</div>
+        </div>
+      </a>
 
       <div class="secondaryTile soon">
         <div class="tileIcon">

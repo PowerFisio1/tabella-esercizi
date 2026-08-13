@@ -48,6 +48,18 @@
   }
   .searchInput:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
   .resultsCount{font-size:12px; color:var(--sub); margin-top:6px;}
+
+  .categoryChips{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:22px;}
+  .catChip{
+    display:flex; align-items:center; gap:6px; font-family:inherit; font-size:11.5px; font-weight:600;
+    padding:6px 12px; border-radius:100px; border:1px solid var(--line); background:var(--card);
+    color:var(--ink); cursor:pointer; transition:border-color .15s ease, background-color .15s ease, color .15s ease;
+  }
+  .catChip:hover{border-color:var(--cc, var(--accent));}
+  .catChip.active{background:var(--cc, var(--accent)); border-color:var(--cc, var(--accent)); color:#fff;}
+  .catChipDot{width:7px; height:7px; border-radius:50%; background:var(--cc, var(--accent)); flex:none;}
+  .catChip.active .catChipDot{background:rgba(255,255,255,.85);}
+
   .groupSection{margin-bottom:26px;}
   .groupHeader{
     display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
@@ -69,7 +81,10 @@
   .exPic svg, .exPic img{width:100%; height:auto; display:block;}
   .exPic .placeholderIcon{width:26px; height:26px; stroke:var(--sub);}
   .exName{font-size:13.5px; font-weight:700;}
-  .exReps{font-size:11.5px; font-weight:700; color:var(--accent);}
+  .exReps{
+    display:inline-flex; align-self:flex-start; font-size:11px; font-weight:700; color:var(--accent);
+    background:var(--accent-light); padding:3px 10px; border-radius:100px;
+  }
   .exDesc{font-size:12px; color:var(--sub); line-height:1.4;}
   .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
 
@@ -183,6 +198,7 @@
     <input type="text" class="searchInput" id="searchInput" placeholder="Cerca per nome o descrizione…" autocomplete="off">
     <div class="resultsCount" id="resultsCount"></div>
   </div>
+  <div class="categoryChips" id="categoryChips"></div>
   <div id="library"></div>
 </div>
 
@@ -272,6 +288,8 @@ const searchInput = document.getElementById('searchInput');
 const resultsCount = document.getElementById('resultsCount');
 // all'apertura della libreria si vedono solo le categorie, chiuse: l'utente apre quelle che gli servono
 const collapsedGroupsLib = new Set(groupsOrder);
+const categoryChipsEl = document.getElementById('categoryChips');
+let activeCategoryFilter = null; // null = tutte le categorie
 
 /* =====================================================================
    PERSISTENZA E SYNC — stesse chiavi/motore di scheda.html: gli esercizi
@@ -373,8 +391,30 @@ function exerciseCardHTML(key, ex){
     + '</div>';
 }
 
+function buildCategoryChips(){
+  let html = '<button type="button" class="catChip'+(activeCategoryFilter===null?' active':'')+'" data-cat="">Tutte</button>';
+  groupsOrder.forEach(g=>{
+    const count = Object.values(EX).filter(v=>v.group===g).length;
+    if(!count) return;
+    const c = GROUP_COLORS[g] || '#8a8f87';
+    const activeCls = activeCategoryFilter===g ? ' active' : '';
+    html += '<button type="button" class="catChip'+activeCls+'" data-cat="'+escapeHtml(g)+'" style="--cc:'+c+'">'
+      + '<span class="catChipDot"></span>'+escapeHtml(g)+'</button>';
+  });
+  categoryChipsEl.innerHTML = html;
+}
+categoryChipsEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.catChip');
+  if(!btn) return;
+  const cat = btn.dataset.cat || null;
+  activeCategoryFilter = (activeCategoryFilter === cat) ? null : cat;
+  buildCategoryChips();
+  filterLibrary();
+});
+
 function buildLibrary(){
   rebuildExFromLocal();
+  buildCategoryChips();
   if(!groupsOrder.length){ libraryEl.innerHTML = '<div class="emptyState">Nessun esercizio trovato.</div>'; return; }
   let html = '';
   groupsOrder.forEach(g=>{
@@ -407,21 +447,24 @@ function filterLibrary(){
   const q = searchInput.value.trim().toLowerCase();
   let visibleCount = 0;
   libraryEl.querySelectorAll('.groupSection').forEach(section=>{
+    const header = section.querySelector('.groupHeader');
+    const g = header.dataset.group;
+    const categoryOk = !activeCategoryFilter || activeCategoryFilter === g;
     let groupHasVisible = false;
     section.querySelectorAll('.exCard').forEach(card=>{
-      const visible = !q || card.dataset.search.includes(q);
+      const visible = categoryOk && (!q || card.dataset.search.includes(q));
       card.style.display = visible ? '' : 'none';
       if(visible){ groupHasVisible = true; visibleCount++; }
     });
     section.style.display = groupHasVisible ? '' : 'none';
-    const header = section.querySelector('.groupHeader');
-    // mentre si cerca, il gruppo si apre da solo per mostrare subito l'esercizio trovato;
-    // senza ricerca torna allo stato aperto/chiuso scelto dall'utente (di default chiuso)
-    const isCollapsed = q ? false : collapsedGroupsLib.has(header.dataset.group);
+    // mentre si cerca o si filtra per categoria, il gruppo si apre da solo per mostrare
+    // subito i risultati; senza filtri torna allo stato aperto/chiuso scelto dall'utente
+    const isFiltering = !!(q || activeCategoryFilter);
+    const isCollapsed = isFiltering ? false : collapsedGroupsLib.has(g);
     header.classList.toggle('collapsed', isCollapsed);
     section.querySelector('.cardGrid').style.display = isCollapsed ? 'none' : '';
   });
-  resultsCount.textContent = q ? (visibleCount + (visibleCount===1 ? ' esercizio trovato' : ' esercizi trovati')) : '';
+  resultsCount.textContent = (q || activeCategoryFilter) ? (visibleCount + (visibleCount===1 ? ' esercizio trovato' : ' esercizi trovati')) : '';
 }
 searchInput.addEventListener('input', filterLibrary);
 
