@@ -399,6 +399,7 @@
     <div class="actions">
       <button id="addRow">+ Aggiungi riga</button>
       <button id="templatesBtn">Modelli</button>
+      <button id="resetBtn">Ripristina</button>
       <button id="printBtn" class="primary">Stampa / esporta PDF</button>
     </div>
   </header>
@@ -422,6 +423,17 @@
     Illustrazioni: database <a href="https://commons.wikimedia.org/wiki/Category:Weight_training_diagrams" target="_blank" rel="noopener">Everkinetic</a> e altri contributori di Wikimedia Commons — licenza <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA</a> (uso e modifica libera con attribuzione). Gli esercizi di pliometria e alcuni esercizi di riabilitazione non hanno un'immagine di libreria disponibile: il riquadro è lasciato vuoto e modificabile manualmente.<br>
     Le immagini caricate manualmente, gli esercizi personalizzati, i modelli e la tabella in corso di compilazione vengono salvati automaticamente nel browser di questo dispositivo; accedendo con "Sincronizza" vengono anche sincronizzati sul tuo account, per ritrovarli sugli altri tuoi dispositivi. Nome paziente e data restano invece solo su questo dispositivo e non vengono mai inviati altrove.
   </footer>
+</div>
+
+<div class="modalOverlay" id="resetModalOverlay">
+  <div class="modalCard">
+    <p>Ripristinare la scheda?</p>
+    <p class="modalNote">Tutti gli esercizi inseriti e i dati del paziente in questa scheda verranno cancellati, per ripartire da un foglio bianco. L'operazione non si può annullare.</p>
+    <div class="modalActions">
+      <button type="button" id="resetModalCancel">Annulla</button>
+      <button type="button" id="resetModalConfirm" class="danger">Ripristina</button>
+    </div>
+  </div>
 </div>
 
 <div class="modalOverlay" id="removeModalOverlay">
@@ -967,6 +979,7 @@ document.addEventListener('keydown', (e)=>{
     closeImageModal();
     closeTemplatesModal();
     closeCropModal();
+    closeResetModal();
     document.querySelectorAll('.exPicker.open').forEach(p=> p.classList.remove('open'));
   }
 });
@@ -1440,6 +1453,19 @@ function closeTemplatesModal(){ templatesModalOverlay.classList.remove('show'); 
 document.getElementById('templatesBtn').addEventListener('click', openTemplatesModal);
 document.getElementById('templatesModalClose').addEventListener('click', closeTemplatesModal);
 templatesModalOverlay.addEventListener('click', (e)=>{ if(e.target.id==='templatesModalOverlay') closeTemplatesModal(); });
+
+/* ---- ripristina scheda: svuota la tabella e i dati paziente per ripartire da zero ---- */
+function closeResetModal(){ document.getElementById('resetModalOverlay').classList.remove('show'); }
+document.getElementById('resetBtn').addEventListener('click', ()=> document.getElementById('resetModalOverlay').classList.add('show'));
+document.getElementById('resetModalCancel').addEventListener('click', closeResetModal);
+document.getElementById('resetModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='resetModalOverlay') closeResetModal(); });
+document.getElementById('resetModalConfirm').addEventListener('click', ()=>{
+  document.querySelectorAll('.row').forEach(r=> r.remove());
+  patientNameInput.value = '';
+  patientDateInput.value = '';
+  markDirty();
+  closeResetModal();
+});
 
 document.getElementById('templateSaveBtn').addEventListener('click', ()=>{
   const name = templateNameInput.value.trim();
