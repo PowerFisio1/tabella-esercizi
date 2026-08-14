@@ -54,8 +54,7 @@
   button.danger{background:var(--danger); color:#fff; border-color:var(--danger);}
   button.danger:hover{opacity:.9;}
 
-  .filterRow{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
-  .workChips{display:flex; gap:6px; flex-wrap:wrap;}
+  .filterRow{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:18px;}
   .workChip{
     display:flex; align-items:center; gap:6px; font-family:inherit; font-size:11.5px; font-weight:600;
     padding:6px 12px; border-radius:100px; border:1px solid var(--line); background:var(--card);
@@ -67,7 +66,7 @@
   .workChip.active .workChipDot{background:rgba(255,255,255,.85);}
   .manageTypesBtn{font-size:11.5px; padding:6px 12px; border-radius:100px; flex:none;}
 
-  .togglePastBtn{font-size:12px; padding:6px 12px; margin-bottom:16px;}
+  .togglePastBtn{font-size:12px; padding:6px 12px;}
 
   .dayHeader{
     font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub);
@@ -135,15 +134,28 @@
   .workChipsForm{display:flex; gap:6px; flex-wrap:wrap;}
 
   .workTypesList{display:flex; flex-direction:column; gap:8px; margin:14px 0;}
-  .workTypeRow{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line); border-radius:8px;}
+  .workTypeRow{position:relative; display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line); border-radius:8px;}
   .workTypeDot{width:12px; height:12px; border-radius:50%; flex:none;}
-  .workTypeLabel{flex:1; font-size:13px; font-weight:600;}
-  .workTypeDeleteBtn{
-    flex:none; width:24px; height:24px; border-radius:6px; padding:0; font-size:15px; line-height:1;
-    display:flex; align-items:center; justify-content:center;
+  .workTypeLabel{flex:1; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .workTypeMenuBtn{
+    flex:none; width:24px; height:24px; border-radius:6px; padding:0; font-size:16px; line-height:1;
+    display:flex; align-items:center; justify-content:center; letter-spacing:-1px; color:var(--sub);
   }
-  .workTypeDeleteBtn:hover{border-color:var(--danger); color:var(--danger);}
+  .workTypeMenuBtn:hover{border-color:var(--accent); color:var(--accent);}
+  .workTypeMenu{
+    display:none; position:absolute; top:calc(100% + 4px); right:0; z-index:10;
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.18); overflow:hidden; min-width:130px;
+  }
+  .workTypeMenu.show{display:block;}
+  .workTypeMenu button{
+    display:block; width:100%; text-align:left; border:none; border-radius:0; background:var(--card);
+    padding:9px 12px; font-size:12.5px; font-weight:600;
+  }
+  .workTypeMenu button:hover{background:var(--bg); border:none;}
+  .workTypeMenuDelete{color:var(--danger);}
   .workTypeAddRow{display:flex; flex-direction:column; gap:8px; padding-top:10px; border-top:1px solid var(--line);}
+  .workTypeAddActions{display:flex; gap:8px; justify-content:flex-end;}
   .colorSwatches{display:flex; gap:6px; flex-wrap:wrap;}
   .colorSwatch{
     width:22px; height:22px; border-radius:50%; padding:0; border:2px solid transparent;
@@ -174,10 +186,9 @@
   <h1>Calendario</h1>
 
   <div class="filterRow">
-    <div class="workChips" id="workChips"></div>
+    <button type="button" id="togglePastBtn" class="togglePastBtn">Mostra appuntamenti passati</button>
     <button type="button" id="manageTypesBtn" class="manageTypesBtn">Gestisci tipologie</button>
   </div>
-  <button type="button" id="togglePastBtn" class="togglePastBtn">Mostra appuntamenti passati</button>
 
   <div id="apptList"></div>
 </div>
@@ -244,7 +255,10 @@
     <div class="workTypeAddRow">
       <input type="text" id="workTypeNewLabel" class="exFormInput" placeholder="Nuova tipologia (es. Studio privato)">
       <div class="colorSwatches" id="colorSwatches"></div>
-      <button type="button" id="workTypeAddBtn" class="primary">Aggiungi</button>
+      <div class="workTypeAddActions">
+        <button type="button" id="workTypeCancelEditBtn" style="display:none;">Annulla modifica</button>
+        <button type="button" id="workTypeAddBtn" class="primary">Aggiungi</button>
+      </div>
     </div>
     <div class="modalActions">
       <button type="button" id="workTypesModalClose">Chiudi</button>
@@ -308,25 +322,7 @@ function fmtTime(d){ return d.toLocaleTimeString('it-IT', {hour:'2-digit', minut
 function roundToNext15(d){ const ms = 15*60000; return new Date(Math.ceil(d.getTime()/ms)*ms); }
 
 /* ===================== rendering lista appuntamenti ===================== */
-let activeFilterType = null;
 let showPast = false;
-
-function renderWorkChips(){
-  const wrap = document.getElementById('workChips');
-  wrap.innerHTML = workTypes.map(w=>
-    '<button type="button" class="workChip'+(activeFilterType===w.id?' active':'')+'" data-id="'+w.id+'" style="--wc:'+w.color+'">'+
-      '<span class="workChipDot"></span>'+escapeHtml(w.label)+
-    '</button>'
-  ).join('');
-  wrap.querySelectorAll('.workChip').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      activeFilterType = (activeFilterType===id) ? null : id;
-      renderWorkChips();
-      renderList();
-    });
-  });
-}
 
 function apptCardHtml(a, d){
   const wt = workTypeById(a.work_type_id);
@@ -346,7 +342,7 @@ function apptCardHtml(a, d){
 
 function renderList(){
   const container = document.getElementById('apptList');
-  let list = appointments.filter(a => activeFilterType ? a.work_type_id===activeFilterType : true);
+  let list = appointments;
   const today = startOfToday();
   const upcoming = list.filter(a => new Date(a.start_at) >= today).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
   const past = list.filter(a => new Date(a.start_at) < today).sort((a,b)=> new Date(b.start_at)-new Date(a.start_at));
@@ -475,6 +471,13 @@ document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>
 });
 
 /* ===================== modale gestione tipologie di lavoro ===================== */
+let editingWorkTypeId = null;
+
+function closeAllWorkTypeMenus(){
+  document.querySelectorAll('.workTypeMenu.show').forEach(m=>m.classList.remove('show'));
+}
+document.addEventListener('click', closeAllWorkTypeMenus);
+
 function renderWorkTypesList(){
   const wrap = document.getElementById('workTypesList');
   if(!workTypes.length){ wrap.innerHTML = '<div class="emptyState">Nessuna tipologia. Aggiungine una qui sotto.</div>'; return; }
@@ -482,11 +485,27 @@ function renderWorkTypesList(){
     '<div class="workTypeRow" data-id="'+w.id+'">'+
       '<span class="workTypeDot" style="background:'+w.color+'"></span>'+
       '<span class="workTypeLabel">'+escapeHtml(w.label)+'</span>'+
-      '<button type="button" class="workTypeDeleteBtn" data-id="'+w.id+'" title="Elimina">×</button>'+
+      '<button type="button" class="workTypeMenuBtn" data-id="'+w.id+'" title="Azioni" aria-label="Azioni">⋮</button>'+
+      '<div class="workTypeMenu" data-id="'+w.id+'">'+
+        '<button type="button" class="workTypeMenuEdit" data-id="'+w.id+'">Modifica</button>'+
+        '<button type="button" class="workTypeMenuDelete" data-id="'+w.id+'">Elimina</button>'+
+      '</div>'+
     '</div>'
   ).join('');
-  wrap.querySelectorAll('.workTypeDeleteBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=> deleteWorkType(btn.dataset.id));
+  wrap.querySelectorAll('.workTypeMenuBtn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const menu = wrap.querySelector('.workTypeMenu[data-id="'+btn.dataset.id+'"]');
+      const wasOpen = menu.classList.contains('show');
+      closeAllWorkTypeMenus();
+      if(!wasOpen) menu.classList.add('show');
+    });
+  });
+  wrap.querySelectorAll('.workTypeMenuEdit').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); closeAllWorkTypeMenus(); startEditWorkType(btn.dataset.id); });
+  });
+  wrap.querySelectorAll('.workTypeMenuDelete').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); closeAllWorkTypeMenus(); deleteWorkType(btn.dataset.id); });
   });
 }
 
@@ -504,6 +523,26 @@ function renderColorSwatches(){
   });
 }
 
+function startEditWorkType(id){
+  const wt = workTypeById(id);
+  if(!wt) return;
+  editingWorkTypeId = id;
+  document.getElementById('workTypeNewLabel').value = wt.label;
+  document.getElementById('colorSwatches').dataset.selected = wt.color;
+  renderColorSwatches();
+  document.getElementById('workTypeAddBtn').textContent = 'Salva modifiche';
+  document.getElementById('workTypeCancelEditBtn').style.display = '';
+  document.getElementById('workTypeNewLabel').focus();
+}
+function cancelEditWorkType(){
+  editingWorkTypeId = null;
+  document.getElementById('workTypeNewLabel').value = '';
+  document.getElementById('colorSwatches').dataset.selected = '';
+  renderColorSwatches();
+  document.getElementById('workTypeAddBtn').textContent = 'Aggiungi';
+  document.getElementById('workTypeCancelEditBtn').style.display = 'none';
+}
+
 function deleteWorkType(id){
   const wt = workTypeById(id);
   if(!wt) return;
@@ -512,45 +551,50 @@ function deleteWorkType(id){
     ? 'Eliminare "'+wt.label+'"? È usata da '+inUse+' appuntament'+(inUse>1?'i':'o')+', che resteranno senza tipologia.'
     : 'Eliminare "'+wt.label+'"?';
   if(!confirm(msg)) return;
+  if(editingWorkTypeId === id) cancelEditWorkType();
   workTypes = workTypes.filter(w=>w.id!==id);
   saveWorkTypes();
   pushWorkTypesToCloud();
   renderWorkTypesList();
-  renderWorkChips();
   renderList();
 }
 
 document.getElementById('manageTypesBtn').addEventListener('click', ()=>{
+  cancelEditWorkType();
   renderWorkTypesList();
-  document.getElementById('colorSwatches').dataset.selected = '';
   renderColorSwatches();
   document.getElementById('workTypesModalOverlay').classList.add('show');
 });
 document.getElementById('workTypesModalClose').addEventListener('click', ()=>{
+  cancelEditWorkType();
   document.getElementById('workTypesModalOverlay').classList.remove('show');
 });
 document.getElementById('workTypesModalOverlay').addEventListener('click', (e)=>{
-  if(e.target.id==='workTypesModalOverlay') document.getElementById('workTypesModalOverlay').classList.remove('show');
+  if(e.target.id==='workTypesModalOverlay'){ cancelEditWorkType(); document.getElementById('workTypesModalOverlay').classList.remove('show'); }
 });
+document.getElementById('workTypeCancelEditBtn').addEventListener('click', cancelEditWorkType);
 document.getElementById('workTypeAddBtn').addEventListener('click', ()=>{
   const input = document.getElementById('workTypeNewLabel');
   const label = input.value.trim();
   if(!label) return;
   const color = document.getElementById('colorSwatches').dataset.selected || WORK_TYPE_PALETTE[0];
-  workTypes.push({id: uid(), label, color});
+  if(editingWorkTypeId){
+    const wt = workTypeById(editingWorkTypeId);
+    wt.label = label; wt.color = color;
+  } else {
+    workTypes.push({id: uid(), label, color});
+  }
   saveWorkTypes();
   pushWorkTypesToCloud();
-  input.value = '';
-  document.getElementById('colorSwatches').dataset.selected = '';
+  cancelEditWorkType();
   renderWorkTypesList();
-  renderColorSwatches();
-  renderWorkChips();
   renderList();
 });
 
 document.addEventListener('keydown', (e)=>{
   if(e.key !== 'Escape') return;
-  if(document.getElementById('workTypesModalOverlay').classList.contains('show')) document.getElementById('workTypesModalOverlay').classList.remove('show');
+  if(document.querySelector('.workTypeMenu.show')) closeAllWorkTypeMenus();
+  else if(document.getElementById('workTypesModalOverlay').classList.contains('show')){ cancelEditWorkType(); document.getElementById('workTypesModalOverlay').classList.remove('show'); }
   else if(document.getElementById('apptDeleteModalOverlay').classList.contains('show')){ document.getElementById('apptDeleteModalOverlay').classList.remove('show'); pendingDeleteId = null; }
   else if(document.getElementById('apptModalOverlay').classList.contains('show')) closeApptModal();
 });
@@ -641,7 +685,7 @@ function subscribeRealtime(){
   settingsChannel = supabaseClient.channel('calendar_settings_'+syncUser.id)
     .on('postgres_changes', {event:'*', schema:'public', table:SETTINGS_TABLE, filter:'user_id=eq.'+syncUser.id}, (payload)=>{
       if(payload.new && payload.new.work_types && payload.new.work_types.length){
-        workTypes = payload.new.work_types; saveWorkTypes(); renderWorkChips(); renderList();
+        workTypes = payload.new.work_types; saveWorkTypes(); renderList();
       }
     }).subscribe();
 }
@@ -654,7 +698,6 @@ function unsubscribeRealtime(){
 function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : null; }
 
 (async function initSyncSession(){
-  renderWorkChips();
   renderList();
   if(!supabaseClient) return;
   const {data:{session}} = await supabaseClient.auth.getSession();
@@ -663,7 +706,6 @@ function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : n
     subscribeRealtime();
     await pullWorkTypes();
     await pullAppointments();
-    renderWorkChips();
     renderList();
   }
   supabaseClient.auth.onAuthStateChange((event)=>{
