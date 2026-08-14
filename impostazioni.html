@@ -141,9 +141,26 @@
 
     <p class="syncMessage" id="syncMessage"></p>
   </div>
+
+  <div class="settingsSection">
+    <div class="settingsSectionTitle">Google Calendar</div>
+    <p class="settingsNote">Collegando Google Calendar, ogni appuntamento che crei, modifichi o elimini nel Calendario dell'app viene copiato automaticamente anche lì (una sincronizzazione a senso unico: da qui verso Google, non il contrario).</p>
+
+    <div class="settingsRow">
+      <div>
+        <div class="settingsRowLabel" id="googleStatusLabel">Non collegato</div>
+        <div class="settingsRowSub" id="googleStatusSub">Gli appuntamenti restano solo nell'app finché non ti colleghi.</div>
+      </div>
+      <button type="button" id="googleConnectBtn" class="btn primary">Connetti</button>
+      <button type="button" id="googleDisconnectBtn" class="btn" style="display:none;">Disconnetti</button>
+    </div>
+
+    <p class="syncMessage" id="googleMessage"></p>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 /* ---- tema ---- */
 const themeSwitch = document.getElementById('themeSwitch');
@@ -239,6 +256,78 @@ document.getElementById('syncLogoutBtn').addEventListener('click', async ()=>{
   const {data:{session}} = await supabaseClient.auth.getSession();
   if(session && session.user){ showLoggedIn(session.user); }
 })();
+
+/* ---- Google Calendar (sincronizzazione one-way: app -> Google, non il contrario) ----
+   Il Client ID non è un segreto (è pensato per stare nel codice del browser): niente
+   client secret qui, il flusso "token" di Google Identity Services non ne ha bisogno. */
+const GOOGLE_CLIENT_ID = 'INSERISCI_QUI_IL_CLIENT_ID.apps.googleusercontent.com';
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+const LS_GOOGLE_TOKEN = 'esercizi_fisio_tool_v1__googleToken';
+const LS_GOOGLE_CONNECTED = 'esercizi_fisio_tool_v1__googleConnected';
+
+const googleStatusLabel = document.getElementById('googleStatusLabel');
+const googleStatusSub = document.getElementById('googleStatusSub');
+const googleConnectBtn = document.getElementById('googleConnectBtn');
+const googleDisconnectBtn = document.getElementById('googleDisconnectBtn');
+const googleMessage = document.getElementById('googleMessage');
+
+function setGoogleMessage(text){ googleMessage.textContent = text || ''; }
+function isGoogleConfigured(){ return GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('INSERISCI'); }
+function isGoogleConnected(){ return localStorage.getItem(LS_GOOGLE_CONNECTED) === 'true'; }
+
+function updateGoogleStatus(){
+  const connected = isGoogleConnected();
+  googleStatusLabel.textContent = connected ? 'Collegato ✓' : 'Non collegato';
+  googleStatusSub.textContent = connected
+    ? 'Gli appuntamenti vengono copiati automaticamente su Google Calendar.'
+    : 'Gli appuntamenti restano solo nell\'app finché non ti colleghi.';
+  googleConnectBtn.style.display = connected ? 'none' : '';
+  googleDisconnectBtn.style.display = connected ? '' : 'none';
+  if(!isGoogleConfigured()) setGoogleMessage('Non ancora configurato lato sviluppo: manca il Client ID di Google Cloud.');
+}
+
+let googleTokenClient = null;
+function initGoogleClient(){
+  if(!isGoogleConfigured()) { updateGoogleStatus(); return; }
+  if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(initGoogleClient, 300); return; }
+  googleTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_SCOPE,
+    callback: (resp)=>{
+      if(resp && resp.access_token){
+        localStorage.setItem(LS_GOOGLE_TOKEN, JSON.stringify({token:resp.access_token, expiresAt: Date.now()+(resp.expires_in*1000)}));
+        localStorage.setItem(LS_GOOGLE_CONNECTED, 'true');
+        setGoogleMessage('Collegato con successo.');
+        updateGoogleStatus();
+      } else if(resp && resp.error){
+        setGoogleMessage('Autorizzazione non riuscita: '+resp.error);
+      }
+    }
+  });
+  updateGoogleStatus();
+}
+
+googleConnectBtn.addEventListener('click', ()=>{
+  if(!isGoogleConfigured()){ setGoogleMessage('Non ancora configurato lato sviluppo: manca il Client ID di Google Cloud.'); return; }
+  if(!googleTokenClient){ setGoogleMessage('Libreria Google non ancora caricata, riprova tra un istante.'); return; }
+  setGoogleMessage('');
+  googleTokenClient.requestAccessToken({prompt:'consent'});
+});
+
+googleDisconnectBtn.addEventListener('click', ()=>{
+  try{
+    const t = JSON.parse(localStorage.getItem(LS_GOOGLE_TOKEN) || 'null');
+    if(t && t.token && window.google && google.accounts && google.accounts.oauth2){
+      google.accounts.oauth2.revoke(t.token, ()=>{});
+    }
+  }catch(e){}
+  localStorage.removeItem(LS_GOOGLE_TOKEN);
+  localStorage.removeItem(LS_GOOGLE_CONNECTED);
+  setGoogleMessage('Disconnesso.');
+  updateGoogleStatus();
+});
+
+initGoogleClient();
 
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', ()=>{

@@ -594,6 +594,7 @@ document.getElementById('apptModalSave').addEventListener('click', ()=>{
   }
   saveAppointments();
   pushAppointment(saved);
+  pushAppointmentToGoogle(saved);
   closeApptModal();
   renderList();
 });
@@ -613,6 +614,7 @@ document.getElementById('apptDeleteModalOverlay').addEventListener('click', (e)=
 });
 document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>{
   if(!pendingDeleteId) return;
+  const deleted = appointments.find(a=>a.id===pendingDeleteId);
   appointments = appointments.filter(a=>a.id!==pendingDeleteId);
   saveAppointments();
   // accodata come "da eliminare sul cloud": se l'invio qui sotto non facesse in tempo
@@ -621,6 +623,7 @@ document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>
   // scaricare i dati dal cloud — altrimenti un pull successivo la resusciterebbe in locale
   if(!pendingDeletes.includes(pendingDeleteId)){ pendingDeletes.push(pendingDeleteId); savePendingDeletes(); }
   deleteAppointmentRemote(pendingDeleteId);
+  if(deleted && deleted.google_event_id) deleteAppointmentFromGoogle(deleted.google_event_id);
   document.getElementById('apptDeleteModalOverlay').classList.remove('show');
   closeApptModal();
   renderList();
@@ -756,6 +759,78 @@ document.addEventListener('keydown', (e)=>{
   else if(document.getElementById('apptModalOverlay').classList.contains('show')) closeApptModal();
 });
 
+/* ===================== Google Calendar (one-way: app -> Google) =====================
+   Il collegamento (autorizzazione OAuth) si fa da impostazioni.html, che salva il token
+   in localStorage; qui lo leggiamo soltanto. Se manca o è scaduto, la copia su Google
+   viene semplicemente saltata in silenzio — l'appuntamento resta comunque salvato
+   regolarmente in locale/Supabase, si sincronizzerà su Google al prossimo ricollegamento. */
+const LS_GOOGLE_TOKEN = LS_PREFIX+'googleToken';
+
+function getGoogleToken(){
+  const t = lsGet(LS_GOOGLE_TOKEN, null);
+  if(t && t.token && t.expiresAt > Date.now() + 30000) return t.token; // 30s di margine
+  return null;
+}
+
+// tavolozza fissa dei colorId evento di Google Calendar: la tipologia di lavoro viene
+// mappata sul colore più vicino, non esistono colori arbitrari lato Google
+const GOOGLE_COLOR_PALETTE = [
+  {id:'1', hex:'#7986cb'},{id:'2', hex:'#33b679'},{id:'3', hex:'#8e24aa'},{id:'4', hex:'#e67c73'},
+  {id:'5', hex:'#f6c026'},{id:'6', hex:'#f5511d'},{id:'7', hex:'#039be5'},{id:'8', hex:'#616161'},
+  {id:'9', hex:'#3f51b5'},{id:'10', hex:'#0b8043'},{id:'11', hex:'#d60000'}
+];
+function closestGoogleColorId(hex){
+  if(!hex) return undefined;
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  let best, bestDist = Infinity;
+  GOOGLE_COLOR_PALETTE.forEach(c=>{
+    const ch = c.hex.replace('#','');
+    const cr = parseInt(ch.substring(0,2),16), cg = parseInt(ch.substring(2,4),16), cb = parseInt(ch.substring(4,6),16);
+    const dist = (r-cr)**2 + (g-cg)**2 + (b-cb)**2;
+    if(dist < bestDist){ bestDist = dist; best = c.id; }
+  });
+  return best;
+}
+
+async function pushAppointmentToGoogle(a){
+  const token = getGoogleToken();
+  if(!token) return;
+  const wt = workTypeById(a.work_type_id);
+  const start = new Date(a.start_at);
+  const end = new Date(start.getTime() + a.duration_min*60000);
+  const event = {
+    summary: a.patient_name,
+    location: wt ? wt.label : undefined,
+    description: a.notes || undefined,
+    colorId: wt ? closestGoogleColorId(wt.color) : undefined,
+    start: {dateTime: start.toISOString()},
+    end: {dateTime: end.toISOString()}
+  };
+  try{
+    const method = a.google_event_id ? 'PATCH' : 'POST';
+    const url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'+(a.google_event_id ? '/'+a.google_event_id : '');
+    const res = await fetch(url, {method, headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'}, body: JSON.stringify(event)});
+    if(res.ok){
+      const data = await res.json();
+      if(!a.google_event_id){
+        a.google_event_id = data.id;
+        saveAppointments();
+        pushAppointment(a); // salva l'id evento anche su Supabase, per gli altri dispositivi
+      }
+    }
+  }catch(e){}
+}
+async function deleteAppointmentFromGoogle(googleEventId){
+  const token = getGoogleToken();
+  if(!token || !googleEventId) return;
+  try{
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+googleEventId, {
+      method:'DELETE', headers:{'Authorization':'Bearer '+token}
+    });
+  }catch(e){}
+}
+
 /* ===================== SYNC (Supabase) — una riga per appuntamento =====================
    A differenza della libreria esercizi, qui non c'è un blob unico da inviare col debounce:
    ogni invio corrisponde a un'azione esplicita dell'utente (salva/elimina un appuntamento,
@@ -779,7 +854,8 @@ async function pushAppointment(a){
   try{
     await supabaseClient.from(APPT_TABLE).upsert({
       id:a.id, user_id:syncUser.id, patient_name:a.patient_name, start_at:a.start_at,
-      duration_min:a.duration_min, work_type_id:a.work_type_id, notes:a.notes||null, updated_at:a.updated_at
+      duration_min:a.duration_min, work_type_id:a.work_type_id, notes:a.notes||null, updated_at:a.updated_at,
+      google_event_id: a.google_event_id || null
     });
   }catch(e){}
 }
@@ -809,7 +885,7 @@ async function pushWorkTypesToCloud(){
 function applyRemoteAppointment(row){
   if(pendingDeletes.includes(row.id)) return; // eliminata in locale, in attesa di conferma dal cloud: non resuscitarla
   const idx = appointments.findIndex(a=>a.id===row.id);
-  const remote = {id:row.id, patient_name:row.patient_name, start_at:row.start_at, duration_min:row.duration_min, work_type_id:row.work_type_id, notes:row.notes, updated_at:row.updated_at};
+  const remote = {id:row.id, patient_name:row.patient_name, start_at:row.start_at, duration_min:row.duration_min, work_type_id:row.work_type_id, notes:row.notes, updated_at:row.updated_at, google_event_id:row.google_event_id};
   if(idx===-1){ appointments.push(remote); }
   else if(!appointments[idx].updated_at || remote.updated_at >= appointments[idx].updated_at){ appointments[idx] = remote; }
   else return; // la versione locale è più recente di quella remota appena arrivata: non sovrascrivere

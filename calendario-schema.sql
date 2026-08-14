@@ -57,3 +57,10 @@ create policy "calendar_settings_update_own" on calendar_settings
 --      Database -> Replication -> spunta "appointments" e "calendar_settings". ----
 alter publication supabase_realtime add table appointments;
 alter publication supabase_realtime add table calendar_settings;
+
+-- ============================================================================
+-- Aggiunta successiva: sincronizzazione one-way verso Google Calendar.
+-- Da eseguire una volta, in aggiunta a quanto sopra (se lo schema sopra è
+-- già stato eseguito in precedenza, basta eseguire solo questa riga).
+-- ============================================================================
+alter table appointments add column if not exists google_event_id text;
