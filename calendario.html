@@ -438,20 +438,24 @@ function renderList(){
 
   if(source.length===0){
     container.innerHTML = '<div class="emptyState">'+(showPast ? 'Nessun appuntamento passato.' : 'Nessun appuntamento in programma.')+'</div>';
-    return;
+  } else {
+    let html = '';
+    let lastDay = null;
+    source.forEach(a=>{
+      const d = new Date(a.start_at);
+      const dayKey = d.toDateString();
+      if(dayKey !== lastDay){ html += '<div class="dayHeader">'+fmtDay(d)+'</div>'; lastDay = dayKey; }
+      html += apptCardHtml(a, d);
+    });
+    container.innerHTML = html;
+    container.querySelectorAll('.apptCard').forEach(card=>{
+      card.addEventListener('click', ()=> openApptModal(card.dataset.id));
+    });
   }
-  let html = '';
-  let lastDay = null;
-  source.forEach(a=>{
-    const d = new Date(a.start_at);
-    const dayKey = d.toDateString();
-    if(dayKey !== lastDay){ html += '<div class="dayHeader">'+fmtDay(d)+'</div>'; lastDay = dayKey; }
-    html += apptCardHtml(a, d);
-  });
-  container.innerHTML = html;
-  container.querySelectorAll('.apptCard').forEach(card=>{
-    card.addEventListener('click', ()=> openApptModal(card.dataset.id));
-  });
+  // queste due righe devono girare sempre, anche a lista vuota: il ramo sopra usava un
+  // "return" anticipato che le saltava — bug reale capitato con calendario vuoto, dove il
+  // mese/giorno non venivano mai disegnati al primo caricamento (solo cliccando una freccia,
+  // che chiama renderMonthView()/renderDayGrid() direttamente, si "sbloccava")
   if(currentView==='grid') renderDayGrid();
   if(currentView==='month') renderMonthView();
 }
