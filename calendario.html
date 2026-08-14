@@ -254,7 +254,7 @@
     <div id="apptList"></div>
   </div>
 
-  <div id="monthView" style="display:none;">
+  <div id="monthView">
     <div class="monthNav">
       <button type="button" id="monthPrev" aria-label="Mese precedente">‹</button>
       <div class="monthLabel" id="monthLabel"></div>
@@ -263,7 +263,7 @@
     <div class="monthGrid" id="monthGrid"></div>
   </div>
 
-  <div id="gridView">
+  <div id="gridView" style="display:none;">
     <button type="button" id="gridBackToMonth" class="gridBackBtn">← Mese</button>
     <div class="gridDateNav">
       <button type="button" id="gridPrevDay" aria-label="Giorno precedente">‹</button>
@@ -460,7 +460,7 @@ document.getElementById('togglePastBtn').addEventListener('click', ()=>{ showPas
 
 /* ===================== viste: mese (default) / giorno / lista (per ora non raggiungibile
    dall'interfaccia, ma tenuta funzionante nel caso serva riportarla in futuro) ===================== */
-let currentView = 'grid';
+let currentView = 'month';
 let gridDate = startOfToday();
 let monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1); // sempre il giorno 1: setMonth() su un giorno come 31 salterebbe/duplicherebbe mesi
 const HOUR_HEIGHT = 72;
