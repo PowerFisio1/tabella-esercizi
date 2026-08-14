@@ -69,12 +69,6 @@
 
   .togglePastBtn{font-size:12px; padding:6px 12px;}
 
-  .gridBackBtn{
-    display:flex; align-items:center; gap:6px; background:none; border:none; padding:0;
-    color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;
-  }
-  .gridBackBtn:hover{color:var(--accent);}
-
   .monthNav{display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
   .monthNav button{padding:7px 11px;}
   .monthLabel{flex:1; min-width:140px; font-size:14px; font-weight:700; text-align:center; text-transform:capitalize;}
@@ -91,6 +85,8 @@
   .monthCell.today{border-color:var(--accent); border-width:2px;}
   .monthCellNum{font-size:12px; font-weight:700;}
   .monthCell.today .monthCellNum{color:var(--accent);}
+  .monthCell.selected{background:var(--accent); border-color:var(--accent);}
+  .monthCell.selected .monthCellNum{color:#fff;}
   .monthDots{display:flex; gap:3px; flex-wrap:wrap; margin-top:auto;}
   .monthDot{width:6px; height:6px; border-radius:50%; flex:none;}
 
@@ -100,30 +96,10 @@
     .monthDot{width:5px; height:5px;}
   }
 
-  .gridDateNav{display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
-  .gridDateNav button{padding:7px 11px;}
-  .gridDateLabel{flex:1; min-width:140px; font-size:14px; font-weight:700; text-align:center;}
-
-  .dayGridScroll{max-height:70vh; overflow-y:auto; border:1px solid var(--line); border-radius:12px; background:var(--card);}
-  .dayGrid{position:relative; display:flex;}
-  .gridHours{flex:none; width:48px; border-right:1px solid var(--line);}
-  .gridHourRow{position:relative; box-sizing:border-box;}
-  .gridHourLabel{position:absolute; top:-7px; right:6px; font-size:10px; color:var(--sub); background:var(--card); padding:0 2px;}
-  .gridHourRow:first-child .gridHourLabel{display:none;}
-  .gridColumn{position:relative; flex:1; cursor:pointer;}
-  .gridAppt{
-    position:absolute; z-index:2; border-left:3px solid; border-radius:6px; padding:3px 7px;
-    font-size:11px; line-height:1.35; overflow:hidden; cursor:pointer; color:var(--ink);
-    transition:opacity .1s ease;
-  }
-  .gridAppt:hover{opacity:.82;}
-  .gridApptTime{font-weight:700; opacity:.7; margin-right:3px;}
-  .gridApptPatient{font-weight:700;}
-  .gridNowLine{position:absolute; left:0; right:0; height:0; border-top:2px solid var(--danger); z-index:3; pointer-events:none;}
-  .gridNowDot{position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:50%; background:var(--danger);}
-
-  @media screen and (max-width: 480px){
-    .gridDateLabel{font-size:13px; min-width:100%; order:-1;}
+  .monthDayPanel{margin-top:24px; padding-top:18px; border-top:1px solid var(--line);}
+  .monthDayPanelTitle{
+    font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub);
+    margin-bottom:12px;
   }
 
   .dayHeader{
@@ -261,17 +237,10 @@
       <button type="button" id="monthNext" aria-label="Mese successivo">›</button>
     </div>
     <div class="monthGrid" id="monthGrid"></div>
-  </div>
 
-  <div id="gridView" style="display:none;">
-    <button type="button" id="gridBackToMonth" class="gridBackBtn">← Mese</button>
-    <div class="gridDateNav">
-      <button type="button" id="gridPrevDay" aria-label="Giorno precedente">‹</button>
-      <div class="gridDateLabel" id="gridDateLabel"></div>
-      <button type="button" id="gridNextDay" aria-label="Giorno successivo">›</button>
-    </div>
-    <div class="dayGridScroll">
-      <div class="dayGrid" id="dayGrid"></div>
+    <div class="monthDayPanel">
+      <div class="monthDayPanelTitle" id="monthDayListTitle"></div>
+      <div id="monthDayList"></div>
     </div>
   </div>
 </div>
@@ -452,12 +421,9 @@ function renderList(){
       card.addEventListener('click', ()=> openApptModal(card.dataset.id));
     });
   }
-  // queste due righe devono girare sempre, anche a lista vuota: il ramo sopra usava un
-  // "return" anticipato che le saltava — bug reale capitato con calendario vuoto, dove il
-  // mese/giorno non venivano mai disegnati al primo caricamento (solo cliccando una freccia,
-  // che chiama renderMonthView()/renderDayGrid() direttamente, si "sbloccava")
-  if(currentView==='grid') renderDayGrid();
-  if(currentView==='month') renderMonthView();
+  // questa riga deve girare sempre, anche a lista vuota: un "return" anticipato qui in
+  // passato la saltava a calendario vuoto, lasciando il mese non disegnato al primo carico
+  if(currentView==='month'){ renderMonthView(); renderSelectedDayList(); }
 }
 
 document.getElementById('togglePastBtn').addEventListener('click', ()=>{ showPast = !showPast; renderList(); });
@@ -465,23 +431,14 @@ document.getElementById('togglePastBtn').addEventListener('click', ()=>{ showPas
 /* ===================== viste: mese (default) / giorno / lista (per ora non raggiungibile
    dall'interfaccia, ma tenuta funzionante nel caso serva riportarla in futuro) ===================== */
 let currentView = 'month';
-let gridDate = startOfToday();
 let monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1); // sempre il giorno 1: setMonth() su un giorno come 31 salterebbe/duplicherebbe mesi
-const HOUR_HEIGHT = 72;
-
-function hexToRgba(hex, alpha){
-  const h = (hex||'#8a8f87').replace('#','');
-  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
-  return 'rgba('+r+','+g+','+b+','+alpha+')';
-}
+let selectedDate = startOfToday(); // giorno evidenziato nel mese, con la sua lista subito sotto
 
 function setView(view){
   currentView = view;
   document.getElementById('listView').style.display = view==='list' ? '' : 'none';
-  document.getElementById('gridView').style.display = view==='grid' ? '' : 'none';
   document.getElementById('monthView').style.display = view==='month' ? '' : 'none';
-  if(view==='grid') renderDayGrid();
-  if(view==='month') renderMonthView();
+  if(view==='month'){ renderMonthView(); renderSelectedDayList(); }
 }
 
 const WEEKDAY_LABELS = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
@@ -503,6 +460,7 @@ function renderMonthView(){
     const cellDate = new Date(gridStart); cellDate.setDate(gridStart.getDate()+i);
     const inMonth = cellDate.getMonth()===month;
     const isToday = cellDate.getTime()===today.getTime();
+    const isSelected = selectedDate && cellDate.getTime()===selectedDate.getTime();
     const dayAppts = appointments.filter(a=>{
       const t = new Date(a.start_at); t.setHours(0,0,0,0);
       return t.getTime()===cellDate.getTime();
@@ -511,7 +469,7 @@ function renderMonthView(){
       const wt = workTypeById(a.work_type_id);
       return '<span class="monthDot" style="background:'+(wt?wt.color:'#8a8f87')+'"></span>';
     }).join('');
-    cellsHtml += '<div class="monthCell'+(inMonth?'':' outMonth')+(isToday?' today':'')+'" data-date="'+toDateInputValue(cellDate)+'">'+
+    cellsHtml += '<div class="monthCell'+(inMonth?'':' outMonth')+(isToday?' today':'')+(isSelected?' selected':'')+'" data-date="'+toDateInputValue(cellDate)+'">'+
       '<span class="monthCellNum">'+cellDate.getDate()+'</span>'+
       (dotsHtml ? '<div class="monthDots">'+dotsHtml+'</div>' : '')+
     '</div>';
@@ -523,145 +481,39 @@ function renderMonthView(){
   document.querySelectorAll('.monthCell').forEach(cell=>{
     cell.addEventListener('click', ()=>{
       const [y,m,d] = cell.dataset.date.split('-').map(Number);
-      gridDate = new Date(y, m-1, d);
-      setView('grid');
+      selectedDate = new Date(y, m-1, d);
+      renderMonthView();
+      renderSelectedDayList();
     });
+  });
+}
+
+/* lista appuntamenti del giorno evidenziato, sotto la griglia del mese: sostituisce
+   la vecchia vista "Giorno" a griglia oraria (rimossa) — niente più click-su-orario per
+   creare, ma "+ Nuovo appuntamento" precompila comunque la data col giorno selezionato */
+function renderSelectedDayList(){
+  const dayStart = new Date(selectedDate); dayStart.setHours(0,0,0,0);
+  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+  const dayAppts = appointments.filter(a=>{
+    const t = new Date(a.start_at);
+    return t >= dayStart && t < dayEnd;
+  }).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
+
+  document.getElementById('monthDayListTitle').textContent = fmtDay(dayStart);
+
+  const container = document.getElementById('monthDayList');
+  if(!dayAppts.length){
+    container.innerHTML = '<div class="emptyState">Nessun appuntamento in questo giorno.</div>';
+    return;
+  }
+  container.innerHTML = dayAppts.map(a => apptCardHtml(a, new Date(a.start_at))).join('');
+  container.querySelectorAll('.apptCard').forEach(card=>{
+    card.addEventListener('click', ()=> openApptModal(card.dataset.id));
   });
 }
 
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()-1); renderMonthView(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()+1); renderMonthView(); });
-document.getElementById('gridBackToMonth').addEventListener('click', ()=>{
-  monthDate = new Date(gridDate.getFullYear(), gridDate.getMonth(), 1);
-  setView('month');
-});
-
-function fmtGridDateLabel(d){
-  const today = startOfToday();
-  const day = new Date(d); day.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-  let prefix = '';
-  if(day.getTime()===today.getTime()) prefix = 'Oggi, ';
-  else if(day.getTime()===tomorrow.getTime()) prefix = 'Domani, ';
-  else if(day.getTime()===yesterday.getTime()) prefix = 'Ieri, ';
-  const s = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
-  return prefix + s.charAt(0).toUpperCase()+s.slice(1);
-}
-
-/* assegna una colonna a ogni appuntamento del giorno, in modo che due appuntamenti
-   sovrapposti nello stesso orario vengano affiancati invece che disegnati uno sopra
-   l'altro (algoritmo greedy: riusa la prima colonna già libera a quell'orario) */
-function layoutDayAppointments(dayAppts){
-  const sorted = [...dayAppts].sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
-  const columnsEnd = [];
-  const placed = [];
-  sorted.forEach(a=>{
-    const start = new Date(a.start_at).getTime();
-    const end = start + a.duration_min*60000;
-    let colIndex = columnsEnd.findIndex(ce => ce <= start);
-    if(colIndex === -1){ colIndex = columnsEnd.length; columnsEnd.push(end); }
-    else { columnsEnd[colIndex] = end; }
-    placed.push({a, col: colIndex});
-  });
-  const totalCols = columnsEnd.length || 1;
-  return placed.map(p => ({...p, totalCols}));
-}
-
-function renderDayGrid(){
-  document.getElementById('gridDateLabel').textContent = fmtGridDateLabel(gridDate);
-
-  const dayStart = new Date(gridDate); dayStart.setHours(0,0,0,0);
-  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
-  const dayAppts = appointments.filter(a=>{
-    const t = new Date(a.start_at);
-    return t >= dayStart && t < dayEnd;
-  });
-
-  // orario base 7-21, allargato se c'è un appuntamento fuori da questo intervallo
-  let startHour = 7, endHour = 21;
-  dayAppts.forEach(a=>{
-    const d = new Date(a.start_at);
-    const h = d.getHours();
-    const endH = Math.ceil((d.getHours()*60 + d.getMinutes() + a.duration_min) / 60);
-    if(h < startHour) startHour = h;
-    if(endH > endHour) endHour = endH;
-  });
-
-  const gridHeight = (endHour - startHour) * HOUR_HEIGHT;
-
-  const hoursHtml = [];
-  for(let h = startHour; h < endHour; h++){
-    hoursHtml.push('<div class="gridHourRow" style="height:'+HOUR_HEIGHT+'px;"><span class="gridHourLabel">'+pad(h)+':00</span></div>');
-  }
-
-  const laidOut = layoutDayAppointments(dayAppts);
-  const blocksHtml = laidOut.map(({a, col, totalCols})=>{
-    const d = new Date(a.start_at);
-    const minutesFromStart = (d.getHours()*60 + d.getMinutes()) - startHour*60;
-    const top = (minutesFromStart / 60) * HOUR_HEIGHT;
-    const height = Math.max((a.duration_min/60) * HOUR_HEIGHT - 2, 24);
-    const widthPct = 100 / totalCols;
-    const leftPct = col * widthPct;
-    const wt = workTypeById(a.work_type_id);
-    const color = wt ? wt.color : '#8a8f87';
-    return '<div class="gridAppt" data-id="'+a.id+'" style="top:'+top+'px; height:'+height+'px; left:calc('+leftPct+'% + 2px); width:calc('+widthPct+'% - 4px); background:'+hexToRgba(color,.16)+'; border-left-color:'+color+';">'+
-      '<span class="gridApptTime">'+fmtTime(d)+'</span><span class="gridApptPatient">'+escapeHtml(a.patient_name)+'</span>'+
-    '</div>';
-  }).join('');
-
-  let nowLineHtml = '';
-  const now = new Date();
-  if(now >= dayStart && now < dayEnd){
-    const nowMinutes = (now.getHours()*60 + now.getMinutes()) - startHour*60;
-    if(nowMinutes >= 0 && nowMinutes <= (endHour-startHour)*60){
-      nowLineHtml = '<div class="gridNowLine" style="top:'+((nowMinutes/60)*HOUR_HEIGHT)+'px;"><span class="gridNowDot"></span></div>';
-    }
-  }
-
-  const gridLines = 'repeating-linear-gradient(to bottom, transparent, transparent '+(HOUR_HEIGHT-1)+'px, var(--line) '+(HOUR_HEIGHT-1)+'px, var(--line) '+HOUR_HEIGHT+'px)';
-
-  const grid = document.getElementById('dayGrid');
-  grid.innerHTML =
-    '<div class="gridHours">'+hoursHtml.join('')+'</div>'+
-    '<div class="gridColumn" id="gridColumn" style="height:'+gridHeight+'px; background-image:'+gridLines+';">'+blocksHtml+nowLineHtml+'</div>';
-
-  const gridColumn = document.getElementById('gridColumn');
-  gridColumn.addEventListener('click', (e)=>{
-    if(e.target.closest('.gridAppt')) return;
-    const rect = gridColumn.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    let minutesFromStart = Math.round((offsetY / HOUR_HEIGHT) * 60 / 15) * 15;
-    minutesFromStart = Math.max(0, minutesFromStart);
-    const clicked = new Date(dayStart);
-    clicked.setMinutes(startHour*60 + minutesFromStart);
-    openApptModal(null, clicked);
-  });
-  gridColumn.querySelectorAll('.gridAppt').forEach(el=>{
-    el.addEventListener('click', (e)=>{ e.stopPropagation(); openApptModal(el.dataset.id); });
-  });
-
-  // porta in vista "adesso" (se oggi) o il primo appuntamento del giorno, invece di
-  // partire sempre dalla prima riga dell'intervallo mostrato
-  requestAnimationFrame(()=>{
-    const scrollBox = document.querySelector('.dayGridScroll');
-    if(!scrollBox) return;
-    let target = 0;
-    const isToday = dayStart.getTime() === startOfToday().getTime();
-    if(isToday){
-      const nowMinutes = (now.getHours()*60+now.getMinutes()) - startHour*60;
-      target = Math.max(0, (nowMinutes/60)*HOUR_HEIGHT - 120);
-    } else if(dayAppts.length){
-      const first = new Date([...dayAppts].sort((a,b)=>new Date(a.start_at)-new Date(b.start_at))[0].start_at);
-      const m = (first.getHours()*60+first.getMinutes()) - startHour*60;
-      target = Math.max(0, (m/60)*HOUR_HEIGHT - 80);
-    }
-    scrollBox.scrollTop = target;
-  });
-}
-
-document.getElementById('gridPrevDay').addEventListener('click', ()=>{ gridDate.setDate(gridDate.getDate()-1); renderDayGrid(); });
-document.getElementById('gridNextDay').addEventListener('click', ()=>{ gridDate.setDate(gridDate.getDate()+1); renderDayGrid(); });
 
 /* ===================== modale nuovo/modifica appuntamento ===================== */
 let editingApptId = null;
@@ -708,7 +560,14 @@ function openApptModal(id, prefillDate){
 }
 function closeApptModal(){ document.getElementById('apptModalOverlay').classList.remove('show'); editingApptId = null; }
 
-document.getElementById('newApptBtn').addEventListener('click', ()=> openApptModal(null));
+function defaultNewApptDate(){
+  const base = selectedDate || startOfToday();
+  const now = roundToNext15(new Date());
+  const d = new Date(base);
+  d.setHours(now.getHours(), now.getMinutes(), 0, 0);
+  return d;
+}
+document.getElementById('newApptBtn').addEventListener('click', ()=> openApptModal(null, defaultNewApptDate()));
 document.getElementById('apptModalCancel').addEventListener('click', closeApptModal);
 document.getElementById('apptModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='apptModalOverlay') closeApptModal(); });
 
