@@ -78,7 +78,6 @@
   .monthNav{display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
   .monthNav button{padding:7px 11px;}
   .monthLabel{flex:1; min-width:140px; font-size:14px; font-weight:700; text-align:center; text-transform:capitalize;}
-  .monthTodayBtn{font-size:11.5px; padding:7px 12px; border-radius:100px;}
 
   .monthGrid{display:grid; grid-template-columns:repeat(7, 1fr); gap:4px;}
   .monthWeekday{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); text-align:center; padding:2px 0 6px;}
@@ -104,7 +103,6 @@
   .gridDateNav{display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
   .gridDateNav button{padding:7px 11px;}
   .gridDateLabel{flex:1; min-width:140px; font-size:14px; font-weight:700; text-align:center;}
-  .gridTodayBtn{font-size:11.5px; padding:7px 12px; border-radius:100px;}
 
   .dayGridScroll{max-height:70vh; overflow-y:auto; border:1px solid var(--line); border-radius:12px; background:var(--card);}
   .dayGrid{position:relative; display:flex;}
@@ -256,23 +254,21 @@
     <div id="apptList"></div>
   </div>
 
-  <div id="monthView">
+  <div id="monthView" style="display:none;">
     <div class="monthNav">
       <button type="button" id="monthPrev" aria-label="Mese precedente">‹</button>
       <div class="monthLabel" id="monthLabel"></div>
       <button type="button" id="monthNext" aria-label="Mese successivo">›</button>
-      <button type="button" id="monthTodayBtn" class="monthTodayBtn">Oggi</button>
     </div>
     <div class="monthGrid" id="monthGrid"></div>
   </div>
 
-  <div id="gridView" style="display:none;">
+  <div id="gridView">
     <button type="button" id="gridBackToMonth" class="gridBackBtn">← Mese</button>
     <div class="gridDateNav">
       <button type="button" id="gridPrevDay" aria-label="Giorno precedente">‹</button>
       <div class="gridDateLabel" id="gridDateLabel"></div>
       <button type="button" id="gridNextDay" aria-label="Giorno successivo">›</button>
-      <button type="button" id="gridTodayBtn" class="gridTodayBtn">Oggi</button>
     </div>
     <div class="dayGridScroll">
       <div class="dayGrid" id="dayGrid"></div>
@@ -464,7 +460,7 @@ document.getElementById('togglePastBtn').addEventListener('click', ()=>{ showPas
 
 /* ===================== viste: mese (default) / giorno / lista (per ora non raggiungibile
    dall'interfaccia, ma tenuta funzionante nel caso serva riportarla in futuro) ===================== */
-let currentView = 'month';
+let currentView = 'grid';
 let gridDate = startOfToday();
 let monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1); // sempre il giorno 1: setMonth() su un giorno come 31 salterebbe/duplicherebbe mesi
 const HOUR_HEIGHT = 72;
@@ -531,7 +527,6 @@ function renderMonthView(){
 
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()-1); renderMonthView(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()+1); renderMonthView(); });
-document.getElementById('monthTodayBtn').addEventListener('click', ()=>{ monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1); renderMonthView(); });
 document.getElementById('gridBackToMonth').addEventListener('click', ()=>{
   monthDate = new Date(gridDate.getFullYear(), gridDate.getMonth(), 1);
   setView('month');
@@ -663,7 +658,6 @@ function renderDayGrid(){
 
 document.getElementById('gridPrevDay').addEventListener('click', ()=>{ gridDate.setDate(gridDate.getDate()-1); renderDayGrid(); });
 document.getElementById('gridNextDay').addEventListener('click', ()=>{ gridDate.setDate(gridDate.getDate()+1); renderDayGrid(); });
-document.getElementById('gridTodayBtn').addEventListener('click', ()=>{ gridDate = startOfToday(); renderDayGrid(); });
 
 /* ===================== modale nuovo/modifica appuntamento ===================== */
 let editingApptId = null;
