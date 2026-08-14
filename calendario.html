@@ -40,7 +40,8 @@
   .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
   .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
   .backLink:hover{color:var(--accent);}
-  h1{font-size:20px; margin:0 0 18px;}
+  h1{font-size:20px; margin:0;}
+  .titleRow{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
 
   button{
     font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
@@ -242,12 +243,14 @@
     <a class="backLink" href="index.html">← Dashboard</a>
     <button type="button" id="newApptBtn" class="primary">+ Nuovo appuntamento</button>
   </div>
-  <h1>Calendario</h1>
+  <div class="titleRow">
+    <h1>Calendario</h1>
+    <button type="button" id="manageTypesBtn" class="manageTypesBtn">Gestisci tipologie</button>
+  </div>
 
   <div id="listView" style="display:none;">
     <div class="filterRow">
       <button type="button" id="togglePastBtn" class="togglePastBtn">Mostra appuntamenti passati</button>
-      <button type="button" id="manageTypesBtn" class="manageTypesBtn">Gestisci tipologie</button>
     </div>
 
     <div id="apptList"></div>
@@ -259,7 +262,6 @@
       <div class="monthLabel" id="monthLabel"></div>
       <button type="button" id="monthNext" aria-label="Mese successivo">›</button>
       <button type="button" id="monthTodayBtn" class="monthTodayBtn">Oggi</button>
-      <button type="button" id="manageTypesBtnMonth" class="manageTypesBtn">Gestisci tipologie</button>
     </div>
     <div class="monthGrid" id="monthGrid"></div>
   </div>
@@ -271,7 +273,6 @@
       <div class="gridDateLabel" id="gridDateLabel"></div>
       <button type="button" id="gridNextDay" aria-label="Giorno successivo">›</button>
       <button type="button" id="gridTodayBtn" class="gridTodayBtn">Oggi</button>
-      <button type="button" id="manageTypesBtnGrid" class="manageTypesBtn">Gestisci tipologie</button>
     </div>
     <div class="dayGridScroll">
       <div class="dayGrid" id="dayGrid"></div>
@@ -531,7 +532,6 @@ function renderMonthView(){
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()-1); renderMonthView(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()+1); renderMonthView(); });
 document.getElementById('monthTodayBtn').addEventListener('click', ()=>{ monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1); renderMonthView(); });
-document.getElementById('manageTypesBtnMonth').addEventListener('click', ()=> document.getElementById('manageTypesBtn').click());
 document.getElementById('gridBackToMonth').addEventListener('click', ()=>{
   monthDate = new Date(gridDate.getFullYear(), gridDate.getMonth(), 1);
   setView('month');
@@ -664,7 +664,6 @@ function renderDayGrid(){
 document.getElementById('gridPrevDay').addEventListener('click', ()=>{ gridDate.setDate(gridDate.getDate()-1); renderDayGrid(); });
 document.getElementById('gridNextDay').addEventListener('click', ()=>{ gridDate.setDate(gridDate.getDate()+1); renderDayGrid(); });
 document.getElementById('gridTodayBtn').addEventListener('click', ()=>{ gridDate = startOfToday(); renderDayGrid(); });
-document.getElementById('manageTypesBtnGrid').addEventListener('click', ()=> document.getElementById('manageTypesBtn').click());
 
 /* ===================== modale nuovo/modifica appuntamento ===================== */
 let editingApptId = null;
