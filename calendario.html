@@ -283,6 +283,7 @@ function escapeHtml(s){
 const LS_PREFIX = 'esercizi_fisio_tool_v1__';
 const LS_APPTS = LS_PREFIX+'appointments';
 const LS_WORKTYPES = LS_PREFIX+'workTypes';
+const LS_PENDING_DELETES = LS_PREFIX+'pendingAppointmentDeletes'; // id eliminati in locale ma non ancora confermati sul cloud
 
 function lsGet(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
 function lsSet(key, value){ try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch(e){ return false; } }
@@ -299,9 +300,11 @@ const WORK_TYPE_PALETTE = ['#3b6fa3','#6b8e3a','#c9a227','#e8720f','#7b5ea7','#b
 let appointments = lsGet(LS_APPTS, []);
 let workTypes = lsGet(LS_WORKTYPES, null);
 if(!workTypes || !workTypes.length){ workTypes = DEFAULT_WORK_TYPES.slice(); lsSet(LS_WORKTYPES, workTypes); }
+let pendingDeletes = lsGet(LS_PENDING_DELETES, []);
 
 function saveAppointments(){ lsSet(LS_APPTS, appointments); }
 function saveWorkTypes(){ lsSet(LS_WORKTYPES, workTypes); }
+function savePendingDeletes(){ lsSet(LS_PENDING_DELETES, pendingDeletes); }
 function workTypeById(id){ return workTypes.find(w=>w.id===id); }
 
 /* ---- formattazione data/ora ---- */
@@ -463,6 +466,11 @@ document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>
   if(!pendingDeleteId) return;
   appointments = appointments.filter(a=>a.id!==pendingDeleteId);
   saveAppointments();
+  // accodata come "da eliminare sul cloud": se l'invio qui sotto non facesse in tempo
+  // a completarsi prima che l'app venga chiusa/messa in background (frequente su mobile
+  // subito dopo un tocco), verrà ritentato al prossimo avvio di questa pagina, prima di
+  // scaricare i dati dal cloud — altrimenti un pull successivo la resusciterebbe in locale
+  if(!pendingDeletes.includes(pendingDeleteId)){ pendingDeletes.push(pendingDeleteId); savePendingDeletes(); }
   deleteAppointmentRemote(pendingDeleteId);
   document.getElementById('apptDeleteModalOverlay').classList.remove('show');
   closeApptModal();
@@ -627,8 +635,18 @@ async function pushAppointment(a){
   }catch(e){}
 }
 async function deleteAppointmentRemote(id){
-  if(!supabaseClient || !syncUser) return;
-  try{ await supabaseClient.from(APPT_TABLE).delete().eq('id', id); }catch(e){}
+  if(!supabaseClient || !syncUser) return; // resta in coda, verrà ritentata al prossimo login/apertura
+  try{
+    const {error} = await supabaseClient.from(APPT_TABLE).delete().eq('id', id);
+    if(!error){ pendingDeletes = pendingDeletes.filter(x=>x!==id); savePendingDeletes(); }
+  }catch(e){}
+}
+/* ritenta le eliminazioni rimaste "in sospeso" (invio precedente non arrivato a
+   destinazione prima che l'app si chiudesse) prima di scaricare i dati dal cloud:
+   altrimenti un pull le resusciterebbe in locale */
+async function flushPendingDeletes(){
+  if(!supabaseClient || !syncUser || !pendingDeletes.length) return;
+  for(const id of pendingDeletes.slice()){ await deleteAppointmentRemote(id); }
 }
 async function pushWorkTypesToCloud(){
   if(!supabaseClient || !syncUser) return;
@@ -640,6 +658,7 @@ async function pushWorkTypesToCloud(){
 }
 
 function applyRemoteAppointment(row){
+  if(pendingDeletes.includes(row.id)) return; // eliminata in locale, in attesa di conferma dal cloud: non resuscitarla
   const idx = appointments.findIndex(a=>a.id===row.id);
   const remote = {id:row.id, patient_name:row.patient_name, start_at:row.start_at, duration_min:row.duration_min, work_type_id:row.work_type_id, notes:row.notes, updated_at:row.updated_at};
   if(idx===-1){ appointments.push(remote); }
@@ -704,6 +723,7 @@ function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : n
   if(session && session.user){
     setSyncUser(session.user);
     subscribeRealtime();
+    await flushPendingDeletes();
     await pullWorkTypes();
     await pullAppointments();
     renderList();

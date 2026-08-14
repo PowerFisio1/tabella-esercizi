@@ -318,7 +318,13 @@ function renderUpcoming(list, workTypes){
       supabaseClient.from('appointments').select('*').eq('user_id', session.user.id).gte('start_at', nowIso).order('start_at').limit(4),
       supabaseClient.from('calendar_settings').select('work_types').eq('user_id', session.user.id).maybeSingle()
     ]);
-    if(apptsRes.data) renderUpcoming(apptsRes.data, settingsRes.data ? settingsRes.data.work_types : []);
+    if(apptsRes.data){
+      // esclude appuntamenti eliminati in locale ma non ancora confermati sul cloud
+      // (stesso meccanismo di calendario.html: evita che qui riappaiano per qualche istante)
+      const pendingDeletes = lsGet(LS_PREFIX+'pendingAppointmentDeletes', []);
+      const filtered = apptsRes.data.filter(a=>!pendingDeletes.includes(a.id));
+      renderUpcoming(filtered, settingsRes.data ? settingsRes.data.work_types : []);
+    }
   }catch(e){}
 })();
 
