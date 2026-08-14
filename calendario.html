@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendario</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1c3f66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<style>
+  :root{
+    --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
+    --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    --danger:#b3412f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+      --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --danger:#c8543c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+    --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --danger:#c8543c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:24px 20px 60px; transition:background-color .2s ease, color .2s ease;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+  .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+  .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
+  .backLink:hover{color:var(--accent);}
+  h1{font-size:20px; margin:0 0 18px;}
+
+  button{
+    font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+    border-radius:8px; padding:9px 14px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink);
+    transition:border-color .15s ease, background-color .15s ease, opacity .15s ease;
+  }
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
+  button.primary:hover{opacity:.92;}
+  button.danger{background:var(--danger); color:#fff; border-color:var(--danger);}
+  button.danger:hover{opacity:.9;}
+
+  .filterRow{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+  .workChips{display:flex; gap:6px; flex-wrap:wrap;}
+  .workChip{
+    display:flex; align-items:center; gap:6px; font-family:inherit; font-size:11.5px; font-weight:600;
+    padding:6px 12px; border-radius:100px; border:1px solid var(--line); background:var(--card);
+    color:var(--ink); cursor:pointer; transition:border-color .15s ease, background-color .15s ease, color .15s ease;
+  }
+  .workChip:hover{border-color:var(--wc, var(--accent));}
+  .workChip.active{background:var(--wc, var(--accent)); border-color:var(--wc, var(--accent)); color:#fff;}
+  .workChipDot{width:7px; height:7px; border-radius:50%; background:var(--wc, var(--accent)); flex:none;}
+  .workChip.active .workChipDot{background:rgba(255,255,255,.85);}
+  .manageTypesBtn{font-size:11.5px; padding:6px 12px; border-radius:100px; flex:none;}
+
+  .togglePastBtn{font-size:12px; padding:6px 12px; margin-bottom:16px;}
+
+  .dayHeader{
+    font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub);
+    padding:6px 2px; border-bottom:1px solid var(--line); margin:22px 0 10px;
+  }
+  .dayHeader:first-child{margin-top:0;}
+
+  .apptCard{
+    display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .apptCard:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .apptTime{font-size:14px; font-weight:700; color:var(--ink); flex:none; width:62px; line-height:1.3;}
+  .apptTimeEnd{display:block; font-size:11px; font-weight:600; color:var(--sub);}
+  .apptMain{flex:1; min-width:0;}
+  .apptPatient{font-size:14px; font-weight:700; margin-bottom:4px;}
+  .apptTypeTag{
+    display:inline-flex; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:100px;
+    background:var(--wc, var(--accent-light)); color:#fff;
+  }
+  .apptTypeTagNone{background:var(--line); color:var(--sub);}
+  .apptNotes{font-size:12px; color:var(--sub); margin-top:5px; line-height:1.4;}
+  .apptDuration{
+    flex:none; font-size:11px; font-weight:700; color:var(--sub); background:var(--bg);
+    border:1px solid var(--line); padding:4px 10px; border-radius:100px;
+  }
+  .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
+
+  .modalOverlay{
+    display:none; position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:1000;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modalOverlay.show{display:flex;}
+  .modalCard{
+    background:var(--card); color:var(--ink); border-radius:14px; padding:22px; max-width:360px; width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); max-height:calc(100vh - 40px); overflow-y:auto;
+  }
+  .modalCard p{margin:0 0 10px; font-size:14px; line-height:1.5; color:var(--ink);}
+  .modalCard .modalNote{font-size:12px; color:var(--sub);}
+  .modalActions{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
+  .modalActions button{font-family:inherit; font-size:13px; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;}
+  .modalActions button:hover{border-color:var(--accent);}
+  .modalActions .danger{background:var(--danger); color:#fff; border-color:var(--danger); margin-right:auto;}
+  .modalActions .danger:hover{opacity:.9;}
+
+  .apptModalCard{max-width:420px;}
+  .exFormGrid{display:flex; flex-direction:column; gap:12px; margin:14px 0;}
+  .exFormField{display:flex; flex-direction:column; gap:4px;}
+  .exFormField .label{font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); font-weight:600;}
+  .exFormInput{
+    font-family:inherit; font-size:13px; color:var(--ink); background:var(--card);
+    border:1px solid var(--line); border-radius:8px; padding:8px 9px; outline:none; transition:border-color .15s ease;
+    width:100%;
+  }
+  .exFormInput:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+  textarea.exFormInput{resize:vertical; min-height:60px; line-height:1.45;}
+  .apptFormRow2{display:flex; gap:10px;}
+  .apptFormRow2 .exFormField{flex:1;}
+
+  .durationRow{display:flex; gap:8px;}
+  .durationBtn{flex:1; font-size:12.5px; padding:9px 6px; border-radius:8px;}
+  .durationBtn.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+
+  .workChipsForm{display:flex; gap:6px; flex-wrap:wrap;}
+
+  .workTypesList{display:flex; flex-direction:column; gap:8px; margin:14px 0;}
+  .workTypeRow{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line); border-radius:8px;}
+  .workTypeDot{width:12px; height:12px; border-radius:50%; flex:none;}
+  .workTypeLabel{flex:1; font-size:13px; font-weight:600;}
+  .workTypeDeleteBtn{
+    flex:none; width:24px; height:24px; border-radius:6px; padding:0; font-size:15px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .workTypeDeleteBtn:hover{border-color:var(--danger); color:var(--danger);}
+  .workTypeAddRow{display:flex; flex-direction:column; gap:8px; padding-top:10px; border-top:1px solid var(--line);}
+  .colorSwatches{display:flex; gap:6px; flex-wrap:wrap;}
+  .colorSwatch{
+    width:22px; height:22px; border-radius:50%; padding:0; border:2px solid transparent;
+    background:var(--sw);
+  }
+  .colorSwatch.active{border-color:var(--ink); box-shadow:0 0 0 2px var(--card), 0 0 0 3px var(--sw);}
+
+  @media screen and (max-width: 480px){
+    .modalCard{padding:18px;}
+    .apptFormRow2{flex-direction:column; gap:12px;}
+  }
+</style>
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('esercizi_fisio_tool_v1__theme');
+    if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="topBar">
+    <a class="backLink" href="index.html">← Dashboard</a>
+    <button type="button" id="newApptBtn" class="primary">+ Nuovo appuntamento</button>
+  </div>
+  <h1>Calendario</h1>
+
+  <div class="filterRow">
+    <div class="workChips" id="workChips"></div>
+    <button type="button" id="manageTypesBtn" class="manageTypesBtn">Gestisci tipologie</button>
+  </div>
+  <button type="button" id="togglePastBtn" class="togglePastBtn">Mostra appuntamenti passati</button>
+
+  <div id="apptList"></div>
+</div>
+
+<div class="modalOverlay" id="apptModalOverlay">
+  <div class="modalCard apptModalCard">
+    <p id="apptModalTitle">Nuovo appuntamento</p>
+    <div class="exFormGrid">
+      <label class="exFormField">
+        <span class="label">Nome e cognome paziente</span>
+        <input type="text" id="apptFormPatient" class="exFormInput" placeholder="Nome Cognome">
+      </label>
+      <div class="apptFormRow2">
+        <label class="exFormField">
+          <span class="label">Data</span>
+          <input type="date" id="apptFormDate" class="exFormInput">
+        </label>
+        <label class="exFormField">
+          <span class="label">Ora inizio</span>
+          <input type="time" id="apptFormTime" class="exFormInput">
+        </label>
+      </div>
+      <div class="exFormField">
+        <span class="label">Durata</span>
+        <div class="durationRow" id="durationRow">
+          <button type="button" class="durationBtn" data-min="30">30 min</button>
+          <button type="button" class="durationBtn" data-min="45">45 min</button>
+          <button type="button" class="durationBtn" data-min="60">60 min</button>
+        </div>
+      </div>
+      <div class="exFormField">
+        <span class="label">Tipologia di lavoro</span>
+        <div class="workChipsForm" id="apptFormWorkTypes"></div>
+      </div>
+      <label class="exFormField">
+        <span class="label">Note (facoltative)</span>
+        <textarea id="apptFormNotes" class="exFormInput" placeholder="Note…"></textarea>
+      </label>
+    </div>
+    <p class="modalNote" id="apptModalMsg"></p>
+    <div class="modalActions">
+      <button type="button" id="apptModalDelete" class="danger" style="display:none;">Elimina</button>
+      <button type="button" id="apptModalCancel">Annulla</button>
+      <button type="button" id="apptModalSave" class="primary">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="apptDeleteModalOverlay">
+  <div class="modalCard">
+    <p>Eliminare l'appuntamento con <b id="apptDeleteModalName"></b>?</p>
+    <div class="modalActions">
+      <button type="button" id="apptDeleteModalCancel">Annulla</button>
+      <button type="button" id="apptDeleteModalConfirm" class="danger" style="margin-right:0;">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="workTypesModalOverlay">
+  <div class="modalCard">
+    <p>Tipologie di lavoro</p>
+    <p class="modalNote">Aggiungi, rinomina o elimina le sedi/tipologie in cui lavori: verranno usate per colorare gli appuntamenti.</p>
+    <div class="workTypesList" id="workTypesList"></div>
+    <div class="workTypeAddRow">
+      <input type="text" id="workTypeNewLabel" class="exFormInput" placeholder="Nuova tipologia (es. Studio privato)">
+      <div class="colorSwatches" id="colorSwatches"></div>
+      <button type="button" id="workTypeAddBtn" class="primary">Aggiungi</button>
+    </div>
+    <div class="modalActions">
+      <button type="button" id="workTypesModalClose">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =====================================================================
+   PERSISTENZA locale (localStorage, come nel resto dell'app): sorgente
+   di verità principale, funziona offline. Se collegato, ogni singolo
+   appuntamento/tipologia viene anche inviato a Supabase (righe separate,
+   non un blob unico: due dispositivi che toccano appuntamenti diversi
+   non entrano mai in conflitto).
+   ===================================================================== */
+const LS_PREFIX = 'esercizi_fisio_tool_v1__';
+const LS_APPTS = LS_PREFIX+'appointments';
+const LS_WORKTYPES = LS_PREFIX+'workTypes';
+
+function lsGet(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function lsSet(key, value){ try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch(e){ return false; } }
+function uid(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id_'+Date.now()+'_'+Math.random().toString(16).slice(2); }
+
+const DEFAULT_WORK_TYPES = [
+  {id:'domiciliare_privato', label:'Domiciliare - Privato', color:'#3b6fa3'},
+  {id:'domiciliare_crf', label:'Domiciliare - CRF', color:'#6b8e3a'},
+  {id:'crf', label:'CRF', color:'#c9a227'},
+  {id:'privato_studio', label:'Privato - Studio', color:'#e8720f'}
+];
+const WORK_TYPE_PALETTE = ['#3b6fa3','#6b8e3a','#c9a227','#e8720f','#7b5ea7','#b85c7a','#4a8f5c','#cc5030','#4a8fa6','#a5754f'];
+
+let appointments = lsGet(LS_APPTS, []);
+let workTypes = lsGet(LS_WORKTYPES, null);
+if(!workTypes || !workTypes.length){ workTypes = DEFAULT_WORK_TYPES.slice(); lsSet(LS_WORKTYPES, workTypes); }
+
+function saveAppointments(){ lsSet(LS_APPTS, appointments); }
+function saveWorkTypes(){ lsSet(LS_WORKTYPES, workTypes); }
+function workTypeById(id){ return workTypes.find(w=>w.id===id); }
+
+/* ---- formattazione data/ora ---- */
+function startOfToday(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+function pad(n){ return String(n).padStart(2,'0'); }
+function toDateInputValue(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function toTimeInputValue(d){ return pad(d.getHours())+':'+pad(d.getMinutes()); }
+function fmtDay(d){
+  const today = startOfToday();
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const day = new Date(d); day.setHours(0,0,0,0);
+  if(day.getTime()===today.getTime()) return 'Oggi';
+  if(day.getTime()===tomorrow.getTime()) return 'Domani';
+  const s = d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function fmtTime(d){ return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); }
+function roundToNext15(d){ const ms = 15*60000; return new Date(Math.ceil(d.getTime()/ms)*ms); }
+
+/* ===================== rendering lista appuntamenti ===================== */
+let activeFilterType = null;
+let showPast = false;
+
+function renderWorkChips(){
+  const wrap = document.getElementById('workChips');
+  wrap.innerHTML = workTypes.map(w=>
+    '<button type="button" class="workChip'+(activeFilterType===w.id?' active':'')+'" data-id="'+w.id+'" style="--wc:'+w.color+'">'+
+      '<span class="workChipDot"></span>'+escapeHtml(w.label)+
+    '</button>'
+  ).join('');
+  wrap.querySelectorAll('.workChip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.id;
+      activeFilterType = (activeFilterType===id) ? null : id;
+      renderWorkChips();
+      renderList();
+    });
+  });
+}
+
+function apptCardHtml(a, d){
+  const wt = workTypeById(a.work_type_id);
+  const end = new Date(d.getTime()+a.duration_min*60000);
+  return '<div class="apptCard" data-id="'+a.id+'">'+
+    '<div class="apptTime">'+fmtTime(d)+'<span class="apptTimeEnd">–'+fmtTime(end)+'</span></div>'+
+    '<div class="apptMain">'+
+      '<div class="apptPatient">'+escapeHtml(a.patient_name)+'</div>'+
+      (wt
+        ? '<span class="apptTypeTag" style="--wc:'+wt.color+'">'+escapeHtml(wt.label)+'</span>'
+        : '<span class="apptTypeTag apptTypeTagNone">Nessuna tipologia</span>')+
+      (a.notes ? '<div class="apptNotes">'+escapeHtml(a.notes)+'</div>' : '')+
+    '</div>'+
+    '<div class="apptDuration">'+a.duration_min+' min</div>'+
+  '</div>';
+}
+
+function renderList(){
+  const container = document.getElementById('apptList');
+  let list = appointments.filter(a => activeFilterType ? a.work_type_id===activeFilterType : true);
+  const today = startOfToday();
+  const upcoming = list.filter(a => new Date(a.start_at) >= today).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
+  const past = list.filter(a => new Date(a.start_at) < today).sort((a,b)=> new Date(b.start_at)-new Date(a.start_at));
+  const source = showPast ? past : upcoming;
+
+  document.getElementById('togglePastBtn').textContent = showPast ? 'Mostra prossimi appuntamenti' : 'Mostra appuntamenti passati';
+
+  if(source.length===0){
+    container.innerHTML = '<div class="emptyState">'+(showPast ? 'Nessun appuntamento passato.' : 'Nessun appuntamento in programma.')+'</div>';
+    return;
+  }
+  let html = '';
+  let lastDay = null;
+  source.forEach(a=>{
+    const d = new Date(a.start_at);
+    const dayKey = d.toDateString();
+    if(dayKey !== lastDay){ html += '<div class="dayHeader">'+fmtDay(d)+'</div>'; lastDay = dayKey; }
+    html += apptCardHtml(a, d);
+  });
+  container.innerHTML = html;
+  container.querySelectorAll('.apptCard').forEach(card=>{
+    card.addEventListener('click', ()=> openApptModal(card.dataset.id));
+  });
+}
+
+document.getElementById('togglePastBtn').addEventListener('click', ()=>{ showPast = !showPast; renderList(); });
+
+/* ===================== modale nuovo/modifica appuntamento ===================== */
+let editingApptId = null;
+let selectedDuration = 30;
+let selectedWorkType = null;
+
+function renderDurationButtons(){
+  document.querySelectorAll('#durationRow .durationBtn').forEach(btn=>{
+    btn.classList.toggle('active', Number(btn.dataset.min)===selectedDuration);
+  });
+}
+document.querySelectorAll('#durationRow .durationBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ selectedDuration = Number(btn.dataset.min); renderDurationButtons(); });
+});
+
+function renderApptFormWorkTypes(){
+  const wrap = document.getElementById('apptFormWorkTypes');
+  wrap.innerHTML = workTypes.map(w=>
+    '<button type="button" class="workChip'+(selectedWorkType===w.id?' active':'')+'" data-id="'+w.id+'" style="--wc:'+w.color+'">'+
+      '<span class="workChipDot"></span>'+escapeHtml(w.label)+
+    '</button>'
+  ).join('');
+  wrap.querySelectorAll('.workChip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ selectedWorkType = btn.dataset.id; renderApptFormWorkTypes(); });
+  });
+}
+
+function openApptModal(id){
+  editingApptId = id || null;
+  document.getElementById('apptModalMsg').textContent = '';
+  const a = id ? appointments.find(x=>x.id===id) : null;
+  document.getElementById('apptModalTitle').textContent = a ? 'Modifica appuntamento' : 'Nuovo appuntamento';
+  document.getElementById('apptModalDelete').style.display = a ? '' : 'none';
+  const d = a ? new Date(a.start_at) : roundToNext15(new Date());
+  document.getElementById('apptFormPatient').value = a ? a.patient_name : '';
+  document.getElementById('apptFormDate').value = toDateInputValue(d);
+  document.getElementById('apptFormTime').value = toTimeInputValue(d);
+  document.getElementById('apptFormNotes').value = a ? (a.notes||'') : '';
+  selectedDuration = a ? a.duration_min : 30;
+  selectedWorkType = a ? a.work_type_id : (workTypes[0] ? workTypes[0].id : null);
+  renderDurationButtons();
+  renderApptFormWorkTypes();
+  document.getElementById('apptModalOverlay').classList.add('show');
+}
+function closeApptModal(){ document.getElementById('apptModalOverlay').classList.remove('show'); editingApptId = null; }
+
+document.getElementById('newApptBtn').addEventListener('click', ()=> openApptModal(null));
+document.getElementById('apptModalCancel').addEventListener('click', closeApptModal);
+document.getElementById('apptModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='apptModalOverlay') closeApptModal(); });
+
+document.getElementById('apptModalSave').addEventListener('click', ()=>{
+  const patient = document.getElementById('apptFormPatient').value.trim();
+  const dateVal = document.getElementById('apptFormDate').value;
+  const timeVal = document.getElementById('apptFormTime').value;
+  const msg = document.getElementById('apptModalMsg');
+  if(!patient){ msg.textContent = 'Inserisci il nome del paziente.'; return; }
+  if(!dateVal || !timeVal){ msg.textContent = 'Inserisci data e ora.'; return; }
+  if(!selectedWorkType){ msg.textContent = 'Seleziona una tipologia di lavoro.'; return; }
+  const start = new Date(dateVal+'T'+timeVal+':00');
+  const notes = document.getElementById('apptFormNotes').value.trim();
+  const now = new Date().toISOString();
+  let saved;
+  if(editingApptId){
+    const a = appointments.find(x=>x.id===editingApptId);
+    a.patient_name = patient; a.start_at = start.toISOString(); a.duration_min = selectedDuration;
+    a.work_type_id = selectedWorkType; a.notes = notes; a.updated_at = now;
+    saved = a;
+  } else {
+    saved = {id:uid(), patient_name:patient, start_at:start.toISOString(), duration_min:selectedDuration, work_type_id:selectedWorkType, notes, updated_at:now};
+    appointments.push(saved);
+  }
+  saveAppointments();
+  pushAppointment(saved);
+  closeApptModal();
+  renderList();
+});
+
+let pendingDeleteId = null;
+document.getElementById('apptModalDelete').addEventListener('click', ()=>{
+  pendingDeleteId = editingApptId;
+  const a = appointments.find(x=>x.id===pendingDeleteId);
+  document.getElementById('apptDeleteModalName').textContent = a ? a.patient_name : '';
+  document.getElementById('apptDeleteModalOverlay').classList.add('show');
+});
+document.getElementById('apptDeleteModalCancel').addEventListener('click', ()=>{
+  document.getElementById('apptDeleteModalOverlay').classList.remove('show'); pendingDeleteId = null;
+});
+document.getElementById('apptDeleteModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id==='apptDeleteModalOverlay'){ document.getElementById('apptDeleteModalOverlay').classList.remove('show'); pendingDeleteId = null; }
+});
+document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>{
+  if(!pendingDeleteId) return;
+  appointments = appointments.filter(a=>a.id!==pendingDeleteId);
+  saveAppointments();
+  deleteAppointmentRemote(pendingDeleteId);
+  document.getElementById('apptDeleteModalOverlay').classList.remove('show');
+  closeApptModal();
+  renderList();
+  pendingDeleteId = null;
+});
+
+/* ===================== modale gestione tipologie di lavoro ===================== */
+function renderWorkTypesList(){
+  const wrap = document.getElementById('workTypesList');
+  if(!workTypes.length){ wrap.innerHTML = '<div class="emptyState">Nessuna tipologia. Aggiungine una qui sotto.</div>'; return; }
+  wrap.innerHTML = workTypes.map(w=>
+    '<div class="workTypeRow" data-id="'+w.id+'">'+
+      '<span class="workTypeDot" style="background:'+w.color+'"></span>'+
+      '<span class="workTypeLabel">'+escapeHtml(w.label)+'</span>'+
+      '<button type="button" class="workTypeDeleteBtn" data-id="'+w.id+'" title="Elimina">×</button>'+
+    '</div>'
+  ).join('');
+  wrap.querySelectorAll('.workTypeDeleteBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteWorkType(btn.dataset.id));
+  });
+}
+
+function renderColorSwatches(){
+  const wrap = document.getElementById('colorSwatches');
+  if(!wrap.dataset.selected){
+    const used = workTypes.map(w=>w.color);
+    wrap.dataset.selected = WORK_TYPE_PALETTE.find(c=>!used.includes(c)) || WORK_TYPE_PALETTE[workTypes.length % WORK_TYPE_PALETTE.length];
+  }
+  wrap.innerHTML = WORK_TYPE_PALETTE.map(c=>
+    '<button type="button" class="colorSwatch'+(wrap.dataset.selected===c?' active':'')+'" data-color="'+c+'" style="--sw:'+c+'"></button>'
+  ).join('');
+  wrap.querySelectorAll('.colorSwatch').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ wrap.dataset.selected = btn.dataset.color; renderColorSwatches(); });
+  });
+}
+
+function deleteWorkType(id){
+  const wt = workTypeById(id);
+  if(!wt) return;
+  const inUse = appointments.filter(a=>a.work_type_id===id).length;
+  const msg = inUse>0
+    ? 'Eliminare "'+wt.label+'"? È usata da '+inUse+' appuntament'+(inUse>1?'i':'o')+', che resteranno senza tipologia.'
+    : 'Eliminare "'+wt.label+'"?';
+  if(!confirm(msg)) return;
+  workTypes = workTypes.filter(w=>w.id!==id);
+  saveWorkTypes();
+  pushWorkTypesToCloud();
+  renderWorkTypesList();
+  renderWorkChips();
+  renderList();
+}
+
+document.getElementById('manageTypesBtn').addEventListener('click', ()=>{
+  renderWorkTypesList();
+  document.getElementById('colorSwatches').dataset.selected = '';
+  renderColorSwatches();
+  document.getElementById('workTypesModalOverlay').classList.add('show');
+});
+document.getElementById('workTypesModalClose').addEventListener('click', ()=>{
+  document.getElementById('workTypesModalOverlay').classList.remove('show');
+});
+document.getElementById('workTypesModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id==='workTypesModalOverlay') document.getElementById('workTypesModalOverlay').classList.remove('show');
+});
+document.getElementById('workTypeAddBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('workTypeNewLabel');
+  const label = input.value.trim();
+  if(!label) return;
+  const color = document.getElementById('colorSwatches').dataset.selected || WORK_TYPE_PALETTE[0];
+  workTypes.push({id: uid(), label, color});
+  saveWorkTypes();
+  pushWorkTypesToCloud();
+  input.value = '';
+  document.getElementById('colorSwatches').dataset.selected = '';
+  renderWorkTypesList();
+  renderColorSwatches();
+  renderWorkChips();
+  renderList();
+});
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('workTypesModalOverlay').classList.contains('show')) document.getElementById('workTypesModalOverlay').classList.remove('show');
+  else if(document.getElementById('apptDeleteModalOverlay').classList.contains('show')){ document.getElementById('apptDeleteModalOverlay').classList.remove('show'); pendingDeleteId = null; }
+  else if(document.getElementById('apptModalOverlay').classList.contains('show')) closeApptModal();
+});
+
+/* ===================== SYNC (Supabase) — una riga per appuntamento =====================
+   A differenza della libreria esercizi, qui non c'è un blob unico da inviare col debounce:
+   ogni invio corrisponde a un'azione esplicita dell'utente (salva/elimina un appuntamento,
+   o modifica le tipologie), quindi non serve nessun ritardo né la guardia sul timestamp
+   locale usata altrove — un solo invio per modifica è già sufficiente e più semplice. */
+const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
+const APPT_TABLE = 'appointments';
+const SETTINGS_TABLE = 'calendar_settings';
+
+const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+let syncUser = null;
+let apptChannel = null;
+let settingsChannel = null;
+
+async function pushAppointment(a){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    await supabaseClient.from(APPT_TABLE).upsert({
+      id:a.id, user_id:syncUser.id, patient_name:a.patient_name, start_at:a.start_at,
+      duration_min:a.duration_min, work_type_id:a.work_type_id, notes:a.notes||null, updated_at:a.updated_at
+    });
+  }catch(e){}
+}
+async function deleteAppointmentRemote(id){
+  if(!supabaseClient || !syncUser) return;
+  try{ await supabaseClient.from(APPT_TABLE).delete().eq('id', id); }catch(e){}
+}
+async function pushWorkTypesToCloud(){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    await supabaseClient.from(SETTINGS_TABLE).upsert({
+      user_id: syncUser.id, work_types: workTypes, updated_at: new Date().toISOString()
+    });
+  }catch(e){}
+}
+
+function applyRemoteAppointment(row){
+  const idx = appointments.findIndex(a=>a.id===row.id);
+  const remote = {id:row.id, patient_name:row.patient_name, start_at:row.start_at, duration_min:row.duration_min, work_type_id:row.work_type_id, notes:row.notes, updated_at:row.updated_at};
+  if(idx===-1){ appointments.push(remote); }
+  else if(!appointments[idx].updated_at || remote.updated_at >= appointments[idx].updated_at){ appointments[idx] = remote; }
+  else return; // la versione locale è più recente di quella remota appena arrivata: non sovrascrivere
+  saveAppointments();
+  renderList();
+}
+function removeLocalAppointment(id){
+  appointments = appointments.filter(a=>a.id!==id);
+  saveAppointments();
+  renderList();
+}
+
+async function pullAppointments(){
+  if(!supabaseClient || !syncUser) return;
+  const {data, error} = await supabaseClient.from(APPT_TABLE).select('*').eq('user_id', syncUser.id);
+  if(error || !data) return;
+  const remoteIds = new Set(data.map(r=>r.id));
+  data.forEach(applyRemoteAppointment);
+  // appuntamenti creati offline prima del login, non ancora sul cloud: li invia ora
+  appointments.filter(a=>!remoteIds.has(a.id)).forEach(pushAppointment);
+}
+async function pullWorkTypes(){
+  if(!supabaseClient || !syncUser) return;
+  const {data, error} = await supabaseClient.from(SETTINGS_TABLE).select('*').eq('user_id', syncUser.id).maybeSingle();
+  if(error) return;
+  if(!data || !data.work_types || !data.work_types.length){
+    if(workTypes.length) pushWorkTypesToCloud();
+    return;
+  }
+  workTypes = data.work_types;
+  saveWorkTypes();
+}
+
+function subscribeRealtime(){
+  if(!supabaseClient || !syncUser) return;
+  apptChannel = supabaseClient.channel('appointments_'+syncUser.id)
+    .on('postgres_changes', {event:'*', schema:'public', table:APPT_TABLE, filter:'user_id=eq.'+syncUser.id}, (payload)=>{
+      if(payload.eventType==='DELETE'){ if(payload.old && payload.old.id) removeLocalAppointment(payload.old.id); }
+      else if(payload.new){ applyRemoteAppointment(payload.new); }
+    }).subscribe();
+  settingsChannel = supabaseClient.channel('calendar_settings_'+syncUser.id)
+    .on('postgres_changes', {event:'*', schema:'public', table:SETTINGS_TABLE, filter:'user_id=eq.'+syncUser.id}, (payload)=>{
+      if(payload.new && payload.new.work_types && payload.new.work_types.length){
+        workTypes = payload.new.work_types; saveWorkTypes(); renderWorkChips(); renderList();
+      }
+    }).subscribe();
+}
+function unsubscribeRealtime(){
+  if(apptChannel && supabaseClient){ supabaseClient.removeChannel(apptChannel); }
+  if(settingsChannel && supabaseClient){ supabaseClient.removeChannel(settingsChannel); }
+  apptChannel = null; settingsChannel = null;
+}
+
+function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : null; }
+
+(async function initSyncSession(){
+  renderWorkChips();
+  renderList();
+  if(!supabaseClient) return;
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(session && session.user){
+    setSyncUser(session.user);
+    subscribeRealtime();
+    await pullWorkTypes();
+    await pullAppointments();
+    renderWorkChips();
+    renderList();
+  }
+  supabaseClient.auth.onAuthStateChange((event)=>{
+    if(event === 'SIGNED_OUT'){ unsubscribeRealtime(); setSyncUser(null); }
+  });
+})();
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

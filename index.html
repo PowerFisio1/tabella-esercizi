@@ -146,6 +146,19 @@
   .secondaryTile.libraryTile .eyebrow{color:rgba(255,255,255,.8);}
   .secondaryTile.libraryTile .tileIcon, .secondaryTile.libraryTile .tileText{position:relative; z-index:2;}
 
+  .upcomingSection{width:100%; max-width:640px; margin-top:26px;}
+  .upcomingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:10px;}
+  .upcomingList{display:flex; flex-direction:column; gap:8px;}
+  .upcomingItem{
+    display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:11px 14px; text-decoration:none; color:var(--ink); font-size:13px;
+    transition:border-color .15s ease, transform .15s ease; box-shadow:var(--shadow-1);
+  }
+  .upcomingItem:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .upcomingDot{width:8px; height:8px; border-radius:50%; flex:none;}
+  .upcomingWhen{font-weight:700; color:var(--sub); font-size:12px; flex:none; min-width:82px;}
+  .upcomingPatient{font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
   .footerInfo{display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:44px;}
   .footerInfo h1{font-size:17px; font-weight:700; font-style:italic; margin:0 0 6px;}
   .footerInfo p{font-size:12px; color:var(--sub); margin:0; line-height:1.5; max-width:40ch;}
@@ -201,16 +214,21 @@
         </div>
       </a>
 
-      <div class="secondaryTile soon">
+      <a class="secondaryTile" href="calendario.html">
         <div class="tileIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
         </div>
         <div class="tileText">
-          <div class="eyebrow">Presto</div>
+          <div class="eyebrow">Gestisci</div>
           <div class="cardTitle">Calendario</div>
         </div>
-      </div>
+      </a>
     </div>
+  </div>
+
+  <div class="upcomingSection" id="upcomingSection" style="display:none;">
+    <div class="upcomingTitle">Prossimi appuntamenti</div>
+    <div class="upcomingList" id="upcomingList"></div>
   </div>
 
   <div class="footerInfo">
@@ -218,7 +236,69 @@
     <p>Fisioterapista iscritto all'albo di Bergamo al nr. 1244 — Trescore Balneario (BG), studio c/o Veryfit</p>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ---- widget "Prossimi appuntamenti": lettura locale immediata (funziona
+   offline, come il resto dell'app), poi se collegato un refresh dal cloud
+   per includere gli appuntamenti creati da altri dispositivi. Non scrive
+   mai in localStorage da qui: è una vista, la sorgente di verità resta
+   calendario.html. ---- */
+const LS_PREFIX = 'esercizi_fisio_tool_v1__';
+function lsGet(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function escapeHtmlDash(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function fmtUpcomingDay(d){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const day = new Date(d); day.setHours(0,0,0,0);
+  if(day.getTime()===today.getTime()) return 'Oggi';
+  if(day.getTime()===tomorrow.getTime()) return 'Domani';
+  return d.toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+}
+function fmtUpcomingTime(d){ return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); }
+
+function renderUpcoming(list, workTypes){
+  const section = document.getElementById('upcomingSection');
+  const wrap = document.getElementById('upcomingList');
+  if(!list || !list.length){ section.style.display = 'none'; return; }
+  section.style.display = '';
+  wrap.innerHTML = list.slice(0,4).map(a=>{
+    const wt = (workTypes||[]).find(w=>w.id===a.work_type_id);
+    const d = new Date(a.start_at);
+    return '<a class="upcomingItem" href="calendario.html">'+
+      '<span class="upcomingDot" style="background:'+(wt?wt.color:'var(--line)')+'"></span>'+
+      '<span class="upcomingWhen">'+fmtUpcomingDay(d)+' · '+fmtUpcomingTime(d)+'</span>'+
+      '<span class="upcomingPatient">'+escapeHtmlDash(a.patient_name)+'</span>'+
+    '</a>';
+  }).join('');
+}
+
+(function initUpcomingLocal(){
+  const appts = lsGet(LS_PREFIX+'appointments', []);
+  const workTypes = lsGet(LS_PREFIX+'workTypes', []);
+  const now = new Date();
+  const upcoming = appts.filter(a=> new Date(a.start_at) >= now).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
+  renderUpcoming(upcoming, workTypes);
+})();
+
+(async function initUpcomingCloud(){
+  const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
+  const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  if(!supabaseClient) return;
+  try{
+    const {data:{session}} = await supabaseClient.auth.getSession();
+    if(!session || !session.user) return;
+    const nowIso = new Date().toISOString();
+    const [apptsRes, settingsRes] = await Promise.all([
+      supabaseClient.from('appointments').select('*').eq('user_id', session.user.id).gte('start_at', nowIso).order('start_at').limit(4),
+      supabaseClient.from('calendar_settings').select('work_types').eq('user_id', session.user.id).maybeSingle()
+    ]);
+    if(apptsRes.data) renderUpcoming(apptsRes.data, settingsRes.data ? settingsRes.data.work_types : []);
+  }catch(e){}
+})();
+
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').catch(()=>{});
