@@ -793,7 +793,8 @@ document.getElementById('apptModalSave').addEventListener('click', async ()=>{
   }
   saveAppointments();
   pushAppointment(saved);
-  pushAppointmentToGoogle(saved);
+  await pushAppointmentToGoogle(saved);
+  syncGoogleBusyCache(); // così lo slot appena preso/spostato sparisce subito dal picker pubblico
   const confirmedRequestId = confirmingRequestId;
   const confirmedRequest = confirmedRequestId ? pendingRequests.find(r=>r.id===confirmedRequestId) : null;
   closeApptModal();
@@ -814,7 +815,7 @@ document.getElementById('apptDeleteModalCancel').addEventListener('click', ()=>{
 document.getElementById('apptDeleteModalOverlay').addEventListener('click', (e)=>{
   if(e.target.id==='apptDeleteModalOverlay'){ document.getElementById('apptDeleteModalOverlay').classList.remove('show'); pendingDeleteId = null; }
 });
-document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>{
+document.getElementById('apptDeleteModalConfirm').addEventListener('click', async ()=>{
   if(!pendingDeleteId) return;
   const deleted = appointments.find(a=>a.id===pendingDeleteId);
   appointments = appointments.filter(a=>a.id!==pendingDeleteId);
@@ -825,7 +826,10 @@ document.getElementById('apptDeleteModalConfirm').addEventListener('click', ()=>
   // scaricare i dati dal cloud — altrimenti un pull successivo la resusciterebbe in locale
   if(!pendingDeletes.includes(pendingDeleteId)){ pendingDeletes.push(pendingDeleteId); savePendingDeletes(); }
   deleteAppointmentRemote(pendingDeleteId);
-  if(deleted && deleted.google_event_id) deleteAppointmentFromGoogle(deleted.google_event_id);
+  if(deleted && deleted.google_event_id){
+    await deleteAppointmentFromGoogle(deleted.google_event_id);
+    syncGoogleBusyCache(); // altrimenti la cache resta "ferma" allo stato di prima della cancellazione fino alla prossima apertura del Calendario
+  }
   document.getElementById('apptDeleteModalOverlay').classList.remove('show');
   closeApptModal();
   renderList();
