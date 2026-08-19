@@ -1050,9 +1050,11 @@ const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabas
 
 /* ---- EmailJS: email di conferma/rifiuto al paziente, una sola volta, senza
    backend. Da configurare con un account EmailJS gratuito (vedi istruzioni). ---- */
-const EMAILJS_PUBLIC_KEY = 'INSERISCI_EMAILJS_PUBLIC_KEY';
-const EMAILJS_SERVICE_ID = 'INSERISCI_EMAILJS_SERVICE_ID';
-const EMAILJS_TEMPLATE_CONFIRM = 'INSERISCI_EMAILJS_TEMPLATE_CONFERMA';
+const EMAILJS_PUBLIC_KEY = 'z11e1Mg5WJMMDhM1K';
+const EMAILJS_SERVICE_ID = 'service_awatkon';
+const EMAILJS_TEMPLATE_CONFIRM = 'template_4jsukkh';
+// nessun modello per il rifiuto (limite del piano gratuito EmailJS): niente email
+// automatica in questo caso, Kamil avvisa di persona il paziente.
 const EMAILJS_TEMPLATE_DECLINE = 'INSERISCI_EMAILJS_TEMPLATE_RIFIUTO';
 function isEmailJsConfigured(){
   return typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY && !EMAILJS_PUBLIC_KEY.startsWith('INSERISCI');
@@ -1070,7 +1072,7 @@ function sendConfirmationEmail(request, appt){
   }).catch(()=>{});
 }
 function sendDeclineEmail(request){
-  if(!isEmailJsConfigured()) return;
+  if(!isEmailJsConfigured() || EMAILJS_TEMPLATE_DECLINE.startsWith('INSERISCI')) return;
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_DECLINE, {
     to_email: request.email,
     to_name: request.full_name
