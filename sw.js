@@ -1,7 +1,7 @@
 /* Service worker minimale: rende l'app installabile e usabile offline.
    Strategia "prima la rete": quando c'è connessione mostra sempre l'ultima
    versione pubblicata; se manca la connessione, usa l'ultima copia salvata. */
-const CACHE_NAME = 'tabella-esercizi-v28';
+const CACHE_NAME = 'tabella-esercizi-v29';
 const APP_SHELL = [
   './', './index.html', './scheda.html', './libreria.html', './impostazioni.html', './calendario.html',
   './exercises-data.js', './manifest.json',
@@ -35,5 +35,33 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => caches.match(event.request))
+  );
+});
+
+/* notifiche push: nuova richiesta di prenotazione dal sito pubblico */
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) {}
+  const title = data.title || 'Nuova richiesta di prenotazione';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      data: { url: data.url || './calendario.html' }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || './calendario.html';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if (client.url.includes('calendario.html') && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
   );
 });

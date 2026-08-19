@@ -130,6 +130,23 @@
   }
   .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
 
+  .pendingSection{margin-bottom:26px; padding-bottom:20px; border-bottom:1px solid var(--line);}
+  .pendingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:12px;}
+  .pendingCard{
+    display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--accent2);
+    border-radius:12px; padding:12px 14px; margin-bottom:10px; flex-wrap:wrap;
+  }
+  .pendingMain{flex:1; min-width:180px;}
+  .pendingName{font-size:14px; font-weight:700;}
+  .pendingWhen{font-size:12.5px; font-weight:600; color:var(--accent2); margin-top:2px;}
+  .pendingContact{font-size:12px; color:var(--sub); margin-top:3px;}
+  .pendingReason{font-size:12px; color:var(--sub); margin-top:5px; line-height:1.4;}
+  .pendingActions{display:flex; gap:8px; flex:none;}
+
+  .googleDayPreview{margin:4px 0 14px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg);}
+  .googleDayPreviewTitle{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:6px;}
+  .googleDayPreviewItem{font-size:12.5px; padding:3px 0;}
+
   .modalOverlay{
     display:none; position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:1000;
     align-items:center; justify-content:center; padding:20px;
@@ -222,6 +239,11 @@
     <button type="button" id="manageTypesBtn" class="manageTypesBtn">Gestisci tipologie</button>
   </div>
 
+  <div class="pendingSection" id="pendingSection" style="display:none;">
+    <div class="pendingTitle">Richieste in attesa</div>
+    <div id="pendingList"></div>
+  </div>
+
   <div id="listView" style="display:none;">
     <div class="filterRow">
       <button type="button" id="togglePastBtn" class="togglePastBtn">Mostra appuntamenti passati</button>
@@ -280,6 +302,10 @@
         <textarea id="apptFormNotes" class="exFormInput" placeholder="Note…"></textarea>
       </label>
     </div>
+    <div class="googleDayPreview" id="googleDayPreview" style="display:none;">
+      <div class="googleDayPreviewTitle">Il tuo Google Calendar quel giorno</div>
+      <div id="googleDayPreviewList"></div>
+    </div>
     <p class="modalNote" id="apptModalMsg"></p>
     <div class="modalActions">
       <button type="button" id="apptModalDelete" class="danger" style="display:none;">Elimina</button>
@@ -295,6 +321,17 @@
     <div class="modalActions">
       <button type="button" id="apptDeleteModalCancel">Annulla</button>
       <button type="button" id="apptDeleteModalConfirm" class="danger" style="margin-right:0;">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="requestConfirmedModalOverlay">
+  <div class="modalCard">
+    <p>Appuntamento confermato per <b id="requestConfirmedName"></b>, <span id="requestConfirmedWhen"></span>.</p>
+    <p class="modalNote" id="requestConfirmedEmailNote"></p>
+    <div class="modalActions">
+      <button type="button" id="requestConfirmedWaBtn" class="primary">Manda conferma su WhatsApp</button>
+      <button type="button" id="requestConfirmedClose">Chiudi</button>
     </div>
   </div>
 </div>
@@ -319,6 +356,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 
 function escapeHtml(s){
@@ -541,24 +579,185 @@ function renderApptFormWorkTypes(){
   });
 }
 
-function openApptModal(id, prefillDate){
+function openApptModal(id, prefillDate, prefillExtra){
   editingApptId = id || null;
+  confirmingRequestId = null;
   document.getElementById('apptModalMsg').textContent = '';
   const a = id ? appointments.find(x=>x.id===id) : null;
   document.getElementById('apptModalTitle').textContent = a ? 'Modifica appuntamento' : 'Nuovo appuntamento';
   document.getElementById('apptModalDelete').style.display = a ? '' : 'none';
   const d = a ? new Date(a.start_at) : (prefillDate || roundToNext15(new Date()));
-  document.getElementById('apptFormPatient').value = a ? a.patient_name : '';
+  document.getElementById('apptFormPatient').value = a ? a.patient_name : (prefillExtra && prefillExtra.patientName ? prefillExtra.patientName : '');
   document.getElementById('apptFormDate').value = toDateInputValue(d);
   document.getElementById('apptFormTime').value = toTimeInputValue(d);
-  document.getElementById('apptFormNotes').value = a ? (a.notes||'') : '';
+  document.getElementById('apptFormNotes').value = a ? (a.notes||'') : (prefillExtra && prefillExtra.notes ? prefillExtra.notes : '');
   selectedDuration = a ? a.duration_min : 30;
   selectedWorkType = a ? a.work_type_id : (workTypes[0] ? workTypes[0].id : null);
   renderDurationButtons();
   renderApptFormWorkTypes();
+  hideGoogleDayPreview();
   document.getElementById('apptModalOverlay').classList.add('show');
 }
-function closeApptModal(){ document.getElementById('apptModalOverlay').classList.remove('show'); editingApptId = null; }
+function closeApptModal(){
+  document.getElementById('apptModalOverlay').classList.remove('show');
+  editingApptId = null; confirmingRequestId = null; hideGoogleDayPreview();
+}
+
+/* ===================== richieste di prenotazione dal sito pubblico ===================== */
+let confirmingRequestId = null;
+let pendingRequests = [];
+
+function pendingCardHtml(r){
+  const d = new Date(r.preferred_at);
+  return '<div class="pendingCard" data-id="'+r.id+'">'+
+    '<div class="pendingMain">'+
+      '<div class="pendingName">'+escapeHtml(r.full_name)+'</div>'+
+      '<div class="pendingWhen">'+fmtDay(d)+' alle '+fmtTime(d)+'</div>'+
+      '<div class="pendingContact">'+escapeHtml(r.phone)+(r.email?' · '+escapeHtml(r.email):'')+'</div>'+
+      (r.reason ? '<div class="pendingReason">'+escapeHtml(r.reason)+'</div>' : '')+
+    '</div>'+
+    '<div class="pendingActions">'+
+      '<button type="button" class="primary pendingConfirmBtn" data-id="'+r.id+'">Conferma</button>'+
+      '<button type="button" class="danger pendingDeclineBtn" data-id="'+r.id+'">Rifiuta</button>'+
+    '</div>'+
+  '</div>';
+}
+function renderPendingRequests(){
+  const section = document.getElementById('pendingSection');
+  const wrap = document.getElementById('pendingList');
+  if(!pendingRequests.length){ section.style.display = 'none'; wrap.innerHTML = ''; return; }
+  section.style.display = '';
+  wrap.innerHTML = pendingRequests.map(pendingCardHtml).join('');
+  wrap.querySelectorAll('.pendingConfirmBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=> startConfirmRequest(btn.dataset.id));
+  });
+  wrap.querySelectorAll('.pendingDeclineBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=> declineRequest(btn.dataset.id));
+  });
+}
+async function fetchPendingRequests(){
+  if(!supabaseClient || !syncUser){ pendingRequests = []; renderPendingRequests(); return; }
+  try{
+    const {data, error} = await supabaseClient.from(REQUESTS_TABLE).select('*').eq('status','pending').order('preferred_at');
+    if(!error) pendingRequests = data || [];
+  }catch(e){}
+  renderPendingRequests();
+}
+
+function startConfirmRequest(id){
+  const r = pendingRequests.find(x=>x.id===id);
+  if(!r) return;
+  const d = new Date(r.preferred_at);
+  openApptModal(null, d, {patientName:r.full_name, notes:r.reason||''});
+  confirmingRequestId = id;
+  document.getElementById('apptModalTitle').textContent = 'Conferma richiesta';
+  loadGoogleDayPreview(d);
+}
+
+function declineRequest(id){
+  const r = pendingRequests.find(x=>x.id===id);
+  if(!r) return;
+  if(!confirm('Rifiutare la richiesta di '+r.full_name+'?')) return;
+  doDeclineRequest(r);
+}
+async function doDeclineRequest(r){
+  if(supabaseClient){
+    try{
+      await supabaseClient.from(REQUESTS_TABLE).update({status:'declined', updated_at:new Date().toISOString()}).eq('id', r.id);
+    }catch(e){}
+  }
+  pendingRequests = pendingRequests.filter(x=>x.id!==r.id);
+  renderPendingRequests();
+  if(r.email) sendDeclineEmail(r);
+}
+
+async function finalizeConfirmRequest(requestId, request, appt){
+  if(supabaseClient){
+    try{
+      await supabaseClient.from(REQUESTS_TABLE).update({
+        status:'confirmed', appointment_id: appt.id, updated_at: new Date().toISOString()
+      }).eq('id', requestId);
+    }catch(e){}
+  }
+  pendingRequests = pendingRequests.filter(r2=>r2.id!==requestId);
+  renderPendingRequests();
+  if(request && request.email) sendConfirmationEmail(request, appt);
+  showRequestConfirmedModal(request, appt);
+}
+
+function waLinkForPhone(phone, text){
+  let digits = String(phone||'').replace(/[^0-9]/g,'');
+  if(digits.length <= 10) digits = '39'+digits; // numero italiano senza prefisso internazionale
+  return 'https://wa.me/'+digits+'?text='+encodeURIComponent(text);
+}
+function showRequestConfirmedModal(request, appt){
+  if(!request) return;
+  const d = new Date(appt.start_at);
+  document.getElementById('requestConfirmedName').textContent = request.full_name;
+  document.getElementById('requestConfirmedWhen').textContent = fmtDay(d)+' alle '+fmtTime(d);
+  document.getElementById('requestConfirmedEmailNote').textContent = request.email
+    ? 'Email di conferma inviata automaticamente a '+request.email+'.'
+    : 'Il paziente non ha lasciato un\'email: usa il pulsante WhatsApp qui sotto.';
+  const waText = 'Ciao '+request.full_name+', confermo il tuo appuntamento per '+fmtDay(d)+' alle '+fmtTime(d)+'. A presto!';
+  document.getElementById('requestConfirmedWaBtn').onclick = ()=>{
+    window.open(waLinkForPhone(request.phone, waText), '_blank');
+  };
+  document.getElementById('requestConfirmedModalOverlay').classList.add('show');
+}
+document.getElementById('requestConfirmedClose').addEventListener('click', ()=>{
+  document.getElementById('requestConfirmedModalOverlay').classList.remove('show');
+});
+document.getElementById('requestConfirmedModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id==='requestConfirmedModalOverlay') document.getElementById('requestConfirmedModalOverlay').classList.remove('show');
+});
+
+/* ===================== lettura (sola lettura) del vero Google Calendar per il
+   giorno in questione: usa lo stesso token già salvato da impostazioni.html,
+   nessun nuovo collegamento richiesto. Risolve il limite "one-way" per lo scopo
+   pratico di evitare conflitti, senza costruire una sync bidirezionale vera. ===================== */
+async function fetchGoogleDayEvents(date){
+  const token = getGoogleToken();
+  if(!token) return null;
+  const dayStart = new Date(date); dayStart.setHours(0,0,0,0);
+  const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+  const url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+    + '?timeMin='+encodeURIComponent(dayStart.toISOString())
+    + '&timeMax='+encodeURIComponent(dayEnd.toISOString())
+    + '&singleEvents=true&orderBy=startTime';
+  try{
+    const res = await fetch(url, {headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data.items||[]).filter(e=>e.status!=='cancelled');
+  }catch(e){ return null; }
+}
+function hideGoogleDayPreview(){ document.getElementById('googleDayPreview').style.display = 'none'; }
+async function loadGoogleDayPreview(date){
+  const box = document.getElementById('googleDayPreview');
+  const list = document.getElementById('googleDayPreviewList');
+  box.style.display = '';
+  list.innerHTML = '<div class="emptyState">Controllo il tuo calendario Google…</div>';
+  const events = await fetchGoogleDayEvents(date);
+  if(events === null){
+    list.innerHTML = '<div class="emptyState">Google Calendar non collegato (vai in Impostazioni) o token scaduto: non riesco a controllare i tuoi impegni reali per questo giorno.</div>';
+    return;
+  }
+  if(!events.length){
+    list.innerHTML = '<div class="emptyState">Nessun impegno registrato su Google per questo giorno.</div>';
+    return;
+  }
+  list.innerHTML = events.map(e=>{
+    const s = e.start && (e.start.dateTime || e.start.date);
+    const en = e.end && (e.end.dateTime || e.end.date);
+    const label = (s && en) ? (fmtTime(new Date(s))+'–'+fmtTime(new Date(en))) : 'Tutto il giorno';
+    return '<div class="googleDayPreviewItem">'+label+' — '+escapeHtml(e.summary||'(senza titolo)')+'</div>';
+  }).join('');
+}
+document.getElementById('apptFormDate').addEventListener('change', ()=>{
+  if(!confirmingRequestId) return;
+  const [y,m,dd] = document.getElementById('apptFormDate').value.split('-').map(Number);
+  loadGoogleDayPreview(new Date(y, m-1, dd));
+});
 
 function defaultNewApptDate(){
   const base = selectedDate || startOfToday();
@@ -571,7 +770,7 @@ document.getElementById('newApptBtn').addEventListener('click', ()=> openApptMod
 document.getElementById('apptModalCancel').addEventListener('click', closeApptModal);
 document.getElementById('apptModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='apptModalOverlay') closeApptModal(); });
 
-document.getElementById('apptModalSave').addEventListener('click', ()=>{
+document.getElementById('apptModalSave').addEventListener('click', async ()=>{
   const patient = document.getElementById('apptFormPatient').value.trim();
   const dateVal = document.getElementById('apptFormDate').value;
   const timeVal = document.getElementById('apptFormTime').value;
@@ -595,8 +794,11 @@ document.getElementById('apptModalSave').addEventListener('click', ()=>{
   saveAppointments();
   pushAppointment(saved);
   pushAppointmentToGoogle(saved);
+  const confirmedRequestId = confirmingRequestId;
+  const confirmedRequest = confirmedRequestId ? pendingRequests.find(r=>r.id===confirmedRequestId) : null;
   closeApptModal();
   renderList();
+  if(confirmedRequestId) await finalizeConfirmRequest(confirmedRequestId, confirmedRequest, saved);
 });
 
 let pendingDeleteId = null;
@@ -840,10 +1042,40 @@ const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
 const APPT_TABLE = 'appointments';
 const SETTINGS_TABLE = 'calendar_settings';
+const REQUESTS_TABLE = 'booking_requests';
 
 const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
+
+/* ---- EmailJS: email di conferma/rifiuto al paziente, una sola volta, senza
+   backend. Da configurare con un account EmailJS gratuito (vedi istruzioni). ---- */
+const EMAILJS_PUBLIC_KEY = 'INSERISCI_EMAILJS_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'INSERISCI_EMAILJS_SERVICE_ID';
+const EMAILJS_TEMPLATE_CONFIRM = 'INSERISCI_EMAILJS_TEMPLATE_CONFERMA';
+const EMAILJS_TEMPLATE_DECLINE = 'INSERISCI_EMAILJS_TEMPLATE_RIFIUTO';
+function isEmailJsConfigured(){
+  return typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY && !EMAILJS_PUBLIC_KEY.startsWith('INSERISCI');
+}
+if(isEmailJsConfigured()) emailjs.init({publicKey: EMAILJS_PUBLIC_KEY});
+
+function sendConfirmationEmail(request, appt){
+  if(!isEmailJsConfigured()) return;
+  const d = new Date(appt.start_at);
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONFIRM, {
+    to_email: request.email,
+    to_name: request.full_name,
+    appt_date: fmtDay(d),
+    appt_time: fmtTime(d)
+  }).catch(()=>{});
+}
+function sendDeclineEmail(request){
+  if(!isEmailJsConfigured()) return;
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_DECLINE, {
+    to_email: request.email,
+    to_name: request.full_name
+  }).catch(()=>{});
+}
 
 let syncUser = null;
 let apptChannel = null;
@@ -951,6 +1183,7 @@ function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : n
     await flushPendingDeletes();
     await pullWorkTypes();
     await pullAppointments();
+    await fetchPendingRequests();
     renderList();
   }
   supabaseClient.auth.onAuthStateChange((event)=>{

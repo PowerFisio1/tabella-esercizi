@@ -157,6 +157,22 @@
 
     <p class="syncMessage" id="googleMessage"></p>
   </div>
+
+  <div class="settingsSection">
+    <div class="settingsSectionTitle">Notifiche push</div>
+    <p class="settingsNote">Ricevi una notifica su questo dispositivo non appena arriva una nuova richiesta di prenotazione dal sito. Va attivata su ogni dispositivo su cui vuoi riceverle; su iPhone funziona solo se l'app è stata aggiunta alla schermata Home.</p>
+
+    <div class="settingsRow">
+      <div>
+        <div class="settingsRowLabel" id="pushStatusLabel">Non attive</div>
+        <div class="settingsRowSub" id="pushStatusSub">Nessuna notifica su questo dispositivo finché non le attivi.</div>
+      </div>
+      <button type="button" id="pushEnableBtn" class="btn primary">Attiva notifiche</button>
+      <button type="button" id="pushDisableBtn" class="btn" style="display:none;">Disattiva</button>
+    </div>
+
+    <p class="syncMessage" id="pushMessage"></p>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -329,10 +345,100 @@ googleDisconnectBtn.addEventListener('click', ()=>{
 
 initGoogleClient();
 
+/* ---- notifiche push (nuova richiesta di prenotazione) ----
+   La subscription va salvata su Supabase legata all'utente loggato (RLS
+   auth.uid()=user_id), quindi va fatto dopo il login nella sezione
+   Sincronizzazione qui sopra. */
+const VAPID_PUBLIC_KEY = 'BNT15OygwUIYnTcqE3K4vt-ApWZkHQWSeDE2QK8NZq8Y7eKEL-jTZm9YlinXu2CIH0N3HEcsMDqoUGbAlZM1S_E';
+
+const pushStatusLabel = document.getElementById('pushStatusLabel');
+const pushStatusSub = document.getElementById('pushStatusSub');
+const pushEnableBtn = document.getElementById('pushEnableBtn');
+const pushDisableBtn = document.getElementById('pushDisableBtn');
+const pushMessage = document.getElementById('pushMessage');
+
+function setPushMessage(text){ pushMessage.textContent = text || ''; }
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function currentPushSubscription(){
+  if(!('serviceWorker' in navigator)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  return reg.pushManager.getSubscription();
+}
+
+async function updatePushStatus(){
+  const supported = 'serviceWorker' in navigator && 'PushManager' in window;
+  if(!supported){
+    pushStatusLabel.textContent = 'Non supportate';
+    pushStatusSub.textContent = 'Questo browser/dispositivo non supporta le notifiche push (su iPhone: aggiungi l\'app alla schermata Home).';
+    pushEnableBtn.style.display = 'none';
+    pushDisableBtn.style.display = 'none';
+    return;
+  }
+  const sub = await currentPushSubscription();
+  const active = !!sub;
+  pushStatusLabel.textContent = active ? 'Attive ✓' : 'Non attive';
+  pushStatusSub.textContent = active
+    ? 'Riceverai una notifica su questo dispositivo per ogni nuova richiesta.'
+    : 'Nessuna notifica su questo dispositivo finché non le attivi.';
+  pushEnableBtn.style.display = active ? 'none' : '';
+  pushDisableBtn.style.display = active ? '' : 'none';
+}
+
+pushEnableBtn.addEventListener('click', async ()=>{
+  setPushMessage('');
+  if(!supabaseClient){ setPushMessage('Non disponibile: controlla la connessione internet.'); return; }
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(!session || !session.user){ setPushMessage('Accedi prima nella sezione Sincronizzazione qui sopra.'); return; }
+  try{
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted'){ setPushMessage('Permesso non concesso.'); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    const json = sub.toJSON();
+    const {error} = await supabaseClient.from('push_subscriptions').upsert({
+      user_id: session.user.id,
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth_key: json.keys.auth
+    }, {onConflict:'endpoint'});
+    if(error){ setPushMessage('Errore nel salvataggio: '+error.message); return; }
+    setPushMessage('Notifiche attivate su questo dispositivo.');
+    updatePushStatus();
+  }catch(e){
+    setPushMessage('Attivazione non riuscita: '+(e && e.message ? e.message : e));
+  }
+});
+
+pushDisableBtn.addEventListener('click', async ()=>{
+  setPushMessage('');
+  try{
+    const sub = await currentPushSubscription();
+    if(sub){
+      if(supabaseClient) await supabaseClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+      await sub.unsubscribe();
+    }
+    setPushMessage('Notifiche disattivate su questo dispositivo.');
+    updatePushStatus();
+  }catch(e){
+    setPushMessage('Errore: '+(e && e.message ? e.message : e));
+  }
+});
+
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js').catch(()=>{}).then(updatePushStatus);
   });
+} else {
+  updatePushStatus();
 }
 </script>
 </body>

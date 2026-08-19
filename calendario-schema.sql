@@ -64,3 +64,56 @@ alter publication supabase_realtime add table calendar_settings;
 -- già stato eseguito in precedenza, basta eseguire solo questa riga).
 -- ============================================================================
 alter table appointments add column if not exists google_event_id text;
+
+-- ============================================================================
+-- Aggiunta successiva: richieste di prenotazione dal sito pubblico
+-- (sito-kamil-fisioterapista/prenota.html). Chiunque può inserire una
+-- richiesta (form pubblico, nessun login), ma solo l'account autenticato
+-- (Kamil) può leggerle/aggiornarle dal pannello Calendario. Tutto idempotente:
+-- sicuro da rieseguire anche se già presente.
+-- ============================================================================
+create table if not exists booking_requests (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  phone text not null,
+  email text,
+  preferred_at timestamptz not null,
+  reason text,
+  status text not null default 'pending', -- pending | confirmed | declined
+  appointment_id uuid references appointments(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table booking_requests enable row level security;
+
+create policy "booking_requests_insert_public" on booking_requests
+  for insert to anon with check (true);
+create policy "booking_requests_admin_select" on booking_requests
+  for select using (auth.role() = 'authenticated');
+create policy "booking_requests_admin_update" on booking_requests
+  for update using (auth.role() = 'authenticated');
+
+alter publication supabase_realtime add table booking_requests;
+
+-- ============================================================================
+-- Aggiunta successiva: notifiche push native (una riga per dispositivo
+-- iscritto). Solo l'account autenticato può leggere/scrivere le proprie.
+-- ============================================================================
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth_key text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table push_subscriptions enable row level security;
+
+create policy "push_subscriptions_own_select" on push_subscriptions
+  for select using (auth.uid() = user_id);
+create policy "push_subscriptions_own_insert" on push_subscriptions
+  for insert with check (auth.uid() = user_id);
+create policy "push_subscriptions_own_delete" on push_subscriptions
+  for delete using (auth.uid() = user_id);
