@@ -117,3 +117,66 @@ create policy "push_subscriptions_own_insert" on push_subscriptions
   for insert with check (auth.uid() = user_id);
 create policy "push_subscriptions_own_delete" on push_subscriptions
   for delete using (auth.uid() = user_id);
+
+-- ============================================================================
+-- Aggiunta successiva: picker giorno/orario sul sito pubblico (slot reali,
+-- non più data/ora libere). Il sito pubblico non può leggere Supabase con le
+-- stesse tabelle usate dall'app privata (patient_name, notes, ecc. non vanno
+-- esposti a chiunque): per questo espone solo due "viste" pubbliche di sola
+-- lettura, con dentro solo orari, mai dati dei pazienti.
+-- ============================================================================
+
+-- Finestra settimanale "prenotabile" e cache degli impegni Google (letta e
+-- aggiornata dall'app ogni volta che apri il Calendario con Google collegato)
+alter table calendar_settings add column if not exists booking_window jsonb not null default '{}'::jsonb;
+
+create table if not exists google_busy_cache (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  google_event_id text not null,
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  unique (google_event_id)
+);
+
+alter table google_busy_cache enable row level security;
+
+create policy "google_busy_cache_own_select" on google_busy_cache
+  for select using (auth.uid() = user_id);
+create policy "google_busy_cache_own_insert" on google_busy_cache
+  for insert with check (auth.uid() = user_id);
+create policy "google_busy_cache_own_update" on google_busy_cache
+  for update using (auth.uid() = user_id);
+create policy "google_busy_cache_own_delete" on google_busy_cache
+  for delete using (auth.uid() = user_id);
+
+-- Vista pubblica: solo gli orari occupati (appuntamenti + richieste in attesa,
+-- durata di default 45 min + impegni Google in cache), niente nomi pazienti.
+create or replace view public.busy_slots as
+  select start_at, start_at + make_interval(mins => duration_min) as end_at
+  from appointments
+  union all
+  select preferred_at as start_at, preferred_at + interval '45 minutes' as end_at
+  from booking_requests where status = 'pending'
+  union all
+  select start_at, end_at from google_busy_cache;
+
+grant select on public.busy_slots to anon;
+
+-- Vista pubblica: solo la finestra settimanale (nessun altro campo di calendar_settings)
+create or replace view public.booking_window_public as
+  select booking_window from calendar_settings limit 1;
+
+grant select on public.booking_window_public to anon;
+
+-- Finestra settimanale iniziale: Lun-Ven 8:00-20:00 (nessun'app UI ancora per
+-- modificarla — per ora si aggiorna così, o chiedendo di farlo in chat)
+update calendar_settings set booking_window = '{
+  "mon": [{"start":"08:00","end":"20:00"}],
+  "tue": [{"start":"08:00","end":"20:00"}],
+  "wed": [{"start":"08:00","end":"20:00"}],
+  "thu": [{"start":"08:00","end":"20:00"}],
+  "fri": [{"start":"08:00","end":"20:00"}],
+  "sat": [],
+  "sun": []
+}'::jsonb;

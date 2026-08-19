@@ -1033,6 +1033,38 @@ async function deleteAppointmentFromGoogle(googleEventId){
   }catch(e){}
 }
 
+/* ===================== cache degli impegni Google, per il picker pubblico =====================
+   Il sito pubblico (prenota.html) non può leggere il tuo Google Calendar reale
+   (richiederebbe di esporre il tuo accesso privato a chiunque). Quindi, ogni
+   volta che tu apri questa pagina con Google collegato, i prossimi 21 giorni
+   vengono letti e salvati in una cache privata (google_busy_cache): è quella
+   cache che il sito pubblico consulta per sapere cosa è occupato — così un
+   impegno segnato solo su Google (mai nell'app) sparisce comunque dagli slot
+   proponibili, non appena riapri il Calendario. */
+async function syncGoogleBusyCache(){
+  const token = getGoogleToken();
+  if(!token || !supabaseClient || !syncUser) return;
+  const timeMin = new Date();
+  const timeMax = new Date(Date.now() + 21*24*3600000);
+  const url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+    + '?timeMin='+encodeURIComponent(timeMin.toISOString())
+    + '&timeMax='+encodeURIComponent(timeMax.toISOString())
+    + '&singleEvents=true&orderBy=startTime&maxResults=250';
+  try{
+    const res = await fetch(url, {headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok) return;
+    const data = await res.json();
+    const events = (data.items||[]).filter(e=>e.status!=='cancelled' && e.start && e.start.dateTime && e.end && e.end.dateTime);
+    const rows = events.map(e=>({
+      user_id: syncUser.id, google_event_id: e.id, start_at: e.start.dateTime, end_at: e.end.dateTime
+    }));
+    // ripulisce la cache futura e la ricrea da zero con quanto appena letto, così
+    // eventi cancellati o spostati su Google non restano "fantasma" nella cache
+    await supabaseClient.from('google_busy_cache').delete().eq('user_id', syncUser.id).gte('start_at', timeMin.toISOString());
+    if(rows.length) await supabaseClient.from('google_busy_cache').upsert(rows, {onConflict:'google_event_id'});
+  }catch(e){}
+}
+
 /* ===================== SYNC (Supabase) — una riga per appuntamento =====================
    A differenza della libreria esercizi, qui non c'è un blob unico da inviare col debounce:
    ogni invio corrisponde a un'azione esplicita dell'utente (salva/elimina un appuntamento,
@@ -1187,6 +1219,7 @@ function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : n
     await pullAppointments();
     await fetchPendingRequests();
     renderList();
+    syncGoogleBusyCache();
   }
   supabaseClient.auth.onAuthStateChange((event)=>{
     if(event === 'SIGNED_OUT'){ unsubscribeRealtime(); setSyncUser(null); }
