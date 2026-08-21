@@ -792,7 +792,8 @@ document.getElementById('apptModalSave').addEventListener('click', async ()=>{
     appointments.push(saved);
   }
   saveAppointments();
-  pushAppointment(saved);
+  await pushAppointment(saved); // deve completarsi prima di finalizeConfirmRequest: quella scrive appointment_id
+                                 // come chiave esterna verso questa riga, altrimenti fallisce se non è ancora arrivata
   await pushAppointmentToGoogle(saved);
   syncGoogleBusyCache(); // così lo slot appena preso/spostato sparisce subito dal picker pubblico
   const confirmedRequestId = confirmingRequestId;
