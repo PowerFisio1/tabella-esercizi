@@ -55,30 +55,37 @@
     margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
     font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     display:flex; flex-direction:column; align-items:center;
-    padding:40px 20px 60px; transition:background-color .2s ease, color .2s ease;
+    padding:0 20px 60px; transition:background-color .2s ease, color .2s ease;
   }
   .settingsBtn{
     position:fixed; top:16px; right:16px; width:38px; height:38px; border-radius:10px;
-    border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+    border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.14); color:#fff; cursor:pointer;
     display:flex; align-items:center; justify-content:center; text-decoration:none;
-    z-index:10; transition:border-color .15s ease;
+    z-index:10; transition:border-color .15s ease, background-color .15s ease;
+    backdrop-filter:blur(6px);
   }
-  .settingsBtn:hover{border-color:var(--accent);}
+  .settingsBtn:hover{border-color:#fff; background:rgba(255,255,255,.22);}
   .settingsBtn svg{width:19px; height:19px;}
 
-  /* ---- intestazione: logo piccolo + separatore verticale + saluto ---- */
+  /* ---- fascia intestazione: sfondo navy a tutta larghezza, per staccarla visivamente
+     dal resto della pagina (bordi negativi per "bucare" il padding laterale del body) ---- */
+  .headerBand{
+    width:calc(100% + 40px); margin:0 -20px 30px; padding:34px 20px 30px;
+    background:linear-gradient(165deg, var(--brand-navy), #142f4d);
+    display:flex; justify-content:center; box-shadow:0 8px 20px rgba(10,20,35,.18);
+  }
   .headerRow{
-    display:flex; align-items:center; gap:16px; width:100%; max-width:640px; margin-bottom:30px;
+    display:flex; align-items:center; gap:16px; width:100%; max-width:640px;
   }
   .headerLogo{
     width:60px; height:60px; flex:none; display:block; border-radius:50%;
     background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.14), inset 0 0 0 1px rgba(0,0,0,.04);
     padding:3px;
   }
-  .headerDivider{width:1px; align-self:stretch; background:var(--line); flex:none;}
+  .headerDivider{width:1px; align-self:stretch; background:rgba(255,255,255,.25); flex:none;}
   .headerBrand{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent2); margin:0 0 4px;}
-  .headerGreeting h1{font-size:24px; font-weight:400; font-style:italic; margin:0 0 3px; letter-spacing:-.01em;}
-  .headerGreeting p{font-size:12.5px; color:var(--sub); margin:0;}
+  .headerGreeting h1{font-size:24px; font-weight:400; font-style:italic; margin:0 0 3px; letter-spacing:-.01em; color:#fff;}
+  .headerGreeting p{font-size:12.5px; color:rgba(255,255,255,.72); margin:0;}
 
   /* ---- griglia azioni: card principale verticale a sinistra, due orizzontali impilate a destra ---- */
   .actionGrid{
@@ -232,13 +239,15 @@ window.addEventListener('pagereveal', function(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </a>
 
-  <div class="headerRow">
-    <img class="headerLogo" src="logo.png" alt="Logo">
-    <div class="headerDivider"></div>
-    <div class="headerGreeting">
-      <div class="headerBrand">StudioFKT</div>
-      <h1>Ciao, Kamil 👋</h1>
-      <p>Cosa vuoi fare oggi?</p>
+  <div class="headerBand">
+    <div class="headerRow">
+      <img class="headerLogo" src="logo.png" alt="Logo">
+      <div class="headerDivider"></div>
+      <div class="headerGreeting">
+        <div class="headerBrand">StudioFKT</div>
+        <h1>Ciao, Kamil 👋</h1>
+        <p>Cosa vuoi fare oggi?</p>
+      </div>
     </div>
   </div>
 
