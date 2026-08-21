@@ -17,10 +17,13 @@
      non la supporta ancora, queste righe vengono semplicemente ignorate e la
      navigazione resta quella "a scatto" di sempre, nessun problema */
   @view-transition{ navigation: auto; }
-  ::view-transition-old(root){ animation: viewFadeOut .22s ease-in both; }
-  ::view-transition-new(root){ animation: viewFadeIn .22s ease-in both; }
-  @keyframes viewFadeIn{ from{opacity:0; transform:scale(.97);} to{opacity:1; transform:scale(1);} }
-  @keyframes viewFadeOut{ from{opacity:1; transform:scale(1);} to{opacity:0; transform:scale(1.03);} }
+  ::view-transition-old(root){ animation: none; }
+  ::view-transition-new(root){ animation: viewGrow .22s ease-out both; }
+  @keyframes viewGrow{ from{ transform:scale(.94); } to{ transform:scale(1); } }
+  /* tornando indietro (rilevato in testa alla pagina via Navigation API),
+     l'animazione si inverte: rimpicciolimento invece di ingrandimento */
+  html.navBack::view-transition-new(root){ animation: viewShrink .22s ease-out both; }
+  @keyframes viewShrink{ from{ transform:scale(1.06); } to{ transform:scale(1); } }
 
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
@@ -208,6 +211,19 @@
     if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
   }catch(e){}
 })();
+</script>
+<script>
+/* rileva se questa pagina è stata raggiunta tornando indietro (pulsante
+   Indietro/gesture), per invertire l'animazione di transizione: rimpicciolimento
+   invece di ingrandimento. Se il browser non supporta la Navigation API, resta
+   semplicemente l'animazione di ingrandimento normale. */
+window.addEventListener('pagereveal', function(){
+  try{
+    if(window.navigation && navigation.activation && navigation.activation.navigationType === 'traverse'){
+      document.documentElement.classList.add('navBack');
+    }
+  }catch(e){}
+});
 </script>
 </head>
 <body>
