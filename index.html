@@ -31,6 +31,7 @@
     /* colore fisso del brand, uguale in chiaro e scuro: non deve seguire --accent
        (che in scuro diventa un azzurro più chiaro) sulle card della dashboard */
     --brand-navy:#1c3f66; --brand-navy-light:#e4ebf2;
+    --header-band-1:#1c3f66; --header-band-2:#142f4d;
     --shadow-1: 0 1px 2px rgba(30,40,35,.05), 0 6px 14px rgba(30,40,35,.07);
     --shadow-1-hover: 0 3px 6px rgba(30,40,35,.07), 0 12px 22px rgba(30,40,35,.11);
     --shadow-primary: 0 2px 4px rgba(10,25,45,.10), 0 12px 26px rgba(10,25,45,.22), inset 0 1px 0 rgba(255,255,255,.10);
@@ -40,6 +41,7 @@
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
       --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --header-band-1:#16283d; --header-band-2:#0a121c;
       --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.28);
       --shadow-1-hover: 0 3px 6px rgba(0,0,0,.24), 0 14px 26px rgba(0,0,0,.34);
     }
@@ -47,6 +49,7 @@
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
     --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --header-band-1:#16283d; --header-band-2:#0a121c;
     --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.28);
     --shadow-1-hover: 0 3px 6px rgba(0,0,0,.24), 0 14px 26px rgba(0,0,0,.34);
   }
@@ -71,7 +74,8 @@
      dal resto della pagina (bordi negativi per "bucare" il padding laterale del body) ---- */
   .headerBand{
     width:calc(100% + 40px); margin:0 -20px 30px; padding:34px 20px 30px;
-    background:linear-gradient(165deg, var(--brand-navy), #142f4d);
+    background:linear-gradient(165deg, var(--header-band-1), var(--header-band-2));
+    border-radius:0 0 22px 22px;
     display:flex; justify-content:center; box-shadow:0 8px 20px rgba(10,20,35,.18);
   }
   .headerRow{
