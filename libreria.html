@@ -13,6 +13,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
 <style>
+  /* transizione fluida tra le pagine (View Transitions API): dove il browser
+     non la supporta ancora, queste righe vengono semplicemente ignorate e la
+     navigazione resta quella "a scatto" di sempre, nessun problema */
+  @view-transition{ navigation: auto; }
+  ::view-transition-old(root){ animation: viewFadeOut .22s ease-in both; }
+  ::view-transition-new(root){ animation: viewFadeIn .22s ease-in both; }
+  @keyframes viewFadeIn{ from{opacity:0; transform:scale(.97);} to{opacity:1; transform:scale(1);} }
+  @keyframes viewFadeOut{ from{opacity:1; transform:scale(1);} to{opacity:0; transform:scale(1.03);} }
+
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
