@@ -94,6 +94,13 @@
 
   .syncMessage{font-size:12.5px; color:var(--danger); margin-top:12px; min-height:16px;}
   .syncStatusOk{color:var(--sub); font-size:12.5px; margin-top:4px;}
+
+  .colorSwatches{display:flex; gap:6px; flex-wrap:wrap;}
+  .colorSwatch{
+    width:24px; height:24px; border-radius:50%; padding:0; border:2px solid transparent;
+    background:var(--sw); cursor:pointer;
+  }
+  .colorSwatch.active{border-color:var(--ink); box-shadow:0 0 0 2px var(--card), 0 0 0 3px var(--sw);}
 </style>
 <script>
 (function(){
@@ -181,6 +188,12 @@ window.addEventListener('pagereveal', function(){
     </div>
 
     <p class="syncMessage" id="googleMessage"></p>
+  </div>
+
+  <div class="settingsSection" id="googleColorSection" style="display:none;">
+    <div class="settingsSectionTitle">Colore eventi di lavoro</div>
+    <p class="settingsNote">Per far comparire nel Calendario dell'app gli appuntamenti che segni direttamente su Google (senza passare da qui), scegli qui il colore che usi per il lavoro: solo gli eventi Google di questo colore compariranno nel mese, come promemoria da poter trasformare in appuntamenti veri.</p>
+    <div class="colorSwatches" id="googleColorSwatches"></div>
   </div>
 
   <div class="settingsSection">
@@ -306,6 +319,34 @@ const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 const LS_GOOGLE_TOKEN = 'esercizi_fisio_tool_v1__googleToken';
 const LS_GOOGLE_CONNECTED = 'esercizi_fisio_tool_v1__googleConnected';
 
+/* tavolozza fissa dei colorId evento di Google Calendar (stessa lista usata in
+   calendario.html per mappare le tipologie di lavoro verso Google): qui invece
+   serve al contrario, per scegliere quale colore Google indica "lavoro" quando
+   si legge il calendario nel Calendario dell'app */
+const GOOGLE_COLOR_PALETTE = [
+  {id:'1', hex:'#7986cb'},{id:'2', hex:'#33b679'},{id:'3', hex:'#8e24aa'},{id:'4', hex:'#e67c73'},
+  {id:'5', hex:'#f6c026'},{id:'6', hex:'#f5511d'},{id:'7', hex:'#039be5'},{id:'8', hex:'#616161'},
+  {id:'9', hex:'#3f51b5'},{id:'10', hex:'#0b8043'},{id:'11', hex:'#d60000'}
+];
+const LS_GOOGLE_WORK_COLOR = 'esercizi_fisio_tool_v1__googleWorkColorId';
+function getGoogleWorkColorId(){
+  try{ const v = localStorage.getItem(LS_GOOGLE_WORK_COLOR); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+}
+function renderGoogleColorSwatches(){
+  const wrap = document.getElementById('googleColorSwatches');
+  const selected = getGoogleWorkColorId();
+  wrap.innerHTML = GOOGLE_COLOR_PALETTE.map(c=>
+    '<button type="button" class="colorSwatch'+(selected===c.id?' active':'')+'" data-color="'+c.id+'" style="--sw:'+c.hex+'" aria-label="Colore '+c.id+'"></button>'
+  ).join('');
+  wrap.querySelectorAll('.colorSwatch').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      localStorage.setItem(LS_GOOGLE_WORK_COLOR, JSON.stringify(btn.dataset.color));
+      renderGoogleColorSwatches();
+    });
+  });
+}
+renderGoogleColorSwatches();
+
 const googleStatusLabel = document.getElementById('googleStatusLabel');
 const googleStatusSub = document.getElementById('googleStatusSub');
 const googleConnectBtn = document.getElementById('googleConnectBtn');
@@ -324,6 +365,7 @@ function updateGoogleStatus(){
     : 'Gli appuntamenti restano solo nell\'app finché non ti colleghi.';
   googleConnectBtn.style.display = connected ? 'none' : '';
   googleDisconnectBtn.style.display = connected ? '' : 'none';
+  document.getElementById('googleColorSection').style.display = connected ? '' : 'none';
   if(!isGoogleConfigured()) setGoogleMessage('Non ancora configurato lato sviluppo: manca il Client ID di Google Cloud.');
 }
 

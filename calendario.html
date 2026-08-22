@@ -106,6 +106,7 @@
   .monthDot{width:6px; height:6px; border-radius:50%; flex:none;}
   .monthDotCount{font-size:8.5px; font-weight:700; line-height:1; color:var(--sub);}
   .monthCell.selected .monthDotCount{color:#fff;}
+  .monthDotGoogle{background:#8a8f87;}
 
   @media screen and (max-width: 480px){
     .monthCell{padding:4px; gap:2px;}
@@ -143,6 +144,9 @@
     background:var(--wc, var(--accent-light)); color:#fff;
   }
   .apptTypeTagNone{background:var(--line); color:var(--sub);}
+  .googleApptCard{border-style:dashed; opacity:.85;}
+  .googleApptCard:hover{opacity:1;}
+  .googleApptTag{background:var(--line); color:var(--sub);}
   .apptNotes{font-size:12px; color:var(--sub); margin-top:5px; line-height:1.4;}
   .apptDuration{
     flex:none; font-size:11px; font-weight:700; color:var(--sub); background:var(--bg);
@@ -502,6 +506,21 @@ function apptCardHtml(a, d){
   '</div>';
 }
 
+// stesso layout di apptCardHtml, per un evento letto da Google che non è (ancora)
+// un appuntamento dell'app: bordo tratteggiato, tag "Solo su Google" al posto
+// della tipologia, nessuna durata a fianco (viene ricavata solo al momento di
+// trasformarlo in appuntamento)
+function googleApptCardHtml(e){
+  const start = new Date(e.start.dateTime), end = new Date(e.end.dateTime);
+  return '<div class="apptCard googleApptCard" data-id="'+e.id+'">'+
+    '<div class="apptTime">'+fmtTime(start)+'<span class="apptTimeEnd">–'+fmtTime(end)+'</span></div>'+
+    '<div class="apptMain">'+
+      '<div class="apptPatient">'+escapeHtml(e.summary||'(senza titolo)')+'</div>'+
+      '<span class="apptTypeTag googleApptTag">Solo su Google · tocca per trasformarlo</span>'+
+    '</div>'+
+  '</div>';
+}
+
 function renderList(){
   const container = document.getElementById('apptList');
   let list = appointments;
@@ -554,12 +573,22 @@ function fmtMonthLabel(d){
   return s.charAt(0).toUpperCase()+s.slice(1);
 }
 
-function renderMonthView(){
-  document.getElementById('monthLabel').textContent = fmtMonthLabel(monthDate);
-  const year = monthDate.getFullYear(), month = monthDate.getMonth();
+// stessa "griglia" (6 settimane fisse) usata sia per disegnare il mese che per
+// decidere quale intervallo di eventi Google richiedere: fattorizzata qui per
+// non tenere due copie divergenti dello stesso calcolo
+function computeMonthGridRange(baseMonthDate){
+  const year = baseMonthDate.getFullYear(), month = baseMonthDate.getMonth();
   const firstOfMonth = new Date(year, month, 1);
   const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // Lun=0 .. Dom=6 (getDay() ha Dom=0)
   const gridStart = new Date(firstOfMonth); gridStart.setDate(gridStart.getDate() - firstWeekday);
+  const gridEnd = new Date(gridStart); gridEnd.setDate(gridEnd.getDate() + 42);
+  return {gridStart, gridEnd};
+}
+
+function renderMonthView(){
+  document.getElementById('monthLabel').textContent = fmtMonthLabel(monthDate);
+  const month = monthDate.getMonth();
+  const {gridStart} = computeMonthGridRange(monthDate);
   const today = startOfToday();
 
   let cellsHtml = '';
@@ -577,7 +606,7 @@ function renderMonthView(){
     // in silenzio, qui invece il "carico" della giornata si legge sempre per intero
     const countsByType = {};
     dayAppts.forEach(a=>{ countsByType[a.work_type_id] = (countsByType[a.work_type_id]||0)+1; });
-    const dotsHtml = Object.keys(countsByType).map(typeId=>{
+    let dotsHtml = Object.keys(countsByType).map(typeId=>{
       const wt = workTypeById(typeId);
       const color = wt ? wt.color : '#8a8f87';
       const count = countsByType[typeId];
@@ -585,6 +614,12 @@ function renderMonthView(){
         (count>1 ? '<span class="monthDotCount">'+count+'</span>' : '')+
       '</span>';
     }).join('');
+    const googleCount = googleEventsForDate(cellDate).length;
+    if(googleCount){
+      dotsHtml += '<span class="monthDotGroup"><span class="monthDot monthDotGoogle"></span>'+
+        (googleCount>1 ? '<span class="monthDotCount">'+googleCount+'</span>' : '')+
+      '</span>';
+    }
     cellsHtml += '<div class="monthCell'+(inMonth?'':' outMonth')+(isToday?' today':'')+(isSelected?' selected':'')+'" data-date="'+toDateInputValue(cellDate)+'">'+
       '<span class="monthCellNum">'+cellDate.getDate()+'</span>'+
       (dotsHtml ? '<div class="monthDots">'+dotsHtml+'</div>' : '')+
@@ -602,6 +637,8 @@ function renderMonthView(){
       renderSelectedDayList();
     });
   });
+
+  refreshGoogleMonthEventsIfNeeded(); // async: se serve un nuovo fetch, ridisegna da sola al termine
 }
 
 /* lista appuntamenti del giorno evidenziato, sotto la griglia del mese: sostituisce
@@ -614,18 +651,32 @@ function renderSelectedDayList(){
     const t = new Date(a.start_at);
     return t >= dayStart && t < dayEnd;
   }).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
+  const googleOnly = googleEventsForDate(dayStart).sort((a,b)=> new Date(a.start.dateTime)-new Date(b.start.dateTime));
 
   document.getElementById('monthDayListTitle').textContent = fmtDay(dayStart);
 
   const container = document.getElementById('monthDayList');
-  if(!dayAppts.length){
+  if(!dayAppts.length && !googleOnly.length){
     container.innerHTML = '<div class="emptyState">Nessun appuntamento in questo giorno.</div>';
     return;
   }
-  container.innerHTML = dayAppts.map(a => apptCardHtml(a, new Date(a.start_at))).join('');
-  container.querySelectorAll('.apptCard').forEach(card=>{
+  container.innerHTML = dayAppts.map(a => apptCardHtml(a, new Date(a.start_at))).join('')
+    + googleOnly.map(googleApptCardHtml).join('');
+  container.querySelectorAll('.apptCard:not(.googleApptCard)').forEach(card=>{
     card.addEventListener('click', ()=> openApptModal(card.dataset.id));
   });
+  container.querySelectorAll('.googleApptCard').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const e = googleOnly.find(x=>x.id===card.dataset.id);
+      if(e) startImportGoogleEvent(e);
+    });
+  });
+}
+
+function startImportGoogleEvent(e){
+  const start = new Date(e.start.dateTime), end = new Date(e.end.dateTime);
+  const durationMin = Math.max(5, Math.round((end-start)/60000));
+  openApptModal(null, start, {patientName:e.summary||'', notes:e.description||'', googleEventId:e.id, durationMin});
 }
 
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()-1); renderMonthView(); });
@@ -641,6 +692,7 @@ document.getElementById('monthTodayBtn').addEventListener('click', ()=>{
 let editingApptId = null;
 let selectedDuration = 30;
 let selectedWorkType = null;
+let importingGoogleEventId = null; // impostato quando il modale è stato aperto da "Trasforma in appuntamento"
 
 function renderDurationButtons(){
   document.querySelectorAll('#durationRow .durationBtn').forEach(btn=>{
@@ -666,26 +718,27 @@ function renderApptFormWorkTypes(){
 function openApptModal(id, prefillDate, prefillExtra){
   editingApptId = id || null;
   confirmingRequestId = null;
+  importingGoogleEventId = (!id && prefillExtra && prefillExtra.googleEventId) ? prefillExtra.googleEventId : null;
   document.getElementById('apptModalMsg').textContent = '';
   const a = id ? appointments.find(x=>x.id===id) : null;
-  document.getElementById('apptModalTitle').textContent = a ? 'Modifica appuntamento' : 'Nuovo appuntamento';
+  document.getElementById('apptModalTitle').textContent = a ? 'Modifica appuntamento' : (importingGoogleEventId ? 'Trasforma in appuntamento' : 'Nuovo appuntamento');
   document.getElementById('apptModalDelete').style.display = a ? '' : 'none';
   const d = a ? new Date(a.start_at) : (prefillDate || roundToNext15(new Date()));
   document.getElementById('apptFormPatient').value = a ? a.patient_name : (prefillExtra && prefillExtra.patientName ? prefillExtra.patientName : '');
   document.getElementById('apptFormDate').value = toDateInputValue(d);
   document.getElementById('apptFormTime').value = toTimeInputValue(d);
   document.getElementById('apptFormNotes').value = a ? (a.notes||'') : (prefillExtra && prefillExtra.notes ? prefillExtra.notes : '');
-  selectedDuration = a ? a.duration_min : 30;
+  selectedDuration = a ? a.duration_min : ((prefillExtra && prefillExtra.durationMin) || 30);
   const prefillWorkTypeId = prefillExtra && prefillExtra.workTypeId && workTypeById(prefillExtra.workTypeId) ? prefillExtra.workTypeId : null;
   selectedWorkType = a ? a.work_type_id : (prefillWorkTypeId || (workTypes[0] ? workTypes[0].id : null));
   renderDurationButtons();
   renderApptFormWorkTypes();
-  loadGoogleDayPreview(d, a ? a.google_event_id : null); // utile per ogni appuntamento, non solo confermando una richiesta: aiuta a evitare doppie prenotazioni sempre
+  loadGoogleDayPreview(d, (a ? a.google_event_id : null) || importingGoogleEventId); // utile per ogni appuntamento, non solo confermando una richiesta: aiuta a evitare doppie prenotazioni sempre; esclude l'evento stesso se lo si sta importando
   document.getElementById('apptModalOverlay').classList.add('show');
 }
 function closeApptModal(){
   document.getElementById('apptModalOverlay').classList.remove('show');
-  editingApptId = null; confirmingRequestId = null; hideGoogleDayPreview();
+  editingApptId = null; confirmingRequestId = null; importingGoogleEventId = null; hideGoogleDayPreview();
 }
 
 /* ===================== richieste di prenotazione dal sito pubblico ===================== */
@@ -856,8 +909,58 @@ async function loadGoogleDayPreview(date, excludeEventId){
 document.getElementById('apptFormDate').addEventListener('change', ()=>{
   const [y,m,dd] = document.getElementById('apptFormDate').value.split('-').map(Number);
   const editing = editingApptId ? appointments.find(x=>x.id===editingApptId) : null;
-  loadGoogleDayPreview(new Date(y, m-1, dd), editing ? editing.google_event_id : null);
+  loadGoogleDayPreview(new Date(y, m-1, dd), (editing ? editing.google_event_id : null) || importingGoogleEventId);
 });
+
+/* ===================== eventi Google Calendar del mese, per la vista mese/giorno =====================
+   A differenza dell'anteprima sopra (un giorno alla volta, sempre in tempo reale), qui
+   si legge un intervallo intero (le 6 settimane della griglia) e si tiene in cache
+   per evitare di interrogare Google ad ogni re-render locale: si rifà il fetch solo
+   quando cambia davvero il mese visualizzato (cambio mese, "Oggi", primo caricamento).
+   Solo gli eventi del colore scelto in Impostazioni vengono considerati "di lavoro". */
+function getGoogleWorkColorId(){ return lsGet(LS_PREFIX+'googleWorkColorId', null); }
+
+async function fetchGoogleRangeEvents(rangeStart, rangeEnd, colorId){
+  const token = getGoogleToken();
+  if(!token || !colorId) return [];
+  const url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+    + '?timeMin='+encodeURIComponent(rangeStart.toISOString())
+    + '&timeMax='+encodeURIComponent(rangeEnd.toISOString())
+    + '&singleEvents=true&orderBy=startTime&maxResults=250';
+  try{
+    const res = await fetch(url, {headers:{'Authorization':'Bearer '+token}});
+    if(!res.ok) return [];
+    const data = await res.json();
+    return (data.items||[]).filter(e=>
+      e.status!=='cancelled' && e.start && e.start.dateTime && e.end && e.end.dateTime &&
+      String(e.colorId)===String(colorId)
+    );
+  }catch(e){ return []; }
+}
+
+let googleMonthEvents = [];
+let googleMonthRangeKey = null;
+async function refreshGoogleMonthEventsIfNeeded(){
+  const colorId = getGoogleWorkColorId();
+  if(!colorId || !getGoogleToken()){ googleMonthEvents = []; googleMonthRangeKey = null; return; }
+  const {gridStart, gridEnd} = computeMonthGridRange(monthDate);
+  const key = gridStart.toISOString();
+  if(key === googleMonthRangeKey) return; // già aggiornato per questo intervallo, niente da rifare
+  googleMonthRangeKey = key;
+  googleMonthEvents = await fetchGoogleRangeEvents(gridStart, gridEnd, colorId);
+  if(currentView==='month'){ renderMonthView(); renderSelectedDayList(); } // arrivati i dati, si ridisegna
+}
+// un evento già "adottato" come appuntamento (stesso google_event_id) non va mostrato
+// due volte: una come promemoria Google e una come appuntamento vero
+function googleEventsForDate(cellDate){
+  if(!googleMonthEvents.length) return [];
+  const importedIds = new Set(appointments.filter(a=>a.google_event_id).map(a=>a.google_event_id));
+  return googleMonthEvents.filter(e=>{
+    if(importedIds.has(e.id)) return false;
+    const t = new Date(e.start.dateTime); t.setHours(0,0,0,0);
+    return t.getTime()===cellDate.getTime();
+  });
+}
 
 function defaultNewApptDate(){
   const base = selectedDate || startOfToday();
@@ -925,7 +1028,7 @@ document.getElementById('apptModalSave').addEventListener('click', async ()=>{
     a.patient_id = patientId || a.patient_id || null; // non si rimuove mai un collegamento già presente
     saved = a;
   } else {
-    saved = {id:uid(), patient_name:patient, start_at:start.toISOString(), duration_min:selectedDuration, work_type_id:selectedWorkType, notes, patient_id:patientId, updated_at:now};
+    saved = {id:uid(), patient_name:patient, start_at:start.toISOString(), duration_min:selectedDuration, work_type_id:selectedWorkType, notes, patient_id:patientId, google_event_id:importingGoogleEventId||null, updated_at:now};
     appointments.push(saved);
   }
   saveAppointments();
