@@ -188,3 +188,25 @@ update calendar_settings set booking_window = '{
 -- una volta, idempotente/sicuro da rieseguire.
 -- ============================================================================
 alter table appointments add column if not exists patient_id uuid references patients(id) on delete set null;
+
+-- ============================================================================
+-- Aggiunta successiva: le regole "booking_requests_admin_select/update" erano
+-- scritte come "chiunque sia autenticato" (auth.role() = 'authenticated'), non
+-- "solo Kamil" — dato che la pagina di accesso permette la registrazione
+-- pubblica, chiunque si fosse creato un account avrebbe potuto leggere/
+-- modificare nome, telefono, email e motivo di TUTTE le richieste di
+-- prenotazione. booking_requests non ha una colonna user_id (le richieste non
+-- sono "create da" un utente, arrivano dal sito pubblico), quindi la regola va
+-- ristretta al tuo specifico account invece che genericamente a "autenticato".
+--
+-- PRIMA DI ESEGUIRE: sostituisci INCOLLA-QUI-IL-TUO-UID con il tuo user id
+-- (Supabase -> Authentication -> Users, clicca sulla tua riga, copia "User UID").
+-- Idempotente: sicuro da rieseguire.
+-- ============================================================================
+drop policy if exists "booking_requests_admin_select" on booking_requests;
+create policy "booking_requests_admin_select" on booking_requests
+  for select using (auth.uid() = 'INCOLLA-QUI-IL-TUO-UID'::uuid);
+
+drop policy if exists "booking_requests_admin_update" on booking_requests;
+create policy "booking_requests_admin_update" on booking_requests
+  for update using (auth.uid() = 'INCOLLA-QUI-IL-TUO-UID'::uuid);
