@@ -195,14 +195,27 @@
   .secondaryTile.calendarTile .eyebrow{color:rgba(255,255,255,.8);}
   .secondaryTile.calendarTile .tileIcon, .secondaryTile.calendarTile .tileText{position:relative; z-index:2;}
 
-  /* "Gestisci Pazienti": stessa taglia/trattamento di "Crea Scheda" ma senza foto
-     propria (non ce n'è una) — sfondo navy pieno, stesso tono dell'overlay delle altre */
+  /* "Gestisci Pazienti": stessa struttura di libraryTile/calendarTile — foto propria
+     (desaturata per spegnere i toni caldi) sotto l'overlay blu navy pieno */
   .secondaryTile.pazientiTile{
-    background:linear-gradient(165deg, var(--brand-navy), #142f4d); border-color:transparent; color:#fff;
+    position:relative; overflow:hidden;
+    background:var(--card); border-color:transparent; color:#fff;
+  }
+  .secondaryTile.pazientiTile::before{
+    content:''; position:absolute; inset:0; z-index:0;
+    background:url('pazienti-card-bg.jpg') center/cover;
+    filter:saturate(35%);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .secondaryTile.pazientiTile::after{
+    content:''; position:absolute; inset:0; z-index:1;
+    background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
   }
   .secondaryTile.pazientiTile:hover{border-color:rgba(255,255,255,.4);}
+  .secondaryTile.pazientiTile:hover::before{transform:scale(1.06);}
   .secondaryTile.pazientiTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
   .secondaryTile.pazientiTile .eyebrow{color:rgba(255,255,255,.8);}
+  .secondaryTile.pazientiTile .tileIcon, .secondaryTile.pazientiTile .tileText{position:relative; z-index:2;}
 
   .upcomingSection{width:100%; max-width:640px; margin-top:26px;}
   .upcomingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:10px;}
