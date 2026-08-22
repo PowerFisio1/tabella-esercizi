@@ -92,59 +92,50 @@
   .headerGreeting p{font-size:12.5px; color:rgba(255,255,255,.72); margin:0;}
 
   /* ---- griglia azioni: card principale verticale a sinistra, due orizzontali impilate a destra ---- */
+  /* ---- griglia 2x2: le 4 tessere tutte allo stesso livello (prima "Crea Scheda"
+     era una card grande a parte con due tessere piccole impilate accanto; ora che
+     sono 4 voci, una griglia simmetrica scala meglio ed è pronta per una quinta) ---- */
   .actionGrid{
-    width:100%; max-width:640px; display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:stretch;
+    width:100%; max-width:640px; display:grid; grid-template-columns:1fr 1fr; gap:14px;
   }
-  .stackedCards{display:flex; flex-direction:column; gap:14px;}
 
-  .primaryCard{
-    position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
-    color:#fff; border-radius:18px; padding:20px 18px; text-decoration:none;
-    min-height:224px; box-shadow:var(--shadow-primary);
-    transition:transform .15s ease, box-shadow .15s ease;
+  .secondaryTile{
+    position:relative; display:flex; align-items:center; gap:12px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 16px;
+    min-height:108px; text-decoration:none; color:var(--ink); box-shadow:var(--shadow-1);
+    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
   }
-  .primaryCard::before{
-    /* la foto, isolata su un suo livello: così si può ingrandire leggermente
-       al passaggio del mouse senza spostare anche testo e icona */
+  .secondaryTile:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-1-hover);}
+  .secondaryTile:active{transform:scale(.98);}
+  .secondaryTile .tileIcon{
+    width:40px; height:40px; border-radius:12px; background:var(--brand-navy-light); color:var(--brand-navy);
+    display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .secondaryTile .tileIcon svg{width:20px; height:20px;}
+  .secondaryTile .tileText{min-width:0;}
+  .secondaryTile .eyebrow{font-size:11px; font-weight:400; color:var(--sub); margin-bottom:1px;}
+  .secondaryTile .cardTitle{font-size:15px; font-weight:700;}
+
+  /* stessa struttura di libraryTile/calendarTile: foto propria sotto l'overlay
+     blu navy pieno. Qui l'immagine non è desaturata perché è già su toni freddi. */
+  .secondaryTile.schedaTile{
+    position:relative; overflow:hidden;
+    background:var(--card); border-color:transparent; color:#fff;
+  }
+  .secondaryTile.schedaTile::before{
     content:''; position:absolute; inset:0; z-index:0;
     background:url('primary-card-bg.jpg') center/cover;
     transition:transform .5s cubic-bezier(.2,.8,.2,1);
   }
-  .primaryCard::after{
-    /* overlay blu navy semi-trasparente sopra la foto, non un blend-mode legato al tema:
-       così la foto resta ben visibile e chiara anche in tema chiaro, invece di scurirsi */
+  .secondaryTile.schedaTile::after{
     content:''; position:absolute; inset:0; z-index:1;
     background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
   }
-  .primaryCard:hover{transform:translateY(-3px); box-shadow:var(--shadow-primary-hover);}
-  .primaryCard:hover::before{transform:scale(1.06);}
-  .primaryCard:active{transform:scale(.98);}
-  .primaryCard .primaryIcon, .primaryCard .primaryTextBlock{position:relative; z-index:2;}
-  .primaryCard .primaryIcon{
-    width:48px; height:48px; border-radius:13px; background:rgba(255,255,255,.16);
-    display:flex; align-items:center; justify-content:center; flex:none;
-  }
-  .primaryCard .primaryIcon svg{width:24px; height:24px; stroke:#fff;}
-  .primaryCard .eyebrow{font-size:13px; font-weight:400; opacity:.8; margin-bottom:1px;}
-  .primaryCard .cardTitle{font-size:19px; font-weight:700;}
-
-  .secondaryTile{
-    position:relative; flex:1; display:flex; align-items:center; gap:12px;
-    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;
-    text-decoration:none; color:var(--ink); box-shadow:var(--shadow-1);
-    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
-  }
-  .secondaryTile:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-1-hover);}
-  .secondaryTile .tileIcon{
-    width:38px; height:38px; border-radius:11px; background:var(--brand-navy-light); color:var(--brand-navy);
-    display:flex; align-items:center; justify-content:center; flex:none;
-  }
-  .secondaryTile .tileIcon svg{width:19px; height:19px;}
-  .secondaryTile .tileText{min-width:0;}
-  .secondaryTile .eyebrow{font-size:11px; font-weight:400; color:var(--sub); margin-bottom:1px;}
-  .secondaryTile .cardTitle{font-size:14.5px; font-weight:700;}
-  .secondaryTile.soon{opacity:.55; cursor:default; pointer-events:none; box-shadow:none;}
-  .secondaryTile.soon .tileIcon{background:var(--line); color:var(--sub);}
+  .secondaryTile.schedaTile:hover{border-color:rgba(255,255,255,.4);}
+  .secondaryTile.schedaTile:hover::before{transform:scale(1.06);}
+  .secondaryTile.schedaTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
+  .secondaryTile.schedaTile .eyebrow{color:rgba(255,255,255,.8);}
+  .secondaryTile.schedaTile .tileIcon, .secondaryTile.schedaTile .tileText{position:relative; z-index:2;}
 
   /* la foto (sotto, desaturata per spegnere i toni caldi marrone/dorato) e l'overlay blu
      navy (sopra, alla stessa opacità della card "Crea Scheda", non filtrato quindi resta
@@ -213,7 +204,7 @@
   @media (max-width:480px){
     .headerLogo{width:50px; height:50px;}
     .headerGreeting h1{font-size:21px;}
-    .primaryCard{min-height:200px; padding:16px;}
+    .secondaryTile{min-height:96px; padding:14px;}
   }
 </style>
 <script>
@@ -256,37 +247,45 @@ window.addEventListener('pagereveal', function(){
   </div>
 
   <div class="actionGrid">
-    <a class="primaryCard" href="scheda.html">
-      <div class="primaryIcon">
+    <a class="secondaryTile schedaTile" href="scheda.html">
+      <div class="tileIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </div>
-      <div class="primaryTextBlock">
+      <div class="tileText">
         <div class="eyebrow">Crea</div>
         <div class="cardTitle">Scheda</div>
       </div>
     </a>
 
-    <div class="stackedCards">
-      <a class="secondaryTile libraryTile" href="libreria.html">
-        <div class="tileIcon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        </div>
-        <div class="tileText">
-          <div class="eyebrow">Sfoglia</div>
-          <div class="cardTitle">Libreria</div>
-        </div>
-      </a>
+    <a class="secondaryTile libraryTile" href="libreria.html">
+      <div class="tileIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </div>
+      <div class="tileText">
+        <div class="eyebrow">Sfoglia</div>
+        <div class="cardTitle">Libreria</div>
+      </div>
+    </a>
 
-      <a class="secondaryTile calendarTile" href="calendario.html">
-        <div class="tileIcon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
-        </div>
-        <div class="tileText">
-          <div class="eyebrow">Gestisci</div>
-          <div class="cardTitle">Calendario</div>
-        </div>
-      </a>
-    </div>
+    <a class="secondaryTile calendarTile" href="calendario.html">
+      <div class="tileIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+      </div>
+      <div class="tileText">
+        <div class="eyebrow">Gestisci</div>
+        <div class="cardTitle">Calendario</div>
+      </div>
+    </a>
+
+    <a class="secondaryTile" href="pazienti.html">
+      <div class="tileIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="tileText">
+        <div class="eyebrow">Gestisci</div>
+        <div class="cardTitle">Pazienti</div>
+      </div>
+    </a>
   </div>
 
   <div class="upcomingSection" id="upcomingSection" style="display:none;">
