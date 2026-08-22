@@ -116,6 +116,17 @@
   .secondaryTile .eyebrow{font-size:11px; font-weight:400; color:var(--sub); margin-bottom:1px;}
   .secondaryTile .cardTitle{font-size:15px; font-weight:700;}
 
+  /* ---- tessere grandi (Crea Scheda + Gestisci Pazienti): stessa struttura di
+     prima (icona in alto, testo in basso, invece che affiancati in riga) ---- */
+  .tileBig{
+    flex-direction:column; align-items:flex-start; justify-content:space-between;
+    min-height:200px; padding:20px 18px;
+  }
+  .tileBig .tileIcon{width:48px; height:48px; border-radius:13px;}
+  .tileBig .tileIcon svg{width:24px; height:24px;}
+  .tileBig .eyebrow{font-size:13px;}
+  .tileBig .cardTitle{font-size:19px;}
+
   /* stessa struttura di libraryTile/calendarTile: foto propria sotto l'overlay
      blu navy pieno. Qui l'immagine non è desaturata perché è già su toni freddi. */
   .secondaryTile.schedaTile{
@@ -184,6 +195,15 @@
   .secondaryTile.calendarTile .eyebrow{color:rgba(255,255,255,.8);}
   .secondaryTile.calendarTile .tileIcon, .secondaryTile.calendarTile .tileText{position:relative; z-index:2;}
 
+  /* "Gestisci Pazienti": stessa taglia/trattamento di "Crea Scheda" ma senza foto
+     propria (non ce n'è una) — sfondo navy pieno, stesso tono dell'overlay delle altre */
+  .secondaryTile.pazientiTile{
+    background:linear-gradient(165deg, var(--brand-navy), #142f4d); border-color:transparent; color:#fff;
+  }
+  .secondaryTile.pazientiTile:hover{border-color:rgba(255,255,255,.4);}
+  .secondaryTile.pazientiTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
+  .secondaryTile.pazientiTile .eyebrow{color:rgba(255,255,255,.8);}
+
   .upcomingSection{width:100%; max-width:640px; margin-top:26px;}
   .upcomingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:10px;}
   .upcomingList{display:flex; flex-direction:column; gap:8px;}
@@ -205,6 +225,7 @@
     .headerLogo{width:50px; height:50px;}
     .headerGreeting h1{font-size:21px;}
     .secondaryTile{min-height:96px; padding:14px;}
+    .tileBig{min-height:180px; padding:16px;}
   }
 </style>
 <script>
@@ -247,13 +268,23 @@ window.addEventListener('pagereveal', function(){
   </div>
 
   <div class="actionGrid">
-    <a class="secondaryTile schedaTile" href="scheda.html">
+    <a class="secondaryTile tileBig schedaTile" href="scheda.html">
       <div class="tileIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </div>
       <div class="tileText">
         <div class="eyebrow">Crea</div>
         <div class="cardTitle">Scheda</div>
+      </div>
+    </a>
+
+    <a class="secondaryTile tileBig pazientiTile" href="pazienti.html">
+      <div class="tileIcon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="tileText">
+        <div class="eyebrow">Gestisci</div>
+        <div class="cardTitle">Pazienti</div>
       </div>
     </a>
 
@@ -274,16 +305,6 @@ window.addEventListener('pagereveal', function(){
       <div class="tileText">
         <div class="eyebrow">Gestisci</div>
         <div class="cardTitle">Calendario</div>
-      </div>
-    </a>
-
-    <a class="secondaryTile" href="pazienti.html">
-      <div class="tileIcon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </div>
-      <div class="tileText">
-        <div class="eyebrow">Gestisci</div>
-        <div class="cardTitle">Pazienti</div>
       </div>
     </a>
   </div>
