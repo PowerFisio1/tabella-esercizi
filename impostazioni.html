@@ -95,12 +95,16 @@
   .syncMessage{font-size:12.5px; color:var(--danger); margin-top:12px; min-height:16px;}
   .syncStatusOk{color:var(--sub); font-size:12.5px; margin-top:4px;}
 
-  .colorSwatches{display:flex; gap:6px; flex-wrap:wrap;}
-  .colorSwatch{
-    width:24px; height:24px; border-radius:50%; padding:0; border:2px solid transparent;
-    background:var(--sw); cursor:pointer;
+  .colorChips{display:flex; flex-wrap:wrap; gap:6px;}
+  .colorChip{
+    display:flex; align-items:center; gap:6px; font-family:inherit; font-size:12px; font-weight:600;
+    padding:6px 12px; border-radius:100px; border:1px solid var(--line); background:var(--card);
+    color:var(--ink); cursor:pointer; transition:border-color .15s ease, background-color .15s ease, color .15s ease;
   }
-  .colorSwatch.active{border-color:var(--ink); box-shadow:0 0 0 2px var(--card), 0 0 0 3px var(--sw);}
+  .colorChip:hover{border-color:var(--cc, var(--accent));}
+  .colorChip.active{background:var(--cc, var(--accent)); border-color:var(--cc, var(--accent)); color:#fff;}
+  .colorChipDot{width:8px; height:8px; border-radius:50%; background:var(--cc, var(--accent)); flex:none;}
+  .colorChip.active .colorChipDot{background:rgba(255,255,255,.85);}
 </style>
 <script>
 (function(){
@@ -191,9 +195,9 @@ window.addEventListener('pagereveal', function(){
   </div>
 
   <div class="settingsSection" id="googleColorSection" style="display:none;">
-    <div class="settingsSectionTitle">Colore eventi di lavoro</div>
-    <p class="settingsNote">Per far comparire nel Calendario dell'app gli appuntamenti che segni direttamente su Google (senza passare da qui), scegli qui il colore che usi per il lavoro: solo gli eventi Google di questo colore compariranno nel mese, come promemoria da poter trasformare in appuntamenti veri.</p>
-    <div class="colorSwatches" id="googleColorSwatches"></div>
+    <div class="settingsSectionTitle">Colori eventi di lavoro</div>
+    <p class="settingsNote">Per far comparire nel Calendario dell'app gli appuntamenti che segni direttamente su Google (senza passare da qui), scegli qui i colori che usi per il lavoro: puoi selezionarne più di uno. Solo gli eventi Google di questi colori compariranno nel mese, come promemoria da poter trasformare in appuntamenti veri.</p>
+    <div class="colorChips" id="googleColorChips"></div>
   </div>
 
   <div class="settingsSection">
@@ -319,33 +323,50 @@ const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 const LS_GOOGLE_TOKEN = 'esercizi_fisio_tool_v1__googleToken';
 const LS_GOOGLE_CONNECTED = 'esercizi_fisio_tool_v1__googleConnected';
 
-/* tavolozza fissa dei colorId evento di Google Calendar (stessa lista usata in
-   calendario.html per mappare le tipologie di lavoro verso Google): qui invece
-   serve al contrario, per scegliere quale colore Google indica "lavoro" quando
-   si legge il calendario nel Calendario dell'app */
+/* tavolozza fissa dei colorId evento di Google Calendar, con lo stesso nome che
+   Google mostra nel suo selettore colore (stessi id/hex della lista duplicata in
+   calendario.html per mappare le tipologie di lavoro verso Google: qui invece
+   serve al contrario, per scegliere quali colori Google indicano "lavoro" quando
+   si legge il calendario nel Calendario dell'app) */
 const GOOGLE_COLOR_PALETTE = [
-  {id:'1', hex:'#7986cb'},{id:'2', hex:'#33b679'},{id:'3', hex:'#8e24aa'},{id:'4', hex:'#e67c73'},
-  {id:'5', hex:'#f6c026'},{id:'6', hex:'#f5511d'},{id:'7', hex:'#039be5'},{id:'8', hex:'#616161'},
-  {id:'9', hex:'#3f51b5'},{id:'10', hex:'#0b8043'},{id:'11', hex:'#d60000'}
+  {id:'1', hex:'#7986cb', label:'Lavanda'},{id:'2', hex:'#33b679', label:'Salvia'},
+  {id:'3', hex:'#8e24aa', label:'Vinaccia'},{id:'4', hex:'#e67c73', label:'Fenicottero'},
+  {id:'5', hex:'#f6c026', label:'Banana'},{id:'6', hex:'#f5511d', label:'Mandarino'},
+  {id:'7', hex:'#039be5', label:'Pavone'},{id:'8', hex:'#616161', label:'Grafite'},
+  {id:'9', hex:'#3f51b5', label:'Mirtillo'},{id:'10', hex:'#0b8043', label:'Basilico'},
+  {id:'11', hex:'#d60000', label:'Pomodoro'}
 ];
-const LS_GOOGLE_WORK_COLOR = 'esercizi_fisio_tool_v1__googleWorkColorId';
-function getGoogleWorkColorId(){
-  try{ const v = localStorage.getItem(LS_GOOGLE_WORK_COLOR); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+const LS_GOOGLE_WORK_COLOR_IDS = 'esercizi_fisio_tool_v1__googleWorkColorIds';
+const LS_GOOGLE_WORK_COLOR_LEGACY = 'esercizi_fisio_tool_v1__googleWorkColorId'; // versione precedente, un solo colore
+function getGoogleWorkColorIds(){
+  try{
+    const v = localStorage.getItem(LS_GOOGLE_WORK_COLOR_IDS);
+    if(v) return JSON.parse(v);
+    const legacy = localStorage.getItem(LS_GOOGLE_WORK_COLOR_LEGACY);
+    if(legacy){ const id = JSON.parse(legacy); return id ? [id] : []; } // migrazione automatica, una sola volta
+    return [];
+  }catch(e){ return []; }
 }
-function renderGoogleColorSwatches(){
-  const wrap = document.getElementById('googleColorSwatches');
-  const selected = getGoogleWorkColorId();
+function setGoogleWorkColorIds(ids){ localStorage.setItem(LS_GOOGLE_WORK_COLOR_IDS, JSON.stringify(ids)); }
+function renderGoogleColorChips(){
+  const wrap = document.getElementById('googleColorChips');
+  const selected = getGoogleWorkColorIds();
   wrap.innerHTML = GOOGLE_COLOR_PALETTE.map(c=>
-    '<button type="button" class="colorSwatch'+(selected===c.id?' active':'')+'" data-color="'+c.id+'" style="--sw:'+c.hex+'" aria-label="Colore '+c.id+'"></button>'
+    '<button type="button" class="colorChip'+(selected.includes(c.id)?' active':'')+'" data-color="'+c.id+'" style="--cc:'+c.hex+'">'+
+      '<span class="colorChipDot"></span>'+c.label+
+    '</button>'
   ).join('');
-  wrap.querySelectorAll('.colorSwatch').forEach(btn=>{
+  wrap.querySelectorAll('.colorChip').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      localStorage.setItem(LS_GOOGLE_WORK_COLOR, JSON.stringify(btn.dataset.color));
-      renderGoogleColorSwatches();
+      const current = getGoogleWorkColorIds();
+      const idx = current.indexOf(btn.dataset.color);
+      if(idx===-1) current.push(btn.dataset.color); else current.splice(idx,1);
+      setGoogleWorkColorIds(current);
+      renderGoogleColorChips();
     });
   });
 }
-renderGoogleColorSwatches();
+renderGoogleColorChips();
 
 const googleStatusLabel = document.getElementById('googleStatusLabel');
 const googleStatusSub = document.getElementById('googleStatusSub');

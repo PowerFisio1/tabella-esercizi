@@ -917,12 +917,20 @@ document.getElementById('apptFormDate').addEventListener('change', ()=>{
    si legge un intervallo intero (le 6 settimane della griglia) e si tiene in cache
    per evitare di interrogare Google ad ogni re-render locale: si rifà il fetch solo
    quando cambia davvero il mese visualizzato (cambio mese, "Oggi", primo caricamento).
-   Solo gli eventi del colore scelto in Impostazioni vengono considerati "di lavoro". */
-function getGoogleWorkColorId(){ return lsGet(LS_PREFIX+'googleWorkColorId', null); }
+   Solo gli eventi dei colori scelti in Impostazioni vengono considerati "di lavoro"
+   (uno o più: chi ha ancora la versione precedente con un solo colore salvato viene
+   letto comunque, come lista di un elemento). */
+function getGoogleWorkColorIds(){
+  const list = lsGet(LS_PREFIX+'googleWorkColorIds', null);
+  if(list) return list;
+  const legacy = lsGet(LS_PREFIX+'googleWorkColorId', null); // versione precedente, un solo colore
+  return legacy ? [legacy] : [];
+}
 
-async function fetchGoogleRangeEvents(rangeStart, rangeEnd, colorId){
+async function fetchGoogleRangeEvents(rangeStart, rangeEnd, colorIds){
   const token = getGoogleToken();
-  if(!token || !colorId) return [];
+  if(!token || !colorIds.length) return [];
+  const colorSet = new Set(colorIds.map(String));
   const url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
     + '?timeMin='+encodeURIComponent(rangeStart.toISOString())
     + '&timeMax='+encodeURIComponent(rangeEnd.toISOString())
@@ -933,7 +941,7 @@ async function fetchGoogleRangeEvents(rangeStart, rangeEnd, colorId){
     const data = await res.json();
     return (data.items||[]).filter(e=>
       e.status!=='cancelled' && e.start && e.start.dateTime && e.end && e.end.dateTime &&
-      String(e.colorId)===String(colorId)
+      colorSet.has(String(e.colorId))
     );
   }catch(e){ return []; }
 }
@@ -941,13 +949,13 @@ async function fetchGoogleRangeEvents(rangeStart, rangeEnd, colorId){
 let googleMonthEvents = [];
 let googleMonthRangeKey = null;
 async function refreshGoogleMonthEventsIfNeeded(){
-  const colorId = getGoogleWorkColorId();
-  if(!colorId || !getGoogleToken()){ googleMonthEvents = []; googleMonthRangeKey = null; return; }
+  const colorIds = getGoogleWorkColorIds();
+  if(!colorIds.length || !getGoogleToken()){ googleMonthEvents = []; googleMonthRangeKey = null; return; }
   const {gridStart, gridEnd} = computeMonthGridRange(monthDate);
-  const key = gridStart.toISOString();
-  if(key === googleMonthRangeKey) return; // già aggiornato per questo intervallo, niente da rifare
+  const key = gridStart.toISOString()+'|'+colorIds.slice().sort().join(','); // include i colori: se cambiano in Impostazioni mentre questa pagina è aperta, si rifà il fetch
+  if(key === googleMonthRangeKey) return; // già aggiornato per questo intervallo/colori, niente da rifare
   googleMonthRangeKey = key;
-  googleMonthEvents = await fetchGoogleRangeEvents(gridStart, gridEnd, colorId);
+  googleMonthEvents = await fetchGoogleRangeEvents(gridStart, gridEnd, colorIds);
   if(currentView==='month'){ renderMonthView(); renderSelectedDayList(); } // arrivati i dati, si ridisegna
 }
 // un evento già "adottato" come appuntamento (stesso google_event_id) non va mostrato
