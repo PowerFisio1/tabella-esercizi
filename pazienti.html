@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pazienti</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1c3f66">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<style>
+  :root{
+    --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
+    --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
+    --danger:#b3412f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+      --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --danger:#c8543c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
+    --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --danger:#c8543c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:24px 20px 60px; transition:background-color .2s ease, color .2s ease;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+  .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+  .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
+  .backLink:hover{color:var(--accent);}
+  h1{font-size:20px; margin:0;}
+  h2{font-size:15px; margin:0;}
+  .titleRow{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+
+  button{
+    font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+    border-radius:8px; padding:9px 14px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink);
+    transition:border-color .15s ease, background-color .15s ease, opacity .15s ease;
+  }
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
+  button.primary:hover{opacity:.92;}
+  button.danger{background:var(--danger); color:#fff; border-color:var(--danger);}
+  button.danger:hover{opacity:.9;}
+
+  .gridBackBtn{
+    display:flex; align-items:center; gap:6px; background:none; border:none; padding:0;
+    color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; margin-bottom:14px;
+  }
+  .gridBackBtn:hover{color:var(--accent);}
+
+  .searchWrap{margin-bottom:18px;}
+  .searchInput{
+    width:100%; max-width:420px; font-family:inherit; font-size:14px; color:var(--ink); background:var(--card);
+    border:1px solid var(--line); border-radius:10px; padding:11px 14px; outline:none; transition:border-color .15s ease;
+  }
+  .searchInput:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+
+  .togglePastBtn{font-size:12px; padding:6px 12px; margin-bottom:16px;}
+
+  .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
+
+  /* ---- elenco pazienti ---- */
+  .patientList{display:flex; flex-direction:column; gap:10px;}
+  .patientCard{
+    display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:13px 16px; cursor:pointer;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .patientCard:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .patientCardMain{flex:1; min-width:0;}
+  .patientCardName{font-size:14.5px; font-weight:700;}
+  .patientCardMeta{font-size:12px; color:var(--sub); margin-top:3px;}
+  .patientCardArchived{
+    flex:none; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--sub); background:var(--bg); border:1px solid var(--line); padding:3px 9px; border-radius:100px;
+  }
+
+  /* ---- dettaglio paziente ---- */
+  .patientDetailHeader{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+  .patientInfoGrid{display:flex; flex-wrap:wrap; gap:6px 18px; margin:10px 0 4px; font-size:12.5px; color:var(--sub);}
+  .patientInfoGrid b{color:var(--ink); font-weight:700;}
+  .patientNotesBlock{font-size:13px; color:var(--sub); line-height:1.5; margin:10px 0 26px; white-space:pre-wrap;}
+  .btnRow{display:flex; gap:8px; flex-wrap:wrap;}
+
+  .visitSectionTitle{margin:30px 0 16px;}
+
+  /* ---- storico visite ---- */
+  .visitList{display:flex; flex-direction:column; gap:10px;}
+  .visitCard{
+    display:flex; align-items:flex-start; gap:14px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:13px 16px; cursor:pointer;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .visitCard:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .visitDate{flex:none; width:78px; font-size:13px; font-weight:700; line-height:1.35;}
+  .visitDateWeekday{display:block; font-size:10.5px; font-weight:600; color:var(--sub); text-transform:uppercase;}
+  .visitMain{flex:1; min-width:0;}
+  .visitTags{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+  .painBadge{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700;
+    padding:3px 9px; border-radius:100px; color:#fff;
+  }
+  .goalTag{
+    display:inline-flex; font-size:11px; font-weight:600; padding:3px 9px; border-radius:100px;
+    background:var(--accent-light); color:var(--accent);
+  }
+  .visitNotePreview{font-size:12.5px; color:var(--sub); line-height:1.4; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+
+  /* ---- modali form (stessa struttura usata in calendario/libreria) ---- */
+  .modalOverlay{
+    display:none; position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:1000;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modalOverlay.show{display:flex;}
+  .modalCard{
+    background:var(--card); color:var(--ink); border-radius:14px; padding:22px; max-width:360px; width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25); max-height:calc(100vh - 40px); overflow-y:auto;
+  }
+  .modalCard p{margin:0 0 10px; font-size:14px; line-height:1.5; color:var(--ink);}
+  .modalCard .modalNote{font-size:12px; color:var(--sub);}
+  .modalActions{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
+  .modalActions button{font-family:inherit; font-size:13px; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;}
+  .modalActions button:hover{border-color:var(--accent);}
+  .modalActions .danger{background:var(--danger); color:#fff; border-color:var(--danger); margin-right:auto;}
+  .modalActions .danger:hover{opacity:.9;}
+
+  .patientModalCard, .visitModalCard{max-width:460px;}
+  .exFormGrid{display:flex; flex-direction:column; gap:12px; margin:14px 0;}
+  .exFormField{display:flex; flex-direction:column; gap:4px;}
+  .exFormField .label{font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); font-weight:600;}
+  .exFormInput{
+    font-family:inherit; font-size:13px; color:var(--ink); background:var(--card);
+    border:1px solid var(--line); border-radius:8px; padding:8px 9px; outline:none; transition:border-color .15s ease;
+    width:100%;
+  }
+  .exFormInput:focus{outline:2px solid var(--accent-light); border-color:var(--accent);}
+  textarea.exFormInput{resize:vertical; min-height:60px; line-height:1.45;}
+  select.exFormInput{cursor:pointer;}
+  .formRow2{display:flex; gap:10px;}
+  .formRow2 .exFormField{flex:1;}
+
+  /* ---- misurazioni libere (ROM, forza, test speciali, ecc.) ---- */
+  .measurementPresets{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
+  .presetBtn{font-size:11px; padding:5px 10px; border-radius:100px; border-color:var(--mc, var(--line));}
+  .presetBtn:hover{background:var(--mc, var(--accent)); color:#fff; border-color:var(--mc, var(--accent));}
+  .measurementRow{display:flex; align-items:center; gap:6px; margin-bottom:8px;}
+  .measurementTypeChip{
+    flex:none; width:8px; height:8px; border-radius:50%; background:var(--mc, var(--sub));
+  }
+  .measurementLabel{flex:1.3;}
+  .measurementValue{flex:1;}
+  .measurementRemove{
+    flex:none; width:26px; height:26px; border-radius:6px; padding:0; font-size:15px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .measurementRemove:hover{border-color:var(--danger); color:var(--danger);}
+  .measurementsEmpty{font-size:12px; color:var(--sub); margin-bottom:8px;}
+
+  @media screen and (max-width: 480px){
+    .modalCard{padding:18px;}
+    .formRow2{flex-direction:column; gap:12px;}
+  }
+</style>
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem('esercizi_fisio_tool_v1__theme');
+    if(t === 'dark' || t === 'light'){ document.documentElement.setAttribute('data-theme', t); }
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="topBar">
+    <a class="backLink" href="index.html">← Dashboard</a>
+  </div>
+
+  <div id="patientListView">
+    <div class="titleRow">
+      <h1>Pazienti</h1>
+      <button type="button" id="newPatientBtn" class="primary">+ Nuovo paziente</button>
+    </div>
+    <div class="searchWrap">
+      <input type="text" class="searchInput" id="patientSearchInput" placeholder="Cerca per nome…" autocomplete="off">
+    </div>
+    <button type="button" id="toggleArchivedBtn" class="togglePastBtn">Mostra archiviati</button>
+    <div id="patientList"></div>
+  </div>
+
+  <div id="patientDetailView" style="display:none;">
+    <button type="button" id="backToListBtn" class="gridBackBtn">← Pazienti</button>
+
+    <div class="patientDetailHeader">
+      <div>
+        <h1 id="detailPatientName"></h1>
+        <div class="patientInfoGrid" id="detailPatientInfo"></div>
+      </div>
+      <div class="btnRow">
+        <button type="button" id="editPatientBtn">Modifica</button>
+        <button type="button" id="archivePatientBtn"></button>
+        <button type="button" id="deletePatientBtn" class="danger">Elimina</button>
+      </div>
+    </div>
+    <p class="patientNotesBlock" id="detailPatientNotes"></p>
+
+    <div class="titleRow visitSectionTitle">
+      <h2>Storico visite</h2>
+      <button type="button" id="newVisitBtn" class="primary">+ Aggiungi seduta</button>
+    </div>
+    <div id="visitList"></div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="patientModalOverlay">
+  <div class="modalCard patientModalCard">
+    <p id="patientModalTitle">Nuovo paziente</p>
+    <div class="exFormGrid">
+      <label class="exFormField">
+        <span class="label">Nome e cognome</span>
+        <input type="text" id="patientFormName" class="exFormInput" placeholder="Nome Cognome">
+      </label>
+      <div class="formRow2">
+        <label class="exFormField">
+          <span class="label">Data di nascita</span>
+          <input type="date" id="patientFormBirthDate" class="exFormInput">
+        </label>
+        <label class="exFormField">
+          <span class="label">Medico curante</span>
+          <input type="text" id="patientFormDoctor" class="exFormInput" placeholder="Dott. …">
+        </label>
+      </div>
+      <label class="exFormField">
+        <span class="label">Diagnosi / motivo dell'invio</span>
+        <input type="text" id="patientFormDiagnosis" class="exFormInput" placeholder="Es. Lesione LCA, post-chirurgico">
+      </label>
+      <label class="exFormField">
+        <span class="label">Anamnesi e note iniziali</span>
+        <textarea id="patientFormNotes" class="exFormInput" placeholder="Storia clinica, contesto…"></textarea>
+      </label>
+    </div>
+    <p class="modalNote" id="patientModalMsg"></p>
+    <div class="modalActions">
+      <button type="button" id="patientModalCancel">Annulla</button>
+      <button type="button" id="patientModalSave" class="primary">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="patientDeleteModalOverlay">
+  <div class="modalCard">
+    <p>Eliminare definitivamente <b id="patientDeleteModalName"></b>?</p>
+    <p class="modalNote">Vengono eliminate anche tutte le sue visite registrate. L'operazione non si può annullare.</p>
+    <div class="modalActions">
+      <button type="button" id="patientDeleteModalCancel">Annulla</button>
+      <button type="button" id="patientDeleteModalConfirm" class="danger" style="margin-right:0;">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="visitModalOverlay">
+  <div class="modalCard visitModalCard">
+    <p id="visitModalTitle">Aggiungi seduta</p>
+    <div class="exFormGrid">
+      <label class="exFormField">
+        <span class="label">Data</span>
+        <input type="date" id="visitFormDate" class="exFormInput">
+      </label>
+      <div class="formRow2">
+        <label class="exFormField">
+          <span class="label">Dolore (0-10)</span>
+          <input type="number" id="visitFormPain" class="exFormInput" min="0" max="10" placeholder="—">
+        </label>
+        <label class="exFormField">
+          <span class="label">Quando</span>
+          <select id="visitFormPainContext" class="exFormInput">
+            <option value="">—</option>
+            <option value="riposo">A riposo</option>
+            <option value="movimento">Al movimento</option>
+            <option value="notturno">Notturno</option>
+          </select>
+        </label>
+      </div>
+      <div class="exFormField">
+        <span class="label">Misurazioni oggettive</span>
+        <div class="measurementPresets" id="measurementPresets"></div>
+        <div id="measurementsEmpty" class="measurementsEmpty">Nessuna misurazione aggiunta.</div>
+        <div id="measurementRows"></div>
+      </div>
+      <label class="exFormField">
+        <span class="label">Obiettivo funzionale raggiunto</span>
+        <input type="text" id="visitFormGoal" class="exFormInput" placeholder="Es. Cammino autonomo senza bastone">
+      </label>
+      <label class="exFormField">
+        <span class="label">Aderenza al programma domiciliare</span>
+        <select id="visitFormAdherence" class="exFormInput">
+          <option value="">—</option>
+          <option value="buona">Buona</option>
+          <option value="parziale">Parziale</option>
+          <option value="scarsa">Scarsa</option>
+        </select>
+      </label>
+      <label class="exFormField">
+        <span class="label">Note cliniche</span>
+        <textarea id="visitFormNotes" class="exFormInput" placeholder="Note narrative della seduta…"></textarea>
+      </label>
+    </div>
+    <p class="modalNote" id="visitModalMsg"></p>
+    <div class="modalActions">
+      <button type="button" id="visitModalDelete" class="danger" style="display:none;">Elimina</button>
+      <button type="button" id="visitModalCancel">Annulla</button>
+      <button type="button" id="visitModalSave" class="primary">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="visitDeleteModalOverlay">
+  <div class="modalCard">
+    <p>Eliminare questa seduta del <b id="visitDeleteModalDate"></b>?</p>
+    <div class="modalActions">
+      <button type="button" id="visitDeleteModalCancel">Annulla</button>
+      <button type="button" id="visitDeleteModalConfirm" class="danger" style="margin-right:0;">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =====================================================================
+   PERSISTENZA locale, stesso pattern di calendario.html: localStorage
+   come sorgente di verità principale (offline-first), righe separate
+   su Supabase quando collegato (non un blob unico).
+   ===================================================================== */
+const LS_PREFIX = 'esercizi_fisio_tool_v1__';
+const LS_PATIENTS = LS_PREFIX+'patients';
+const LS_VISITS = LS_PREFIX+'patientVisits';
+const LS_PATIENT_PENDING_DELETES = LS_PREFIX+'pendingPatientDeletes';
+const LS_VISIT_PENDING_DELETES = LS_PREFIX+'pendingVisitDeletes';
+
+function lsGet(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function lsSet(key, value){ try{ localStorage.setItem(key, JSON.stringify(value)); return true; }catch(e){ return false; } }
+function uid(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id_'+Date.now()+'_'+Math.random().toString(16).slice(2); }
+
+let patients = lsGet(LS_PATIENTS, []);
+let visits = lsGet(LS_VISITS, []);
+let patientPendingDeletes = lsGet(LS_PATIENT_PENDING_DELETES, []);
+let visitPendingDeletes = lsGet(LS_VISIT_PENDING_DELETES, []);
+
+function savePatients(){ lsSet(LS_PATIENTS, patients); }
+function saveVisits(){ lsSet(LS_VISITS, visits); }
+function savePatientPendingDeletes(){ lsSet(LS_PATIENT_PENDING_DELETES, patientPendingDeletes); }
+function saveVisitPendingDeletes(){ lsSet(LS_VISIT_PENDING_DELETES, visitPendingDeletes); }
+
+function patientById(id){ return patients.find(p=>p.id===id); }
+
+/* ---- formattazione data ---- */
+function pad(n){ return String(n).padStart(2,'0'); }
+function toDateInputValue(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function fmtDateShort(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2);
+}
+function fmtWeekday(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const s = d.toLocaleDateString('it-IT', {weekday:'short'});
+  return s.charAt(0).toUpperCase()+s.slice(1).replace('.','');
+}
+function calcAge(birthDate){
+  if(!birthDate) return null;
+  const b = new Date(birthDate+'T00:00:00');
+  const diff = Date.now() - b.getTime();
+  return Math.floor(diff / 31557600000);
+}
+function painColor(score){
+  if(score==null) return '#8a8f87';
+  if(score<=3) return '#6b8e3a';
+  if(score<=6) return '#c9a227';
+  return '#cc5030';
+}
+const PAIN_CONTEXT_LABELS = {riposo:'a riposo', movimento:'al movimento', notturno:'notturno'};
+const ADHERENCE_LABELS = {buona:'Aderenza buona', parziale:'Aderenza parziale', scarsa:'Aderenza scarsa'};
+
+/* ===================== elenco pazienti ===================== */
+let showArchived = false;
+
+function renderPatientList(){
+  const container = document.getElementById('patientList');
+  const term = document.getElementById('patientSearchInput').value.trim().toLowerCase();
+  document.getElementById('toggleArchivedBtn').textContent = showArchived ? 'Nascondi archiviati' : 'Mostra archiviati';
+
+  let list = patients.filter(p => showArchived ? true : !p.archived);
+  if(term) list = list.filter(p => p.full_name.toLowerCase().includes(term));
+  list = [...list].sort((a,b)=> a.full_name.localeCompare(b.full_name, 'it'));
+
+  if(!list.length){
+    container.innerHTML = '<div class="emptyState">'+(term ? 'Nessun paziente trovato.' : 'Nessun paziente ancora. Aggiungine uno con "+ Nuovo paziente".')+'</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="patientList">'+list.map(p=>{
+    const patientVisits = visits.filter(v=>v.patient_id===p.id).sort((a,b)=> b.visit_date.localeCompare(a.visit_date));
+    const lastVisit = patientVisits[0];
+    const metaParts = [];
+    if(p.diagnosis) metaParts.push(escapeHtml(p.diagnosis));
+    metaParts.push(lastVisit ? 'Ultima visita: '+fmtDateShort(lastVisit.visit_date) : 'Nessuna visita registrata');
+    return '<div class="patientCard" data-id="'+p.id+'">'+
+      '<div class="patientCardMain">'+
+        '<div class="patientCardName">'+escapeHtml(p.full_name)+'</div>'+
+        '<div class="patientCardMeta">'+metaParts.join(' · ')+'</div>'+
+      '</div>'+
+      (p.archived ? '<span class="patientCardArchived">Archiviato</span>' : '')+
+    '</div>';
+  }).join('')+'</div>';
+
+  container.querySelectorAll('.patientCard').forEach(card=>{
+    card.addEventListener('click', ()=> openPatientDetail(card.dataset.id));
+  });
+}
+document.getElementById('patientSearchInput').addEventListener('input', renderPatientList);
+document.getElementById('toggleArchivedBtn').addEventListener('click', ()=>{ showArchived = !showArchived; renderPatientList(); });
+
+/* ===================== dettaglio paziente ===================== */
+let currentPatientId = null;
+
+function setView(view){
+  document.getElementById('patientListView').style.display = view==='list' ? '' : 'none';
+  document.getElementById('patientDetailView').style.display = view==='detail' ? '' : 'none';
+}
+
+function openPatientDetail(id){
+  currentPatientId = id;
+  renderPatientDetail();
+  renderVisitList();
+  setView('detail');
+}
+document.getElementById('backToListBtn').addEventListener('click', ()=>{ currentPatientId = null; setView('list'); renderPatientList(); });
+
+function renderPatientDetail(){
+  const p = patientById(currentPatientId);
+  if(!p){ setView('list'); renderPatientList(); return; }
+  document.getElementById('detailPatientName').textContent = p.full_name;
+
+  const infoParts = [];
+  const age = calcAge(p.birth_date);
+  if(age!=null) infoParts.push('<span>'+age+' anni</span>');
+  if(p.referring_doctor) infoParts.push('<span>Medico curante: <b>'+escapeHtml(p.referring_doctor)+'</b></span>');
+  if(p.diagnosis) infoParts.push('<span>Diagnosi: <b>'+escapeHtml(p.diagnosis)+'</b></span>');
+  document.getElementById('detailPatientInfo').innerHTML = infoParts.join('');
+  document.getElementById('detailPatientNotes').textContent = p.notes || '';
+  document.getElementById('archivePatientBtn').textContent = p.archived ? 'Riattiva' : 'Archivia';
+}
+
+document.getElementById('archivePatientBtn').addEventListener('click', ()=>{
+  const p = patientById(currentPatientId);
+  if(!p) return;
+  p.archived = !p.archived;
+  p.updated_at = new Date().toISOString();
+  savePatients();
+  pushPatient(p);
+  renderPatientDetail();
+});
+
+/* ===================== visite: card + apertura modale ===================== */
+function visitCardHtml(v){
+  const tags = [];
+  if(v.pain_score!=null) tags.push('<span class="painBadge" style="background:'+painColor(v.pain_score)+'">Dolore '+v.pain_score+'/10'+(v.pain_context?' · '+PAIN_CONTEXT_LABELS[v.pain_context]:'')+'</span>');
+  if(v.functional_goal) tags.push('<span class="goalTag">'+escapeHtml(v.functional_goal)+'</span>');
+  const measCount = (v.measurements||[]).length;
+  if(measCount) tags.push('<span class="goalTag">'+measCount+' misurazion'+(measCount>1?'i':'e')+'</span>');
+  return '<div class="visitCard" data-id="'+v.id+'">'+
+    '<div class="visitDate"><span class="visitDateWeekday">'+fmtWeekday(v.visit_date)+'</span>'+fmtDateShort(v.visit_date)+'</div>'+
+    '<div class="visitMain">'+
+      (tags.length ? '<div class="visitTags">'+tags.join('')+'</div>' : '')+
+      (v.notes ? '<div class="visitNotePreview">'+escapeHtml(v.notes)+'</div>' : '')+
+    '</div>'+
+  '</div>';
+}
+
+function renderVisitList(){
+  const container = document.getElementById('visitList');
+  const list = visits.filter(v=>v.patient_id===currentPatientId).sort((a,b)=> b.visit_date.localeCompare(a.visit_date));
+  if(!list.length){
+    container.innerHTML = '<div class="emptyState">Nessuna seduta registrata.</div>';
+    return;
+  }
+  container.innerHTML = list.map(visitCardHtml).join('');
+  container.querySelectorAll('.visitCard').forEach(card=>{
+    card.addEventListener('click', ()=> openVisitModal(card.dataset.id));
+  });
+}
+
+/* ===================== modale nuovo/modifica paziente ===================== */
+let editingPatientId = null;
+
+function openPatientModal(id){
+  editingPatientId = id || null;
+  document.getElementById('patientModalMsg').textContent = '';
+  const p = id ? patientById(id) : null;
+  document.getElementById('patientModalTitle').textContent = p ? 'Modifica paziente' : 'Nuovo paziente';
+  document.getElementById('patientFormName').value = p ? p.full_name : '';
+  document.getElementById('patientFormBirthDate').value = p && p.birth_date ? p.birth_date : '';
+  document.getElementById('patientFormDoctor').value = p ? (p.referring_doctor||'') : '';
+  document.getElementById('patientFormDiagnosis').value = p ? (p.diagnosis||'') : '';
+  document.getElementById('patientFormNotes').value = p ? (p.notes||'') : '';
+  document.getElementById('patientModalOverlay').classList.add('show');
+}
+function closePatientModal(){ document.getElementById('patientModalOverlay').classList.remove('show'); editingPatientId = null; }
+
+document.getElementById('newPatientBtn').addEventListener('click', ()=> openPatientModal(null));
+document.getElementById('editPatientBtn').addEventListener('click', ()=> openPatientModal(currentPatientId));
+document.getElementById('patientModalCancel').addEventListener('click', closePatientModal);
+document.getElementById('patientModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='patientModalOverlay') closePatientModal(); });
+
+document.getElementById('patientModalSave').addEventListener('click', ()=>{
+  const name = document.getElementById('patientFormName').value.trim();
+  const msg = document.getElementById('patientModalMsg');
+  if(!name){ msg.textContent = 'Inserisci nome e cognome.'; return; }
+  const birthDate = document.getElementById('patientFormBirthDate').value || null;
+  const doctor = document.getElementById('patientFormDoctor').value.trim();
+  const diagnosis = document.getElementById('patientFormDiagnosis').value.trim();
+  const notes = document.getElementById('patientFormNotes').value.trim();
+  const now = new Date().toISOString();
+  let saved;
+  if(editingPatientId){
+    const p = patientById(editingPatientId);
+    p.full_name = name; p.birth_date = birthDate; p.referring_doctor = doctor; p.diagnosis = diagnosis; p.notes = notes; p.updated_at = now;
+    saved = p;
+  } else {
+    saved = {id:uid(), full_name:name, birth_date:birthDate, referring_doctor:doctor, diagnosis, notes, archived:false, updated_at:now};
+    patients.push(saved);
+  }
+  savePatients();
+  pushPatient(saved);
+  closePatientModal();
+  renderPatientList();
+  if(currentPatientId===saved.id) renderPatientDetail();
+});
+
+let pendingDeletePatientId = null;
+document.getElementById('deletePatientBtn').addEventListener('click', ()=>{
+  pendingDeletePatientId = currentPatientId;
+  const p = patientById(pendingDeletePatientId);
+  document.getElementById('patientDeleteModalName').textContent = p ? p.full_name : '';
+  document.getElementById('patientDeleteModalOverlay').classList.add('show');
+});
+document.getElementById('patientDeleteModalCancel').addEventListener('click', ()=>{
+  document.getElementById('patientDeleteModalOverlay').classList.remove('show'); pendingDeletePatientId = null;
+});
+document.getElementById('patientDeleteModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id==='patientDeleteModalOverlay'){ document.getElementById('patientDeleteModalOverlay').classList.remove('show'); pendingDeletePatientId = null; }
+});
+document.getElementById('patientDeleteModalConfirm').addEventListener('click', ()=>{
+  if(!pendingDeletePatientId) return;
+  const removedVisitIds = visits.filter(v=>v.patient_id===pendingDeletePatientId).map(v=>v.id);
+  patients = patients.filter(p=>p.id!==pendingDeletePatientId);
+  visits = visits.filter(v=>v.patient_id!==pendingDeletePatientId);
+  savePatients();
+  saveVisits();
+  if(!patientPendingDeletes.includes(pendingDeletePatientId)){ patientPendingDeletes.push(pendingDeletePatientId); savePatientPendingDeletes(); }
+  removedVisitIds.forEach(vid=>{ if(!visitPendingDeletes.includes(vid)){ visitPendingDeletes.push(vid); } });
+  saveVisitPendingDeletes();
+  deletePatientRemote(pendingDeletePatientId);
+  removedVisitIds.forEach(vid=> deleteVisitRemote(vid));
+  document.getElementById('patientDeleteModalOverlay').classList.remove('show');
+  pendingDeletePatientId = null;
+  currentPatientId = null;
+  setView('list');
+  renderPatientList();
+});
+
+/* ===================== modale nuovo/modifica seduta ===================== */
+const MEASUREMENT_TYPES = [
+  {id:'rom', label:'ROM', color:'#3b6fa3', placeholder:'Es. Flessione ginocchio dx: 110°'},
+  {id:'forza', label:'Forza', color:'#6b8e3a', placeholder:'Es. Quadricipite dx (MRC 0-5): 4'},
+  {id:'test', label:'Test speciale', color:'#c9a227', placeholder:'Es. Lachman: negativo'},
+  {id:'neuro', label:'Neurologico', color:'#7b5ea7', placeholder:'Es. Sensibilità L5: normale'},
+  {id:'edema', label:'Edema', color:'#cc5030', placeholder:'Es. Ginocchio dx: lieve'},
+  {id:'outcome', label:'Outcome scale', color:'#4a8fa6', placeholder:'Es. Oswestry: 24%'},
+  {id:'altro', label:'Altro', color:'#8a8f87', placeholder:'Etichetta libera'}
+];
+function measurementTypeById(id){ return MEASUREMENT_TYPES.find(t=>t.id===id) || MEASUREMENT_TYPES[MEASUREMENT_TYPES.length-1]; }
+
+let editingVisitId = null;
+let currentMeasurements = [];
+
+function renderMeasurementPresets(){
+  document.getElementById('measurementPresets').innerHTML = MEASUREMENT_TYPES.map(t=>
+    '<button type="button" class="presetBtn" data-type="'+t.id+'" style="--mc:'+t.color+'">+ '+t.label+'</button>'
+  ).join('');
+  document.querySelectorAll('.presetBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentMeasurements.push({type:btn.dataset.type, label:'', value:''});
+      renderMeasurementRows();
+    });
+  });
+}
+function renderMeasurementRows(){
+  const wrap = document.getElementById('measurementRows');
+  document.getElementById('measurementsEmpty').style.display = currentMeasurements.length ? 'none' : '';
+  wrap.innerHTML = currentMeasurements.map((m, idx)=>{
+    const t = measurementTypeById(m.type);
+    return '<div class="measurementRow" data-idx="'+idx+'">'+
+      '<span class="measurementTypeChip" style="--mc:'+t.color+'" title="'+t.label+'"></span>'+
+      '<input type="text" class="exFormInput measurementLabel" placeholder="'+escapeHtml(t.placeholder)+'" value="'+escapeHtml(m.label)+'">'+
+      '<input type="text" class="exFormInput measurementValue" placeholder="Valore" value="'+escapeHtml(m.value)+'">'+
+      '<button type="button" class="measurementRemove" title="Rimuovi">×</button>'+
+    '</div>';
+  }).join('');
+  wrap.querySelectorAll('.measurementRow').forEach(row=>{
+    const idx = Number(row.dataset.idx);
+    row.querySelector('.measurementLabel').addEventListener('input', (e)=>{ currentMeasurements[idx].label = e.target.value; });
+    row.querySelector('.measurementValue').addEventListener('input', (e)=>{ currentMeasurements[idx].value = e.target.value; });
+    row.querySelector('.measurementRemove').addEventListener('click', ()=>{ currentMeasurements.splice(idx,1); renderMeasurementRows(); });
+  });
+}
+renderMeasurementPresets();
+
+function openVisitModal(id){
+  editingVisitId = id || null;
+  document.getElementById('visitModalMsg').textContent = '';
+  const v = id ? visits.find(x=>x.id===id) : null;
+  document.getElementById('visitModalTitle').textContent = v ? 'Modifica seduta' : 'Aggiungi seduta';
+  document.getElementById('visitModalDelete').style.display = v ? '' : 'none';
+  document.getElementById('visitFormDate').value = v ? v.visit_date : toDateInputValue(new Date());
+  document.getElementById('visitFormPain').value = v && v.pain_score!=null ? v.pain_score : '';
+  document.getElementById('visitFormPainContext').value = v ? (v.pain_context||'') : '';
+  document.getElementById('visitFormGoal').value = v ? (v.functional_goal||'') : '';
+  document.getElementById('visitFormAdherence').value = v ? (v.adherence||'') : '';
+  document.getElementById('visitFormNotes').value = v ? (v.notes||'') : '';
+  currentMeasurements = v ? JSON.parse(JSON.stringify(v.measurements||[])) : [];
+  renderMeasurementRows();
+  document.getElementById('visitModalOverlay').classList.add('show');
+}
+function closeVisitModal(){ document.getElementById('visitModalOverlay').classList.remove('show'); editingVisitId = null; }
+
+document.getElementById('newVisitBtn').addEventListener('click', ()=> openVisitModal(null));
+document.getElementById('visitModalCancel').addEventListener('click', closeVisitModal);
+document.getElementById('visitModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='visitModalOverlay') closeVisitModal(); });
+
+document.getElementById('visitModalSave').addEventListener('click', ()=>{
+  const dateVal = document.getElementById('visitFormDate').value;
+  const msg = document.getElementById('visitModalMsg');
+  if(!dateVal){ msg.textContent = 'Inserisci la data della seduta.'; return; }
+  const painRaw = document.getElementById('visitFormPain').value;
+  const pain = painRaw==='' ? null : Math.max(0, Math.min(10, Number(painRaw)));
+  const painContext = document.getElementById('visitFormPainContext').value || null;
+  const goal = document.getElementById('visitFormGoal').value.trim();
+  const adherence = document.getElementById('visitFormAdherence').value || null;
+  const notes = document.getElementById('visitFormNotes').value.trim();
+  const cleanMeasurements = currentMeasurements.filter(m=> m.label.trim() || m.value.trim());
+  const now = new Date().toISOString();
+  let saved;
+  if(editingVisitId){
+    const v = visits.find(x=>x.id===editingVisitId);
+    v.visit_date = dateVal; v.pain_score = pain; v.pain_context = painContext;
+    v.measurements = cleanMeasurements; v.functional_goal = goal; v.adherence = adherence; v.notes = notes; v.updated_at = now;
+    saved = v;
+  } else {
+    saved = {id:uid(), patient_id:currentPatientId, visit_date:dateVal, pain_score:pain, pain_context:painContext,
+      measurements:cleanMeasurements, functional_goal:goal, adherence, notes, updated_at:now};
+    visits.push(saved);
+  }
+  saveVisits();
+  pushVisit(saved);
+  closeVisitModal();
+  renderVisitList();
+  renderPatientList();
+});
+
+let pendingDeleteVisitId = null;
+document.getElementById('visitModalDelete').addEventListener('click', ()=>{
+  pendingDeleteVisitId = editingVisitId;
+  const v = visits.find(x=>x.id===pendingDeleteVisitId);
+  document.getElementById('visitDeleteModalDate').textContent = v ? fmtDateShort(v.visit_date) : '';
+  document.getElementById('visitDeleteModalOverlay').classList.add('show');
+});
+document.getElementById('visitDeleteModalCancel').addEventListener('click', ()=>{
+  document.getElementById('visitDeleteModalOverlay').classList.remove('show'); pendingDeleteVisitId = null;
+});
+document.getElementById('visitDeleteModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id==='visitDeleteModalOverlay'){ document.getElementById('visitDeleteModalOverlay').classList.remove('show'); pendingDeleteVisitId = null; }
+});
+document.getElementById('visitDeleteModalConfirm').addEventListener('click', ()=>{
+  if(!pendingDeleteVisitId) return;
+  visits = visits.filter(v=>v.id!==pendingDeleteVisitId);
+  saveVisits();
+  if(!visitPendingDeletes.includes(pendingDeleteVisitId)){ visitPendingDeletes.push(pendingDeleteVisitId); saveVisitPendingDeletes(); }
+  deleteVisitRemote(pendingDeleteVisitId);
+  document.getElementById('visitDeleteModalOverlay').classList.remove('show');
+  closeVisitModal();
+  renderVisitList();
+  renderPatientList();
+  pendingDeleteVisitId = null;
+});
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('visitDeleteModalOverlay').classList.contains('show')){ document.getElementById('visitDeleteModalOverlay').classList.remove('show'); pendingDeleteVisitId = null; }
+  else if(document.getElementById('visitModalOverlay').classList.contains('show')) closeVisitModal();
+  else if(document.getElementById('patientDeleteModalOverlay').classList.contains('show')){ document.getElementById('patientDeleteModalOverlay').classList.remove('show'); pendingDeletePatientId = null; }
+  else if(document.getElementById('patientModalOverlay').classList.contains('show')) closePatientModal();
+});
+
+/* ===================== SYNC (Supabase) — una riga per paziente/visita =====================
+   Stesso motore di calendario.html: nessun debounce (ogni invio segue un'azione
+   esplicita), coda di eliminazioni "pendenti" persistita in localStorage e
+   ritentata a ogni apertura pagina, per evitare che un'eliminazione non ancora
+   confermata dal cloud venga resuscitata da un pull successivo. */
+const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
+const PATIENTS_TABLE = 'patients';
+const VISITS_TABLE = 'patient_visits';
+
+const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+let syncUser = null;
+let patientsChannel = null;
+let visitsChannel = null;
+
+async function pushPatient(p){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    await supabaseClient.from(PATIENTS_TABLE).upsert({
+      id:p.id, user_id:syncUser.id, full_name:p.full_name, birth_date:p.birth_date||null,
+      referring_doctor:p.referring_doctor||null, diagnosis:p.diagnosis||null, notes:p.notes||null,
+      archived:!!p.archived, updated_at:p.updated_at
+    });
+  }catch(e){}
+}
+async function deletePatientRemote(id){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    const {error} = await supabaseClient.from(PATIENTS_TABLE).delete().eq('id', id);
+    if(!error){ patientPendingDeletes = patientPendingDeletes.filter(x=>x!==id); savePatientPendingDeletes(); }
+  }catch(e){}
+}
+async function pushVisit(v){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    await supabaseClient.from(VISITS_TABLE).upsert({
+      id:v.id, patient_id:v.patient_id, user_id:syncUser.id, visit_date:v.visit_date,
+      pain_score:v.pain_score, pain_context:v.pain_context, measurements:v.measurements||[],
+      functional_goal:v.functional_goal||null, adherence:v.adherence, notes:v.notes||null, updated_at:v.updated_at
+    });
+  }catch(e){}
+}
+async function deleteVisitRemote(id){
+  if(!supabaseClient || !syncUser) return;
+  try{
+    const {error} = await supabaseClient.from(VISITS_TABLE).delete().eq('id', id);
+    if(!error){ visitPendingDeletes = visitPendingDeletes.filter(x=>x!==id); saveVisitPendingDeletes(); }
+  }catch(e){}
+}
+async function flushPatientPendingDeletes(){
+  if(!supabaseClient || !syncUser || !patientPendingDeletes.length) return;
+  for(const id of patientPendingDeletes.slice()){ await deletePatientRemote(id); }
+}
+async function flushVisitPendingDeletes(){
+  if(!supabaseClient || !syncUser || !visitPendingDeletes.length) return;
+  for(const id of visitPendingDeletes.slice()){ await deleteVisitRemote(id); }
+}
+
+function applyRemotePatient(row){
+  if(patientPendingDeletes.includes(row.id)) return;
+  const idx = patients.findIndex(p=>p.id===row.id);
+  const remote = {id:row.id, full_name:row.full_name, birth_date:row.birth_date, referring_doctor:row.referring_doctor,
+    diagnosis:row.diagnosis, notes:row.notes, archived:row.archived, updated_at:row.updated_at};
+  if(idx===-1){ patients.push(remote); }
+  else if(!patients[idx].updated_at || remote.updated_at >= patients[idx].updated_at){ patients[idx] = remote; }
+  else return;
+  savePatients();
+  renderPatientList();
+  if(currentPatientId===row.id) renderPatientDetail();
+}
+function removeLocalPatient(id){
+  patients = patients.filter(p=>p.id!==id);
+  visits = visits.filter(v=>v.patient_id!==id);
+  savePatients();
+  saveVisits();
+  if(currentPatientId===id){ currentPatientId=null; setView('list'); }
+  renderPatientList();
+}
+function applyRemoteVisit(row){
+  if(visitPendingDeletes.includes(row.id)) return;
+  const idx = visits.findIndex(v=>v.id===row.id);
+  const remote = {id:row.id, patient_id:row.patient_id, visit_date:row.visit_date, pain_score:row.pain_score,
+    pain_context:row.pain_context, measurements:row.measurements||[], functional_goal:row.functional_goal,
+    adherence:row.adherence, notes:row.notes, updated_at:row.updated_at};
+  if(idx===-1){ visits.push(remote); }
+  else if(!visits[idx].updated_at || remote.updated_at >= visits[idx].updated_at){ visits[idx] = remote; }
+  else return;
+  saveVisits();
+  if(currentPatientId===row.patient_id) renderVisitList();
+  renderPatientList();
+}
+function removeLocalVisit(id){
+  const v = visits.find(x=>x.id===id);
+  visits = visits.filter(x=>x.id!==id);
+  saveVisits();
+  if(v && currentPatientId===v.patient_id) renderVisitList();
+  renderPatientList();
+}
+
+async function pullPatients(){
+  if(!supabaseClient || !syncUser) return;
+  const {data, error} = await supabaseClient.from(PATIENTS_TABLE).select('*').eq('user_id', syncUser.id);
+  if(error || !data) return;
+  const remoteIds = new Set(data.map(r=>r.id));
+  data.forEach(applyRemotePatient);
+  patients.filter(p=>!remoteIds.has(p.id)).forEach(pushPatient);
+}
+async function pullVisits(){
+  if(!supabaseClient || !syncUser) return;
+  const {data, error} = await supabaseClient.from(VISITS_TABLE).select('*').eq('user_id', syncUser.id);
+  if(error || !data) return;
+  const remoteIds = new Set(data.map(r=>r.id));
+  data.forEach(applyRemoteVisit);
+  visits.filter(v=>!remoteIds.has(v.id)).forEach(pushVisit);
+}
+
+function subscribeRealtime(){
+  if(!supabaseClient || !syncUser) return;
+  patientsChannel = supabaseClient.channel('patients_'+syncUser.id)
+    .on('postgres_changes', {event:'*', schema:'public', table:PATIENTS_TABLE, filter:'user_id=eq.'+syncUser.id}, (payload)=>{
+      if(payload.eventType==='DELETE'){ if(payload.old && payload.old.id) removeLocalPatient(payload.old.id); }
+      else if(payload.new){ applyRemotePatient(payload.new); }
+    }).subscribe();
+  visitsChannel = supabaseClient.channel('patient_visits_'+syncUser.id)
+    .on('postgres_changes', {event:'*', schema:'public', table:VISITS_TABLE, filter:'user_id=eq.'+syncUser.id}, (payload)=>{
+      if(payload.eventType==='DELETE'){ if(payload.old && payload.old.id) removeLocalVisit(payload.old.id); }
+      else if(payload.new){ applyRemoteVisit(payload.new); }
+    }).subscribe();
+}
+function unsubscribeRealtime(){
+  if(patientsChannel && supabaseClient){ supabaseClient.removeChannel(patientsChannel); }
+  if(visitsChannel && supabaseClient){ supabaseClient.removeChannel(visitsChannel); }
+  patientsChannel = null; visitsChannel = null;
+}
+
+function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : null; }
+
+(async function initSyncSession(){
+  renderPatientList();
+  if(!supabaseClient) return;
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(session && session.user){
+    setSyncUser(session.user);
+    subscribeRealtime();
+    await flushPatientPendingDeletes();
+    await flushVisitPendingDeletes();
+    await pullPatients();
+    await pullVisits();
+    renderPatientList();
+    if(currentPatientId){ renderPatientDetail(); renderVisitList(); }
+  }
+  supabaseClient.auth.onAuthStateChange((event)=>{
+    if(event === 'SIGNED_OUT'){ unsubscribeRealtime(); setSyncUser(null); }
+  });
+})();
+
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
