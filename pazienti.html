@@ -173,9 +173,40 @@
   .measurementRemove:hover{border-color:var(--danger); color:var(--danger);}
   .measurementsEmpty{font-size:12px; color:var(--sub); margin-bottom:8px;}
 
+  /* ---- vista report: stessa pagina, non una finestra a parte (niente popup da
+     autorizzare), stampata con window.print() come già fa scheda.html ---- */
+  .reportToolbar{margin-bottom:22px;}
+  .reportContent{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:32px 34px; max-width:720px; margin:0 auto;
+  }
+  .reportContent h1{font-size:20px; margin:0 0 4px;}
+  .reportContent .reportDate{font-size:12px; color:var(--sub); margin-bottom:22px;}
+  .reportContent .infoGrid{
+    display:flex; flex-wrap:wrap; gap:5px 24px; font-size:13px; margin-bottom:22px;
+    padding-bottom:16px; border-bottom:1px solid var(--line);
+  }
+  .reportContent .infoGrid b{font-weight:700;}
+  .reportContent h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:.03em; color:var(--sub);
+    border-bottom:1px solid var(--line); padding-bottom:6px; margin:24px 0 10px;
+  }
+  .reportContent p{font-size:13.5px; margin:0 0 8px; line-height:1.55;}
+  .reportContent .signature{margin-top:36px; padding-top:16px; border-top:1px solid var(--line); font-size:13px;}
+  .reportContent .planText{white-space:pre-wrap;}
+
+  @media print{
+    *{-webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact;}
+    :root{--ink:#1c2b2a !important; --sub:#5b6b69 !important; --line:#dfe3e1 !important; --bg:#fff !important; --card:#fff !important;}
+    body{padding:0;}
+    .topBar, #patientListView, #patientDetailView{display:none !important;}
+    .reportContent{border:none; padding:0; box-shadow:none; max-width:none;}
+  }
+
   @media screen and (max-width: 480px){
     .modalCard{padding:18px;}
     .formRow2{flex-direction:column; gap:12px;}
+    .reportContent{padding:20px;}
   }
 </style>
 <script>
@@ -223,9 +254,48 @@
 
     <div class="titleRow visitSectionTitle">
       <h2>Storico visite</h2>
-      <button type="button" id="newVisitBtn" class="primary">+ Aggiungi seduta</button>
+      <div class="btnRow">
+        <button type="button" id="generateReportBtn">Genera report</button>
+        <button type="button" id="newVisitBtn" class="primary">+ Aggiungi seduta</button>
+      </div>
     </div>
     <div id="visitList"></div>
+  </div>
+
+  <div id="reportView" style="display:none;">
+    <div class="topBar reportToolbar">
+      <button type="button" id="reportBackBtn" class="gridBackBtn" style="margin-bottom:0;">← Torna al paziente</button>
+      <button type="button" id="reportPrintBtn" class="primary">Stampa / esporta PDF</button>
+    </div>
+    <div id="reportContent" class="reportContent"></div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="reportModalOverlay">
+  <div class="modalCard patientModalCard">
+    <p>Genera report</p>
+    <p class="modalNote">Prende automaticamente prima e ultima seduta del periodo come valutazione iniziale/attuale. Scrivi qui sotto la tua valutazione complessiva: non viene ripresa dalle note, va scritta fresca per questo report.</p>
+    <div class="exFormGrid">
+      <div class="formRow2">
+        <label class="exFormField">
+          <span class="label">Da</span>
+          <input type="date" id="reportFormFrom" class="exFormInput">
+        </label>
+        <label class="exFormField">
+          <span class="label">A</span>
+          <input type="date" id="reportFormTo" class="exFormInput">
+        </label>
+      </div>
+      <label class="exFormField">
+        <span class="label">Valutazione complessiva e piano</span>
+        <textarea id="reportFormPlan" class="exFormInput" placeholder="Andamento rispetto alle attese, prosecuzione/modifica del piano, eventuali richieste al medico…"></textarea>
+      </label>
+    </div>
+    <p class="modalNote" id="reportModalMsg"></p>
+    <div class="modalActions">
+      <button type="button" id="reportModalCancel">Annulla</button>
+      <button type="button" id="reportModalGenerate" class="primary">Genera</button>
+    </div>
   </div>
 </div>
 
@@ -447,6 +517,7 @@ let currentPatientId = null;
 function setView(view){
   document.getElementById('patientListView').style.display = view==='list' ? '' : 'none';
   document.getElementById('patientDetailView').style.display = view==='detail' ? '' : 'none';
+  document.getElementById('reportView').style.display = view==='report' ? '' : 'none';
 }
 
 function openPatientDetail(id){
@@ -481,6 +552,93 @@ document.getElementById('archivePatientBtn').addEventListener('click', ()=>{
   pushPatient(p);
   renderPatientDetail();
 });
+
+/* ===================== generazione report =====================
+   Un documento a sé (nuova scheda del browser), non una vista dentro l'app:
+   prende automaticamente prima/ultima seduta del periodo come baseline/
+   attuale, conta le sedute nel mezzo, e lascia un campo dove scrivere la
+   valutazione complessiva fresca al momento di generarlo. */
+const ADHERENCE_SIMPLE_LABELS = {buona:'Buona', parziale:'Parziale', scarsa:'Scarsa'};
+
+function fmtDateFull(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const s = d.toLocaleDateString('it-IT', {day:'numeric', month:'long', year:'numeric'});
+  return s;
+}
+function fmtMeasurementsList(measurements){
+  if(!measurements || !measurements.length) return '—';
+  return measurements.map(m=> escapeHtml(m.label||'')+': '+escapeHtml(m.value||'')).join(' · ');
+}
+function reportVisitBlockHtml(v){
+  let html = '<p><b>Dolore:</b> '+(v.pain_score!=null ? v.pain_score+'/10'+(v.pain_context?' ('+PAIN_CONTEXT_LABELS[v.pain_context]+')':'') : '—')+'</p>';
+  html += '<p><b>Misurazioni:</b> '+fmtMeasurementsList(v.measurements)+'</p>';
+  if(v.functional_goal) html += '<p><b>Obiettivo funzionale raggiunto:</b> '+escapeHtml(v.functional_goal)+'</p>';
+  if(v.notes) html += '<p><b>Note:</b> '+escapeHtml(v.notes)+'</p>';
+  return html;
+}
+
+function openReportModal(){
+  const p = patientById(currentPatientId);
+  if(!p) return;
+  document.getElementById('reportModalMsg').textContent = '';
+  document.getElementById('reportFormPlan').value = '';
+  const patientVisits = visits.filter(v=>v.patient_id===currentPatientId).sort((a,b)=> a.visit_date.localeCompare(b.visit_date));
+  document.getElementById('reportFormFrom').value = patientVisits.length ? patientVisits[0].visit_date : toDateInputValue(new Date());
+  document.getElementById('reportFormTo').value = toDateInputValue(new Date());
+  document.getElementById('reportModalOverlay').classList.add('show');
+}
+function closeReportModal(){ document.getElementById('reportModalOverlay').classList.remove('show'); }
+
+document.getElementById('generateReportBtn').addEventListener('click', openReportModal);
+document.getElementById('reportModalCancel').addEventListener('click', closeReportModal);
+document.getElementById('reportModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='reportModalOverlay') closeReportModal(); });
+
+document.getElementById('reportModalGenerate').addEventListener('click', ()=>{
+  const p = patientById(currentPatientId);
+  const fromVal = document.getElementById('reportFormFrom').value;
+  const toVal = document.getElementById('reportFormTo').value;
+  const plan = document.getElementById('reportFormPlan').value.trim();
+  const msg = document.getElementById('reportModalMsg');
+  if(!fromVal || !toVal){ msg.textContent = 'Seleziona un intervallo di date.'; return; }
+  if(fromVal > toVal){ msg.textContent = '"Da" non può essere dopo "A".'; return; }
+
+  const rangeVisits = visits.filter(v=> v.patient_id===currentPatientId && v.visit_date>=fromVal && v.visit_date<=toVal)
+    .sort((a,b)=> a.visit_date.localeCompare(b.visit_date));
+  if(!rangeVisits.length){ msg.textContent = 'Nessuna seduta registrata in questo intervallo.'; return; }
+
+  const baseline = rangeVisits[0];
+  const latest = rangeVisits[rangeVisits.length-1];
+  const age = calcAge(p.birth_date);
+
+  const infoParts = [
+    '<span><b>Paziente:</b> '+escapeHtml(p.full_name)+(age!=null?' ('+age+' anni)':'')+'</span>'
+  ];
+  if(p.referring_doctor) infoParts.push('<span><b>Medico curante:</b> '+escapeHtml(p.referring_doctor)+'</span>');
+  if(p.diagnosis) infoParts.push('<span><b>Diagnosi:</b> '+escapeHtml(p.diagnosis)+'</span>');
+  infoParts.push('<span><b>Periodo:</b> dal '+fmtDateFull(fromVal)+' al '+fmtDateFull(toVal)+'</span>');
+  infoParts.push('<span><b>Sedute nel periodo:</b> '+rangeVisits.length+'</span>');
+
+  const html =
+    '<h1>Referto di fisioterapia</h1>'+
+    '<div class="reportDate">Redatto il '+fmtDateFull(toDateInputValue(new Date()))+'</div>'+
+    '<div class="infoGrid">'+infoParts.join('')+'</div>'+
+    (p.notes ? '<h2>Anamnesi e motivo dell\'invio</h2><p>'+escapeHtml(p.notes)+'</p>' : '')+
+    '<h2>Valutazione iniziale — '+fmtDateFull(baseline.visit_date)+'</h2>'+reportVisitBlockHtml(baseline)+
+    '<h2>Trattamento effettuato</h2>'+
+    '<p>'+rangeVisits.length+' sedut'+(rangeVisits.length>1?'e svolte':'a svolta')+' nel periodo indicato.</p>'+
+    '<h2>Valutazione oggettiva attuale — '+fmtDateFull(latest.visit_date)+'</h2>'+reportVisitBlockHtml(latest)+
+    (latest.adherence ? '<h2>Aderenza al programma domiciliare</h2><p>'+(ADHERENCE_SIMPLE_LABELS[latest.adherence]||escapeHtml(latest.adherence))+'</p>' : '')+
+    '<h2>Valutazione complessiva e piano</h2><p class="planText">'+(plan ? escapeHtml(plan) : '—')+'</p>'+
+    '<div class="signature"><b>Dott. Kamil Gontarski</b><br>Fisioterapista iscritto all\'albo di Bergamo al nr. 1244 — Trescore Balneario (BG), studio c/o Veryfit</div>';
+
+  document.getElementById('reportContent').innerHTML = html;
+  closeReportModal();
+  setView('report');
+  window.scrollTo(0,0);
+});
+
+document.getElementById('reportBackBtn').addEventListener('click', ()=>{ setView('detail'); });
+document.getElementById('reportPrintBtn').addEventListener('click', ()=> window.print());
 
 /* ===================== visite: card + apertura modale ===================== */
 function visitCardHtml(v){
@@ -721,6 +879,7 @@ document.addEventListener('keydown', (e)=>{
   else if(document.getElementById('visitModalOverlay').classList.contains('show')) closeVisitModal();
   else if(document.getElementById('patientDeleteModalOverlay').classList.contains('show')){ document.getElementById('patientDeleteModalOverlay').classList.remove('show'); pendingDeletePatientId = null; }
   else if(document.getElementById('patientModalOverlay').classList.contains('show')) closePatientModal();
+  else if(document.getElementById('reportModalOverlay').classList.contains('show')) closeReportModal();
 });
 
 /* ===================== SYNC (Supabase) — una riga per paziente/visita =====================
