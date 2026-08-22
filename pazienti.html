@@ -594,13 +594,35 @@ function setView(view){
   document.getElementById('reportView').style.display = view==='report' ? '' : 'none';
 }
 
-function openPatientDetail(id){
-  currentPatientId = id;
-  renderPatientDetail();
-  renderVisitList();
-  setView('detail');
+/* apertura/chiusura del dettaglio con la stessa transizione fluida usata tra le
+   pagine (View Transitions API), qui applicata dentro pazienti.html al cambio di
+   vista lista↔dettaglio: dove il browser non la supporta, si esegue subito il
+   cambio senza animazione, nessun problema. Le tre promise della transizione
+   (ready/updateCallbackDone/finished) possono rifiutarsi indipendentemente in
+   certi casi limite (es. tab non visibile): le "ascoltiamo" tutte per evitare
+   errori "Uncaught (in promise)" in console, senza che questo cambi nulla per
+   l'utente (il cambio di vista avviene comunque). */
+function runViewTransition(apply){
+  if(!document.startViewTransition){ apply(); return; }
+  const t = document.startViewTransition(apply);
+  [t.ready, t.updateCallbackDone, t.finished].forEach(p=> p.catch(()=>{}));
+  return t;
 }
-document.getElementById('backToListBtn').addEventListener('click', ()=>{ currentPatientId = null; setView('list'); renderPatientList(); });
+function openPatientDetail(id){
+  document.documentElement.classList.remove('navBack');
+  runViewTransition(()=>{
+    currentPatientId = id;
+    renderPatientDetail();
+    renderVisitList();
+    setView('detail');
+  });
+}
+document.getElementById('backToListBtn').addEventListener('click', ()=>{
+  document.documentElement.classList.add('navBack');
+  const t = runViewTransition(()=>{ currentPatientId = null; setView('list'); renderPatientList(); });
+  if(t) t.finished.catch(()=>{}).finally(()=> document.documentElement.classList.remove('navBack'));
+  else document.documentElement.classList.remove('navBack');
+});
 
 function renderPatientDetail(){
   const p = patientById(currentPatientId);
