@@ -13,6 +13,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
 <style>
+  /* transizione fluida tra le pagine (View Transitions API): dove il browser
+     non la supporta ancora, queste righe vengono semplicemente ignorate e la
+     navigazione resta quella "a scatto" di sempre, nessun problema */
+  @view-transition{ navigation: auto; }
+  ::view-transition-old(root){ animation: none; }
+  ::view-transition-new(root){ animation: viewGrow .22s ease-out both; }
+  @keyframes viewGrow{ from{ transform:scale(.94); } to{ transform:scale(1); } }
+  /* tornando indietro (rilevato in testa alla pagina via Navigation API),
+     l'animazione si inverte: rimpicciolimento invece di ingrandimento */
+  html.navBack::view-transition-new(root){ animation: viewShrink .22s ease-out both; }
+  @keyframes viewShrink{ from{ transform:scale(1.06); } to{ transform:scale(1); } }
+
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
@@ -48,9 +60,10 @@
     font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
     border-radius:8px; padding:9px 14px; border:1px solid var(--line);
     background:var(--card); color:var(--ink);
-    transition:border-color .15s ease, background-color .15s ease, opacity .15s ease;
+    transition:border-color .15s ease, background-color .15s ease, opacity .15s ease, transform .1s ease;
   }
   button:hover{border-color:var(--accent);}
+  button:active{transform:scale(.96);}
   button.primary{background:var(--accent); color:#fff; border-color:var(--accent);}
   button.primary:hover{opacity:.92;}
   button.danger{background:var(--danger); color:#fff; border-color:var(--danger);}
@@ -81,6 +94,7 @@
     transition:border-color .15s ease, transform .15s ease;
   }
   .patientCard:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .patientCard:active{transform:scale(.98);}
   .patientCardMain{flex:1; min-width:0;}
   .patientCardName{font-size:14.5px; font-weight:700;}
   .patientCardMeta{font-size:12px; color:var(--sub); margin-top:3px;}
@@ -109,6 +123,7 @@
     transition:border-color .15s ease, transform .15s ease;
   }
   .visitCard:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .visitCard:active{transform:scale(.98);}
   .visitDate{flex:none; width:78px; font-size:13px; font-weight:700; line-height:1.35;}
   .visitDateWeekday{display:block; font-size:10.5px; font-weight:600; color:var(--sub); text-transform:uppercase;}
   .visitMain{flex:1; min-width:0;}
@@ -123,16 +138,24 @@
   }
   .visitNotePreview{font-size:12.5px; color:var(--sub); line-height:1.4; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
 
-  /* ---- modali form (stessa struttura usata in calendario/libreria) ---- */
+  /* ---- modali form (stessa struttura/animazione usata in calendario/libreria):
+     apertura/chiusura morbida con dissolvenza + leggero zoom, non uno scatto ---- */
   .modalOverlay{
-    display:none; position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:1000;
+    display:flex; position:fixed; inset:0; background:rgba(20,30,28,.45); z-index:1000;
     align-items:center; justify-content:center; padding:20px;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .18s ease, visibility 0s linear .18s;
   }
-  .modalOverlay.show{display:flex;}
+  .modalOverlay.show{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity .18s ease, visibility 0s linear 0s;
+  }
   .modalCard{
     background:var(--card); color:var(--ink); border-radius:14px; padding:22px; max-width:360px; width:100%;
     box-shadow:0 20px 60px rgba(0,0,0,.25); max-height:calc(100vh - 40px); overflow-y:auto;
+    transform:scale(.92); transition:transform .18s ease;
   }
+  .modalOverlay.show .modalCard{transform:scale(1);}
   .modalCard p{margin:0 0 10px; font-size:14px; line-height:1.5; color:var(--ink);}
   .modalCard .modalNote{font-size:12px; color:var(--sub);}
   .modalActions{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
@@ -225,6 +248,19 @@
   }catch(e){}
 })();
 </script>
+<script>
+/* rileva se questa pagina è stata raggiunta tornando indietro (pulsante
+   Indietro/gesture), per invertire l'animazione di transizione: rimpicciolimento
+   invece di ingrandimento. Se il browser non supporta la Navigation API, resta
+   semplicemente l'animazione di ingrandimento normale. */
+window.addEventListener('pagereveal', function(){
+  try{
+    if(window.navigation && navigation.activation && navigation.activation.navigationType === 'traverse'){
+      document.documentElement.classList.add('navBack');
+    }
+  }catch(e){}
+});
+</script>
 </head>
 <body>
 <div class="wrap">
@@ -294,6 +330,11 @@
           <input type="date" id="reportFormTo" class="exFormInput">
         </label>
       </div>
+      <label class="exFormField">
+        <span class="label">Trattamento effettuato</span>
+        <textarea id="reportFormTreatment" class="exFormInput" placeholder="Es. Terapia manuale, mobilizzazione articolare, esercizi di rinforzo…"></textarea>
+        <span class="modalNote" style="margin-top:2px;">Precompilato in automatico, modificabile liberamente.</span>
+      </label>
       <label class="exFormField">
         <span class="label">Valutazione complessiva e piano</span>
         <textarea id="reportFormPlan" class="exFormInput" placeholder="Andamento rispetto alle attese, prosecuzione/modifica del piano, eventuali richieste al medico…"></textarea>
@@ -618,9 +659,32 @@ function openReportModal(){
   const patientVisits = visits.filter(v=>v.patient_id===currentPatientId).sort((a,b)=> a.visit_date.localeCompare(b.visit_date));
   document.getElementById('reportFormFrom').value = patientVisits.length ? patientVisits[0].visit_date : toDateInputValue(new Date());
   document.getElementById('reportFormTo').value = toDateInputValue(new Date());
+  lastAutoTreatmentText = '';
+  document.getElementById('reportFormTreatment').value = '';
+  updateTreatmentDefault();
   document.getElementById('reportModalOverlay').classList.add('show');
 }
 function closeReportModal(){ document.getElementById('reportModalOverlay').classList.remove('show'); }
+
+/* il testo di "Trattamento effettuato" parte precompilato dal conteggio sedute,
+   ma resta un campo libero: si aggiorna da solo se cambi le date SOLO finché
+   non lo modifichi tu a mano (altrimenti rispetta quello che hai scritto) */
+function autoTreatmentText(count){
+  return count+' sedut'+(count>1?'e svolte':'a svolta')+' nel periodo indicato.';
+}
+let lastAutoTreatmentText = '';
+function updateTreatmentDefault(){
+  const fromVal = document.getElementById('reportFormFrom').value;
+  const toVal = document.getElementById('reportFormTo').value;
+  if(!fromVal || !toVal || !currentPatientId) return;
+  const count = visits.filter(v=> v.patient_id===currentPatientId && v.visit_date>=fromVal && v.visit_date<=toVal).length;
+  const auto = autoTreatmentText(count);
+  const field = document.getElementById('reportFormTreatment');
+  if(field.value === '' || field.value === lastAutoTreatmentText) field.value = auto;
+  lastAutoTreatmentText = auto;
+}
+document.getElementById('reportFormFrom').addEventListener('change', updateTreatmentDefault);
+document.getElementById('reportFormTo').addEventListener('change', updateTreatmentDefault);
 
 document.getElementById('generateReportBtn').addEventListener('click', openReportModal);
 document.getElementById('reportModalCancel').addEventListener('click', closeReportModal);
@@ -630,6 +694,7 @@ document.getElementById('reportModalGenerate').addEventListener('click', ()=>{
   const p = patientById(currentPatientId);
   const fromVal = document.getElementById('reportFormFrom').value;
   const toVal = document.getElementById('reportFormTo').value;
+  const treatment = document.getElementById('reportFormTreatment').value.trim();
   const plan = document.getElementById('reportFormPlan').value.trim();
   const msg = document.getElementById('reportModalMsg');
   if(!fromVal || !toVal){ msg.textContent = 'Seleziona un intervallo di date.'; return; }
@@ -666,7 +731,7 @@ document.getElementById('reportModalGenerate').addEventListener('click', ()=>{
     (p.notes ? '<h2>Anamnesi e motivo dell\'invio</h2><p>'+escapeHtml(p.notes)+'</p>' : '')+
     '<h2>Valutazione iniziale — '+fmtDateFull(baseline.visit_date)+'</h2>'+reportVisitBlockHtml(baseline)+
     '<h2>Trattamento effettuato</h2>'+
-    '<p>'+rangeVisits.length+' sedut'+(rangeVisits.length>1?'e svolte':'a svolta')+' nel periodo indicato.</p>'+
+    '<p style="white-space:pre-wrap;">'+escapeHtml(treatment || autoTreatmentText(rangeVisits.length))+'</p>'+
     '<h2>Valutazione oggettiva attuale — '+fmtDateFull(latest.visit_date)+'</h2>'+reportVisitBlockHtml(latest)+
     (latest.adherence ? '<h2>Aderenza al programma domiciliare</h2><p>'+(ADHERENCE_SIMPLE_LABELS[latest.adherence]||escapeHtml(latest.adherence))+'</p>' : '')+
     '<h2>Valutazione complessiva e piano</h2><p class="planText">'+(plan ? escapeHtml(plan) : '—')+'</p>'+
