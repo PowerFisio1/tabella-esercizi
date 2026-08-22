@@ -69,3 +69,11 @@ create policy "patient_visits_delete_own" on patient_visits
 --      Database -> Replication -> spunta "patients" e "patient_visits". ----
 alter publication supabase_realtime add table patients;
 alter publication supabase_realtime add table patient_visits;
+
+-- ============================================================================
+-- Aggiunta successiva: tipo di medico curante/specialista, per scegliere
+-- l'etichetta corretta nel PDF ("Medico Specialista:" vs "Medico Curante:").
+-- Da eseguire una volta, in aggiunta a quanto sopra (se lo schema sopra è
+-- già stato eseguito in precedenza, basta eseguire solo questa riga).
+-- ============================================================================
+alter table patients add column if not exists doctor_type text;

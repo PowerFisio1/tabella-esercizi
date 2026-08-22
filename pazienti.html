@@ -180,7 +180,15 @@
     background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:32px 34px; max-width:720px; margin:0 auto;
   }
-  .reportContent h1{font-size:20px; margin:0 0 4px;}
+  .reportContent .reportLetterhead{display:flex; align-items:center; gap:16px; margin-bottom:22px; padding-bottom:20px; border-bottom:2px solid var(--ink);}
+  .reportContent .reportLogo{
+    width:56px; height:56px; flex:none; display:block; border-radius:50%;
+    background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12); padding:3px;
+  }
+  .reportContent .reportLetterheadDivider{width:1px; align-self:stretch; background:var(--line); flex:none;}
+  .reportContent .reportPracticeName{font-size:15px; font-weight:700;}
+  .reportContent .reportPracticeSub{font-size:11.5px; color:var(--sub); margin-top:3px; line-height:1.4; max-width:360px;}
+  .reportContent h1{font-size:19px; margin:0 0 4px;}
   .reportContent .reportDate{font-size:12px; color:var(--sub); margin-bottom:22px;}
   .reportContent .infoGrid{
     display:flex; flex-wrap:wrap; gap:5px 24px; font-size:13px; margin-bottom:22px;
@@ -307,19 +315,30 @@
         <span class="label">Nome e cognome</span>
         <input type="text" id="patientFormName" class="exFormInput" placeholder="Nome Cognome">
       </label>
+      <label class="exFormField">
+        <span class="label">Data di nascita</span>
+        <input type="date" id="patientFormBirthDate" class="exFormInput">
+      </label>
       <div class="formRow2">
         <label class="exFormField">
-          <span class="label">Data di nascita</span>
-          <input type="date" id="patientFormBirthDate" class="exFormInput">
+          <span class="label">Medico curante/specialista</span>
+          <input type="text" id="patientFormDoctor" class="exFormInput" placeholder="Dott. …">
         </label>
         <label class="exFormField">
-          <span class="label">Medico curante</span>
-          <input type="text" id="patientFormDoctor" class="exFormInput" placeholder="Dott. …">
+          <span class="label">Tipologia</span>
+          <select id="patientFormDoctorType" class="exFormInput">
+            <option value="">—</option>
+            <option value="mmg">Medico di base (MMG)</option>
+            <option value="ortopedico">Ortopedico</option>
+            <option value="neurochirurgo">Neurochirurgo</option>
+            <option value="fisiatra">Fisiatra</option>
+          </select>
         </label>
       </div>
       <label class="exFormField">
         <span class="label">Diagnosi / motivo dell'invio</span>
         <input type="text" id="patientFormDiagnosis" class="exFormInput" placeholder="Es. Lesione LCA, post-chirurgico">
+        <span class="modalNote" style="margin-top:2px;">Uso interno: non compare nel PDF del report.</span>
       </label>
       <label class="exFormField">
         <span class="label">Anamnesi e note iniziali</span>
@@ -472,6 +491,20 @@ function painColor(score){
 const PAIN_CONTEXT_LABELS = {riposo:'a riposo', movimento:'al movimento', notturno:'notturno'};
 const ADHERENCE_LABELS = {buona:'Aderenza buona', parziale:'Aderenza parziale', scarsa:'Aderenza scarsa'};
 
+/* ---- medico curante vs specialista: l'etichetta nel dettaglio e nel report
+   cambia in base al tipo scelto in fase di inserimento, non è mai fissa ---- */
+const DOCTOR_TYPE_LABELS = {ortopedico:'Ortopedico', neurochirurgo:'Neurochirurgo', fisiatra:'Fisiatra', mmg:'Medico di base'};
+function doctorFieldLabel(doctorType){
+  return (doctorType==='ortopedico' || doctorType==='neurochirurgo' || doctorType==='fisiatra') ? 'Medico specialista' : 'Medico curante';
+}
+function doctorDisplayValue(p){
+  if(!p.referring_doctor) return null;
+  if(p.doctor_type && DOCTOR_TYPE_LABELS[p.doctor_type] && p.doctor_type!=='mmg'){
+    return p.referring_doctor+' ('+DOCTOR_TYPE_LABELS[p.doctor_type]+')';
+  }
+  return p.referring_doctor;
+}
+
 /* ===================== elenco pazienti ===================== */
 let showArchived = false;
 
@@ -536,7 +569,7 @@ function renderPatientDetail(){
   const infoParts = [];
   const age = calcAge(p.birth_date);
   if(age!=null) infoParts.push('<span>'+age+' anni</span>');
-  if(p.referring_doctor) infoParts.push('<span>Medico curante: <b>'+escapeHtml(p.referring_doctor)+'</b></span>');
+  if(p.referring_doctor) infoParts.push('<span>'+doctorFieldLabel(p.doctor_type)+': <b>'+escapeHtml(doctorDisplayValue(p))+'</b></span>');
   if(p.diagnosis) infoParts.push('<span>Diagnosi: <b>'+escapeHtml(p.diagnosis)+'</b></span>');
   document.getElementById('detailPatientInfo').innerHTML = infoParts.join('');
   document.getElementById('detailPatientNotes').textContent = p.notes || '';
@@ -613,13 +646,21 @@ document.getElementById('reportModalGenerate').addEventListener('click', ()=>{
   const infoParts = [
     '<span><b>Paziente:</b> '+escapeHtml(p.full_name)+(age!=null?' ('+age+' anni)':'')+'</span>'
   ];
-  if(p.referring_doctor) infoParts.push('<span><b>Medico curante:</b> '+escapeHtml(p.referring_doctor)+'</span>');
-  if(p.diagnosis) infoParts.push('<span><b>Diagnosi:</b> '+escapeHtml(p.diagnosis)+'</span>');
+  if(p.birth_date) infoParts.push('<span><b>Data di nascita:</b> '+fmtDateFull(p.birth_date)+'</span>');
+  if(p.referring_doctor) infoParts.push('<span><b>'+doctorFieldLabel(p.doctor_type)+':</b> '+escapeHtml(doctorDisplayValue(p))+'</span>');
   infoParts.push('<span><b>Periodo:</b> dal '+fmtDateFull(fromVal)+' al '+fmtDateFull(toVal)+'</span>');
   infoParts.push('<span><b>Sedute nel periodo:</b> '+rangeVisits.length+'</span>');
 
   const html =
-    '<h1>Referto di fisioterapia</h1>'+
+    '<div class="reportLetterhead">'+
+      '<img src="logo.png" alt="Logo" class="reportLogo">'+
+      '<div class="reportLetterheadDivider"></div>'+
+      '<div class="reportLetterheadText">'+
+        '<div class="reportPracticeName">Dott. Kamil Gontarski</div>'+
+        '<div class="reportPracticeSub">Fisioterapista iscritto all\'albo di Bergamo al nr. 1244 — Trescore Balneario (BG), studio c/o Veryfit</div>'+
+      '</div>'+
+    '</div>'+
+    '<h1>Relazione Fisioterapica</h1>'+
     '<div class="reportDate">Redatto il '+fmtDateFull(toDateInputValue(new Date()))+'</div>'+
     '<div class="infoGrid">'+infoParts.join('')+'</div>'+
     (p.notes ? '<h2>Anamnesi e motivo dell\'invio</h2><p>'+escapeHtml(p.notes)+'</p>' : '')+
@@ -680,6 +721,7 @@ function openPatientModal(id){
   document.getElementById('patientFormName').value = p ? p.full_name : '';
   document.getElementById('patientFormBirthDate').value = p && p.birth_date ? p.birth_date : '';
   document.getElementById('patientFormDoctor').value = p ? (p.referring_doctor||'') : '';
+  document.getElementById('patientFormDoctorType').value = p ? (p.doctor_type||'') : '';
   document.getElementById('patientFormDiagnosis').value = p ? (p.diagnosis||'') : '';
   document.getElementById('patientFormNotes').value = p ? (p.notes||'') : '';
   document.getElementById('patientModalOverlay').classList.add('show');
@@ -697,16 +739,19 @@ document.getElementById('patientModalSave').addEventListener('click', ()=>{
   if(!name){ msg.textContent = 'Inserisci nome e cognome.'; return; }
   const birthDate = document.getElementById('patientFormBirthDate').value || null;
   const doctor = document.getElementById('patientFormDoctor').value.trim();
+  const doctorType = document.getElementById('patientFormDoctorType').value || null;
   const diagnosis = document.getElementById('patientFormDiagnosis').value.trim();
   const notes = document.getElementById('patientFormNotes').value.trim();
   const now = new Date().toISOString();
   let saved;
   if(editingPatientId){
     const p = patientById(editingPatientId);
-    p.full_name = name; p.birth_date = birthDate; p.referring_doctor = doctor; p.diagnosis = diagnosis; p.notes = notes; p.updated_at = now;
+    p.full_name = name; p.birth_date = birthDate; p.referring_doctor = doctor; p.doctor_type = doctorType;
+    p.diagnosis = diagnosis; p.notes = notes; p.updated_at = now;
     saved = p;
   } else {
-    saved = {id:uid(), full_name:name, birth_date:birthDate, referring_doctor:doctor, diagnosis, notes, archived:false, updated_at:now};
+    saved = {id:uid(), full_name:name, birth_date:birthDate, referring_doctor:doctor, doctor_type:doctorType,
+      diagnosis, notes, archived:false, updated_at:now};
     patients.push(saved);
   }
   savePatients();
@@ -905,7 +950,7 @@ async function pushPatient(p){
   try{
     await supabaseClient.from(PATIENTS_TABLE).upsert({
       id:p.id, user_id:syncUser.id, full_name:p.full_name, birth_date:p.birth_date||null,
-      referring_doctor:p.referring_doctor||null, diagnosis:p.diagnosis||null, notes:p.notes||null,
+      referring_doctor:p.referring_doctor||null, doctor_type:p.doctor_type||null, diagnosis:p.diagnosis||null, notes:p.notes||null,
       archived:!!p.archived, updated_at:p.updated_at
     });
   }catch(e){}
@@ -947,7 +992,7 @@ function applyRemotePatient(row){
   if(patientPendingDeletes.includes(row.id)) return;
   const idx = patients.findIndex(p=>p.id===row.id);
   const remote = {id:row.id, full_name:row.full_name, birth_date:row.birth_date, referring_doctor:row.referring_doctor,
-    diagnosis:row.diagnosis, notes:row.notes, archived:row.archived, updated_at:row.updated_at};
+    doctor_type:row.doctor_type, diagnosis:row.diagnosis, notes:row.notes, archived:row.archived, updated_at:row.updated_at};
   if(idx===-1){ patients.push(remote); }
   else if(!patients[idx].updated_at || remote.updated_at >= patients[idx].updated_at){ patients[idx] = remote; }
   else return;
