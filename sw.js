@@ -1,7 +1,7 @@
 /* Service worker minimale: rende l'app installabile e usabile offline.
    Strategia "prima la rete": quando c'è connessione mostra sempre l'ultima
    versione pubblicata; se manca la connessione, usa l'ultima copia salvata. */
-const CACHE_NAME = 'tabella-esercizi-v47';
+const CACHE_NAME = 'tabella-esercizi-v48';
 const APP_SHELL = [
   './', './index.html', './scheda.html', './libreria.html', './impostazioni.html', './calendario.html', './pazienti.html',
   './exercises-data.js', './manifest.json',

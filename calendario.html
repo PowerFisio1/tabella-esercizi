@@ -101,11 +101,16 @@
   .monthCell.today .monthCellNum{color:var(--accent);}
   .monthCell.selected{background:var(--accent); border-color:var(--accent);}
   .monthCell.selected .monthCellNum{color:#fff;}
-  .monthDots{display:flex; gap:3px; flex-wrap:wrap; margin-top:auto;}
+  .monthDots{display:flex; gap:5px; flex-wrap:wrap; margin-top:auto; align-items:center;}
+  .monthDotGroup{display:inline-flex; align-items:center; gap:2px;}
   .monthDot{width:6px; height:6px; border-radius:50%; flex:none;}
+  .monthDotCount{font-size:8.5px; font-weight:700; line-height:1; color:var(--sub);}
+  .monthCell.selected .monthDotCount{color:#fff;}
 
   @media screen and (max-width: 480px){
     .monthCell{padding:4px; gap:2px;}
+    .monthDots{gap:3px;}
+    .monthDotCount{font-size:7.5px;}
     .monthCellNum{font-size:10.5px;}
     .monthDot{width:5px; height:5px;}
   }
@@ -290,6 +295,7 @@ window.addEventListener('pagereveal', function(){
 
   <div id="monthView">
     <div class="monthNav">
+      <button type="button" id="monthTodayBtn">Oggi</button>
       <button type="button" id="monthPrev" aria-label="Mese precedente">‹</button>
       <div class="monthLabel" id="monthLabel"></div>
       <button type="button" id="monthNext" aria-label="Mese successivo">›</button>
@@ -388,6 +394,16 @@ window.addEventListener('pagereveal', function(){
     </div>
     <div class="modalActions">
       <button type="button" id="workTypesModalClose">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalOverlay" id="genericConfirmModalOverlay">
+  <div class="modalCard">
+    <p id="genericConfirmMessage"></p>
+    <div class="modalActions">
+      <button type="button" id="genericConfirmCancel">Annulla</button>
+      <button type="button" id="genericConfirmBtn" class="danger" style="margin-right:0;">Conferma</button>
     </div>
   </div>
 </div>
@@ -556,9 +572,18 @@ function renderMonthView(){
       const t = new Date(a.start_at); t.setHours(0,0,0,0);
       return t.getTime()===cellDate.getTime();
     });
-    const dotsHtml = dayAppts.slice(0,4).map(a=>{
-      const wt = workTypeById(a.work_type_id);
-      return '<span class="monthDot" style="background:'+(wt?wt.color:'#8a8f87')+'"></span>';
+    // un pallino per tipologia presente quel giorno, con il conteggio a fianco se più
+    // di uno: prima mostrava fino a 4 pallini (uno per appuntamento) e troncava il resto
+    // in silenzio, qui invece il "carico" della giornata si legge sempre per intero
+    const countsByType = {};
+    dayAppts.forEach(a=>{ countsByType[a.work_type_id] = (countsByType[a.work_type_id]||0)+1; });
+    const dotsHtml = Object.keys(countsByType).map(typeId=>{
+      const wt = workTypeById(typeId);
+      const color = wt ? wt.color : '#8a8f87';
+      const count = countsByType[typeId];
+      return '<span class="monthDotGroup"><span class="monthDot" style="background:'+color+'"></span>'+
+        (count>1 ? '<span class="monthDotCount">'+count+'</span>' : '')+
+      '</span>';
     }).join('');
     cellsHtml += '<div class="monthCell'+(inMonth?'':' outMonth')+(isToday?' today':'')+(isSelected?' selected':'')+'" data-date="'+toDateInputValue(cellDate)+'">'+
       '<span class="monthCellNum">'+cellDate.getDate()+'</span>'+
@@ -605,6 +630,12 @@ function renderSelectedDayList(){
 
 document.getElementById('monthPrev').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()-1); renderMonthView(); });
 document.getElementById('monthNext').addEventListener('click', ()=>{ monthDate.setMonth(monthDate.getMonth()+1); renderMonthView(); });
+document.getElementById('monthTodayBtn').addEventListener('click', ()=>{
+  monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1);
+  selectedDate = startOfToday();
+  renderMonthView();
+  renderSelectedDayList();
+});
 
 /* ===================== modale nuovo/modifica appuntamento ===================== */
 let editingApptId = null;
@@ -649,7 +680,7 @@ function openApptModal(id, prefillDate, prefillExtra){
   selectedWorkType = a ? a.work_type_id : (prefillWorkTypeId || (workTypes[0] ? workTypes[0].id : null));
   renderDurationButtons();
   renderApptFormWorkTypes();
-  hideGoogleDayPreview();
+  loadGoogleDayPreview(d, a ? a.google_event_id : null); // utile per ogni appuntamento, non solo confermando una richiesta: aiuta a evitare doppie prenotazioni sempre
   document.getElementById('apptModalOverlay').classList.add('show');
 }
 function closeApptModal(){
@@ -710,11 +741,23 @@ function startConfirmRequest(id){
   loadGoogleDayPreview(d);
 }
 
+/* conferma generica dentro un modale coerente con il resto dell'app, al posto del
+   confirm() nativo del browser (stonava con lo stile curato ovunque altrove) */
+function showConfirmModal(message, onConfirm){
+  document.getElementById('genericConfirmMessage').textContent = message;
+  const overlay = document.getElementById('genericConfirmModalOverlay');
+  const confirmBtn = document.getElementById('genericConfirmBtn');
+  const cleanup = ()=>{ overlay.classList.remove('show'); confirmBtn.onclick = null; };
+  confirmBtn.onclick = ()=>{ cleanup(); onConfirm(); };
+  document.getElementById('genericConfirmCancel').onclick = cleanup;
+  overlay.onclick = (e)=>{ if(e.target===overlay) cleanup(); };
+  overlay.classList.add('show');
+}
+
 function declineRequest(id){
   const r = pendingRequests.find(x=>x.id===id);
   if(!r) return;
-  if(!confirm('Rifiutare la richiesta di '+r.full_name+'?')) return;
-  doDeclineRequest(r);
+  showConfirmModal('Rifiutare la richiesta di '+r.full_name+'?', ()=> doDeclineRequest(r));
 }
 async function doDeclineRequest(r){
   if(supabaseClient){
@@ -788,16 +831,17 @@ async function fetchGoogleDayEvents(date){
   }catch(e){ return null; }
 }
 function hideGoogleDayPreview(){ document.getElementById('googleDayPreview').style.display = 'none'; }
-async function loadGoogleDayPreview(date){
+async function loadGoogleDayPreview(date, excludeEventId){
   const box = document.getElementById('googleDayPreview');
   const list = document.getElementById('googleDayPreviewList');
   box.style.display = '';
   list.innerHTML = '<div class="emptyState">Controllo il tuo calendario Google…</div>';
-  const events = await fetchGoogleDayEvents(date);
+  let events = await fetchGoogleDayEvents(date);
   if(events === null){
     list.innerHTML = '<div class="emptyState">Google Calendar non collegato (vai in Impostazioni) o token scaduto: non riesco a controllare i tuoi impegni reali per questo giorno.</div>';
     return;
   }
+  if(excludeEventId) events = events.filter(e=>e.id!==excludeEventId); // l'appuntamento che si sta modificando non è un "conflitto" con se stesso
   if(!events.length){
     list.innerHTML = '<div class="emptyState">Nessun impegno registrato su Google per questo giorno.</div>';
     return;
@@ -810,9 +854,9 @@ async function loadGoogleDayPreview(date){
   }).join('');
 }
 document.getElementById('apptFormDate').addEventListener('change', ()=>{
-  if(!confirmingRequestId) return;
   const [y,m,dd] = document.getElementById('apptFormDate').value.split('-').map(Number);
-  loadGoogleDayPreview(new Date(y, m-1, dd));
+  const editing = editingApptId ? appointments.find(x=>x.id===editingApptId) : null;
+  loadGoogleDayPreview(new Date(y, m-1, dd), editing ? editing.google_event_id : null);
 });
 
 function defaultNewApptDate(){
@@ -1012,13 +1056,14 @@ function deleteWorkType(id){
   const msg = inUse>0
     ? 'Eliminare "'+wt.label+'"? È usata da '+inUse+' appuntament'+(inUse>1?'i':'o')+', che resteranno senza tipologia.'
     : 'Eliminare "'+wt.label+'"?';
-  if(!confirm(msg)) return;
-  if(editingWorkTypeId === id) cancelEditWorkType();
-  workTypes = workTypes.filter(w=>w.id!==id);
-  saveWorkTypes();
-  pushWorkTypesToCloud();
-  renderWorkTypesList();
-  renderList();
+  showConfirmModal(msg, ()=>{
+    if(editingWorkTypeId === id) cancelEditWorkType();
+    workTypes = workTypes.filter(w=>w.id!==id);
+    saveWorkTypes();
+    pushWorkTypesToCloud();
+    renderWorkTypesList();
+    renderList();
+  });
 }
 
 document.getElementById('manageTypesBtn').addEventListener('click', ()=>{
@@ -1057,6 +1102,7 @@ document.getElementById('workTypeAddBtn').addEventListener('click', ()=>{
 document.addEventListener('keydown', (e)=>{
   if(e.key !== 'Escape') return;
   if(document.querySelector('.workTypeMenu.show')) closeAllWorkTypeMenus();
+  else if(document.getElementById('genericConfirmModalOverlay').classList.contains('show')) document.getElementById('genericConfirmModalOverlay').classList.remove('show');
   else if(document.getElementById('workTypesModalOverlay').classList.contains('show')){ cancelEditWorkType(); document.getElementById('workTypesModalOverlay').classList.remove('show'); }
   else if(document.getElementById('apptDeleteModalOverlay').classList.contains('show')){ document.getElementById('apptDeleteModalOverlay').classList.remove('show'); pendingDeleteId = null; }
   else if(document.getElementById('apptModalOverlay').classList.contains('show')) closeApptModal();
