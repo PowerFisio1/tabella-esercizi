@@ -228,6 +228,7 @@
   .workTypeMenu button:hover{background:var(--bg); border:none;}
   .workTypeMenuDelete{color:var(--danger);}
   .workTypeAddRow{display:flex; flex-direction:column; gap:8px; padding-top:10px; border-top:1px solid var(--line);}
+  .workTypeLinkRow{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--sub); cursor:pointer;}
   .workTypeAddActions{display:flex; gap:8px; justify-content:flex-end;}
   .colorSwatches{display:flex; gap:6px; flex-wrap:wrap;}
   .colorSwatch{
@@ -379,6 +380,7 @@ window.addEventListener('pagereveal', function(){
     <div class="workTypeAddRow">
       <input type="text" id="workTypeNewLabel" class="exFormInput" placeholder="Nuova tipologia (es. Studio privato)">
       <div class="colorSwatches" id="colorSwatches"></div>
+      <label class="workTypeLinkRow"><input type="checkbox" id="workTypeLinkPatient"> Collega ai pazienti (per i report)</label>
       <div class="workTypeAddActions">
         <button type="button" id="workTypeCancelEditBtn" style="display:none;">Annulla modifica</button>
         <button type="button" id="workTypeAddBtn" class="primary">Aggiungi</button>
@@ -426,6 +428,22 @@ let appointments = lsGet(LS_APPTS, []);
 let workTypes = lsGet(LS_WORKTYPES, null);
 if(!workTypes || !workTypes.length){ workTypes = DEFAULT_WORK_TYPES.slice(); lsSet(LS_WORKTYPES, workTypes); }
 let pendingDeletes = lsGet(LS_PENDING_DELETES, []);
+
+/* le tipologie "private" (Studio/Domiciliare) collegano l'appuntamento a una scheda
+   paziente, quelle CRF no: chi non ha ancora il flag lo riceve qui una volta sola, in
+   base agli id di default; le tipologie future/personalizzate partono spente (si
+   accendono a mano da "Gestisci tipologie" se serve il collegamento). Va rieseguita
+   anche dopo pullWorkTypes(), che sovrascrive workTypes con la copia cloud. */
+const AUTO_LINK_PATIENT_IDS = ['domiciliare_privato','privato_studio'];
+function migrateWorkTypeLinkFlags(){
+  let changed = false;
+  workTypes.forEach(w=>{
+    if(w.linkPatient === undefined){ w.linkPatient = AUTO_LINK_PATIENT_IDS.includes(w.id); changed = true; }
+  });
+  if(changed){ saveWorkTypes(); pushWorkTypesToCloud(); }
+}
+// non chiamata qui: pushWorkTypesToCloud() legge supabaseClient/syncUser, dichiarati
+// più avanti nello script — va invocata da initSyncSession(), a quel punto già pronti
 
 function saveAppointments(){ lsSet(LS_APPTS, appointments); }
 function saveWorkTypes(){ lsSet(LS_WORKTYPES, workTypes); }
@@ -627,7 +645,8 @@ function openApptModal(id, prefillDate, prefillExtra){
   document.getElementById('apptFormTime').value = toTimeInputValue(d);
   document.getElementById('apptFormNotes').value = a ? (a.notes||'') : (prefillExtra && prefillExtra.notes ? prefillExtra.notes : '');
   selectedDuration = a ? a.duration_min : 30;
-  selectedWorkType = a ? a.work_type_id : (workTypes[0] ? workTypes[0].id : null);
+  const prefillWorkTypeId = prefillExtra && prefillExtra.workTypeId && workTypeById(prefillExtra.workTypeId) ? prefillExtra.workTypeId : null;
+  selectedWorkType = a ? a.work_type_id : (prefillWorkTypeId || (workTypes[0] ? workTypes[0].id : null));
   renderDurationButtons();
   renderApptFormWorkTypes();
   hideGoogleDayPreview();
@@ -683,7 +702,9 @@ function startConfirmRequest(id){
   const r = pendingRequests.find(x=>x.id===id);
   if(!r) return;
   const d = new Date(r.preferred_at);
-  openApptModal(null, d, {patientName:r.full_name, notes:r.reason||''});
+  // le richieste dal sito pubblico sono sempre pazienti privati (mai CRF): tipologia
+  // pre-impostata su "Privato - Studio", nessuna scelta manuale richiesta per confermare
+  openApptModal(null, d, {patientName:r.full_name, notes:r.reason||'', workTypeId:'privato_studio'});
   confirmingRequestId = id;
   document.getElementById('apptModalTitle').textContent = 'Conferma richiesta';
   loadGoogleDayPreview(d);
@@ -805,6 +826,40 @@ document.getElementById('newApptBtn').addEventListener('click', ()=> openApptMod
 document.getElementById('apptModalCancel').addEventListener('click', closeApptModal);
 document.getElementById('apptModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='apptModalOverlay') closeApptModal(); });
 
+/* ===================== collegamento con la scheda paziente (pazienti.html) =====================
+   Solo per le tipologie con linkPatient attivo: cerca un paziente con lo stesso nome
+   (case-insensitive) e lo riusa, altrimenti ne crea uno nuovo con solo nome e cognome
+   (il resto si completa a mano più tardi in Pazienti). Interrogazione al momento del
+   salvataggio, non un mirror locale continuo: pazienti.html possiede e gestisce la
+   stessa chiave localStorage con il suo motore di sync completo (coda eliminazioni,
+   realtime, merge per updated_at) — qui l'unica scrittura possibile è *aggiungere*
+   un paziente nuovo per intero, mai toccare uno esistente, per non rischiare di
+   corrompere dati già compilati a mano. */
+async function findOrCreatePatientId(name){
+  const norm = name.trim().toLowerCase();
+  if(supabaseClient && syncUser){
+    try{
+      const {data} = await supabaseClient.from('patients').select('id, full_name').eq('user_id', syncUser.id);
+      const match = (data||[]).find(p=> p.full_name.trim().toLowerCase()===norm);
+      if(match) return match.id;
+    }catch(e){}
+  }
+  const local = lsGet(LS_PREFIX+'patients', []);
+  const localMatch = local.find(p=> p.full_name.trim().toLowerCase()===norm);
+  if(localMatch) return localMatch.id;
+  const newPatient = {id:uid(), full_name:name.trim(), birth_date:null, referring_doctor:null,
+    doctor_type:null, diagnosis:null, notes:null, archived:false, updated_at:new Date().toISOString()};
+  local.push(newPatient);
+  lsSet(LS_PREFIX+'patients', local);
+  if(supabaseClient && syncUser){
+    try{
+      await supabaseClient.from('patients').upsert({id:newPatient.id, user_id:syncUser.id, full_name:newPatient.full_name,
+        birth_date:null, referring_doctor:null, doctor_type:null, diagnosis:null, notes:null, archived:false, updated_at:newPatient.updated_at});
+    }catch(e){}
+  }
+  return newPatient.id;
+}
+
 document.getElementById('apptModalSave').addEventListener('click', async ()=>{
   const patient = document.getElementById('apptFormPatient').value.trim();
   const dateVal = document.getElementById('apptFormDate').value;
@@ -816,14 +871,17 @@ document.getElementById('apptModalSave').addEventListener('click', async ()=>{
   const start = new Date(dateVal+'T'+timeVal+':00');
   const notes = document.getElementById('apptFormNotes').value.trim();
   const now = new Date().toISOString();
+  const wt = workTypeById(selectedWorkType);
+  const patientId = (wt && wt.linkPatient) ? await findOrCreatePatientId(patient) : null;
   let saved;
   if(editingApptId){
     const a = appointments.find(x=>x.id===editingApptId);
     a.patient_name = patient; a.start_at = start.toISOString(); a.duration_min = selectedDuration;
     a.work_type_id = selectedWorkType; a.notes = notes; a.updated_at = now;
+    a.patient_id = patientId || a.patient_id || null; // non si rimuove mai un collegamento già presente
     saved = a;
   } else {
-    saved = {id:uid(), patient_name:patient, start_at:start.toISOString(), duration_min:selectedDuration, work_type_id:selectedWorkType, notes, updated_at:now};
+    saved = {id:uid(), patient_name:patient, start_at:start.toISOString(), duration_min:selectedDuration, work_type_id:selectedWorkType, notes, patient_id:patientId, updated_at:now};
     appointments.push(saved);
   }
   saveAppointments();
@@ -931,6 +989,7 @@ function startEditWorkType(id){
   editingWorkTypeId = id;
   document.getElementById('workTypeNewLabel').value = wt.label;
   document.getElementById('colorSwatches').dataset.selected = wt.color;
+  document.getElementById('workTypeLinkPatient').checked = !!wt.linkPatient;
   renderColorSwatches();
   document.getElementById('workTypeAddBtn').textContent = 'Salva modifiche';
   document.getElementById('workTypeCancelEditBtn').style.display = '';
@@ -940,6 +999,7 @@ function cancelEditWorkType(){
   editingWorkTypeId = null;
   document.getElementById('workTypeNewLabel').value = '';
   document.getElementById('colorSwatches').dataset.selected = '';
+  document.getElementById('workTypeLinkPatient').checked = false;
   renderColorSwatches();
   document.getElementById('workTypeAddBtn').textContent = 'Aggiungi';
   document.getElementById('workTypeCancelEditBtn').style.display = 'none';
@@ -980,11 +1040,12 @@ document.getElementById('workTypeAddBtn').addEventListener('click', ()=>{
   const label = input.value.trim();
   if(!label) return;
   const color = document.getElementById('colorSwatches').dataset.selected || WORK_TYPE_PALETTE[0];
+  const linkPatient = document.getElementById('workTypeLinkPatient').checked;
   if(editingWorkTypeId){
     const wt = workTypeById(editingWorkTypeId);
-    wt.label = label; wt.color = color;
+    wt.label = label; wt.color = color; wt.linkPatient = linkPatient;
   } else {
-    workTypes.push({id: uid(), label, color});
+    workTypes.push({id: uid(), label, color, linkPatient});
   }
   saveWorkTypes();
   pushWorkTypesToCloud();
@@ -1161,7 +1222,7 @@ async function pushAppointment(a){
     await supabaseClient.from(APPT_TABLE).upsert({
       id:a.id, user_id:syncUser.id, patient_name:a.patient_name, start_at:a.start_at,
       duration_min:a.duration_min, work_type_id:a.work_type_id, notes:a.notes||null, updated_at:a.updated_at,
-      google_event_id: a.google_event_id || null
+      google_event_id: a.google_event_id || null, patient_id: a.patient_id || null
     });
   }catch(e){}
 }
@@ -1191,7 +1252,7 @@ async function pushWorkTypesToCloud(){
 function applyRemoteAppointment(row){
   if(pendingDeletes.includes(row.id)) return; // eliminata in locale, in attesa di conferma dal cloud: non resuscitarla
   const idx = appointments.findIndex(a=>a.id===row.id);
-  const remote = {id:row.id, patient_name:row.patient_name, start_at:row.start_at, duration_min:row.duration_min, work_type_id:row.work_type_id, notes:row.notes, updated_at:row.updated_at, google_event_id:row.google_event_id};
+  const remote = {id:row.id, patient_name:row.patient_name, start_at:row.start_at, duration_min:row.duration_min, work_type_id:row.work_type_id, notes:row.notes, updated_at:row.updated_at, google_event_id:row.google_event_id, patient_id:row.patient_id};
   if(idx===-1){ appointments.push(remote); }
   else if(!appointments[idx].updated_at || remote.updated_at >= appointments[idx].updated_at){ appointments[idx] = remote; }
   else return; // la versione locale è più recente di quella remota appena arrivata: non sovrascrivere
@@ -1248,6 +1309,7 @@ function unsubscribeRealtime(){
 function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : null; }
 
 (async function initSyncSession(){
+  migrateWorkTypeLinkFlags();
   renderList();
   if(!supabaseClient) return;
   const {data:{session}} = await supabaseClient.auth.getSession();
@@ -1256,6 +1318,7 @@ function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : n
     subscribeRealtime();
     await flushPendingDeletes();
     await pullWorkTypes();
+    migrateWorkTypeLinkFlags(); // pullWorkTypes() può aver sovrascritto workTypes con una copia cloud senza il flag
     await pullAppointments();
     await fetchPendingRequests();
     renderList();

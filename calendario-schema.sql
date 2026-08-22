@@ -180,3 +180,11 @@ update calendar_settings set booking_window = '{
   "sat": [],
   "sun": []
 }'::jsonb;
+
+-- ============================================================================
+-- Aggiunta successiva: collegamento appuntamento -> scheda paziente (patients),
+-- per le tipologie di lavoro "private" (Studio/Domiciliare privato). Nullo per
+-- gli appuntamenti CRF, che non hanno una scheda paziente associata. Da eseguire
+-- una volta, idempotente/sicuro da rieseguire.
+-- ============================================================================
+alter table appointments add column if not exists patient_id uuid references patients(id) on delete set null;
