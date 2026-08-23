@@ -12,6 +12,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
   /* transizione fluida tra le pagine (View Transitions API): dove il browser
      non la supporta ancora, queste righe vengono semplicemente ignorate e la
@@ -27,195 +30,96 @@
 
   :root{
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
-    --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
-    /* colore fisso del brand, uguale in chiaro e scuro: non deve seguire --accent
-       (che in scuro diventa un azzurro più chiaro) sulle card della dashboard */
-    --brand-navy:#1c3f66; --brand-navy-light:#e4ebf2;
+    --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f; --accent2-light:#fbe3ce;
     --header-band-1:#1c3f66; --header-band-2:#142f4d;
-    --shadow-1: 0 1px 2px rgba(30,40,35,.05), 0 6px 14px rgba(30,40,35,.07);
-    --shadow-1-hover: 0 3px 6px rgba(30,40,35,.07), 0 12px 22px rgba(30,40,35,.11);
-    --shadow-primary: 0 2px 4px rgba(10,25,45,.10), 0 12px 26px rgba(10,25,45,.22), inset 0 1px 0 rgba(255,255,255,.10);
-    --shadow-primary-hover: 0 4px 8px rgba(10,25,45,.14), 0 18px 34px rgba(10,25,45,.28), inset 0 1px 0 rgba(255,255,255,.14);
+    --shadow-1: 0 2px 6px rgba(28,63,102,.05), 0 20px 40px rgba(28,63,102,.09);
+    --shadow-1-hover: 0 3px 8px rgba(28,63,102,.07), 0 26px 48px rgba(28,63,102,.13);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
-      --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+      --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a; --accent2-light:#3a2a18;
       --header-band-1:#16283d; --header-band-2:#0a121c;
-      --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.28);
-      --shadow-1-hover: 0 3px 6px rgba(0,0,0,.24), 0 14px 26px rgba(0,0,0,.34);
+      --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
+      --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
     }
   }
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
-    --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
+    --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a; --accent2-light:#3a2a18;
     --header-band-1:#16283d; --header-band-2:#0a121c;
-    --shadow-1: 0 1px 2px rgba(0,0,0,.2), 0 6px 16px rgba(0,0,0,.28);
-    --shadow-1-hover: 0 3px 6px rgba(0,0,0,.24), 0 14px 26px rgba(0,0,0,.34);
+    --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
+    --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
   }
   *{box-sizing:border-box;}
   body{
     margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
     font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     display:flex; flex-direction:column; align-items:center;
-    padding:0 20px 60px; transition:background-color .2s ease, color .2s ease;
+    padding:0 20px 130px; transition:background-color .2s ease, color .2s ease;
   }
-  .settingsBtn{
-    position:fixed; top:16px; right:16px; width:38px; height:38px; border-radius:10px;
-    border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.14); color:#fff; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; text-decoration:none;
-    z-index:10; transition:border-color .15s ease, background-color .15s ease;
-    backdrop-filter:blur(6px);
-  }
-  .settingsBtn:hover{border-color:#fff; background:rgba(255,255,255,.22);}
-  .settingsBtn svg{width:19px; height:19px;}
 
   /* ---- fascia intestazione: sfondo navy a tutta larghezza, per staccarla visivamente
      dal resto della pagina (bordi negativi per "bucare" il padding laterale del body) ---- */
   .headerBand{
-    width:calc(100% + 40px); margin:0 -20px 30px; padding:34px 20px 30px;
+    width:calc(100% + 40px); margin:0 -20px 22px; padding:24px 20px;
     background:linear-gradient(165deg, var(--header-band-1), var(--header-band-2));
     border-radius:0 0 22px 22px;
     display:flex; justify-content:center; box-shadow:0 8px 20px rgba(10,20,35,.18);
   }
-  .headerRow{
-    display:flex; align-items:center; gap:16px; width:100%; max-width:640px;
-  }
+  .headerInner{ width:100%; max-width:640px; }
+  .headerBrandRow{ display:flex; align-items:center; gap:9px; margin-bottom:18px; }
   .headerLogo{
-    width:60px; height:60px; flex:none; display:block; border-radius:50%;
-    background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.14), inset 0 0 0 1px rgba(0,0,0,.04);
-    padding:3px;
+    width:30px; height:30px; flex:none; display:block; border-radius:50%;
+    background:#fff; padding:3px;
   }
-  .headerDivider{width:1px; align-self:stretch; background:rgba(255,255,255,.25); flex:none;}
-  .headerBrand{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent2); margin:0 0 4px;}
-  .headerGreeting h1{font-size:24px; font-weight:400; font-style:italic; margin:0 0 3px; letter-spacing:-.01em; color:#fff;}
+  .headerBrand{
+    font-family:'Sora',-apple-system,sans-serif; font-size:14px; font-weight:700;
+    letter-spacing:.02em; color:#fff;
+  }
+  .headerGreeting h1{
+    font-family:'Sora',-apple-system,sans-serif; font-size:23px; font-weight:700;
+    margin:0 0 3px; letter-spacing:-.01em; color:#fff;
+  }
   .headerGreeting p{font-size:12.5px; color:rgba(255,255,255,.72); margin:0;}
 
-  /* ---- griglia azioni: card principale verticale a sinistra, due orizzontali impilate a destra ---- */
-  /* ---- griglia 2x2: le 4 tessere tutte allo stesso livello (prima "Crea Scheda"
-     era una card grande a parte con due tessere piccole impilate accanto; ora che
-     sono 4 voci, una griglia simmetrica scala meglio ed è pronta per una quinta) ---- */
+  /* ---- tre numeri della giornata, tra intestazione e tessere ---- */
+  .statRow{
+    width:100%; max-width:640px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    margin-bottom:16px;
+  }
+  .statTile{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:13px 8px; text-align:center; box-shadow:var(--shadow-1);
+  }
+  .statNum{
+    font-family:'Sora',-apple-system,sans-serif; font-size:24px; font-weight:700;
+    color:var(--accent); line-height:1; font-variant-numeric:tabular-nums;
+  }
+  .statNum.attention{color:var(--accent2);}
+  .statLabel{font-size:10.5px; color:var(--sub); margin-top:5px; line-height:1.25;}
+
+  /* ---- griglia 2x2: le 4 tessere allo stesso livello, icona in riquadro colorato tenue ---- */
   .actionGrid{
     width:100%; max-width:640px; display:grid; grid-template-columns:1fr 1fr; gap:14px;
   }
 
   .secondaryTile{
-    position:relative; display:flex; align-items:center; gap:12px;
+    position:relative; display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between;
     background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 16px;
-    min-height:108px; text-decoration:none; color:var(--ink); box-shadow:var(--shadow-1);
+    min-height:136px; text-decoration:none; color:var(--ink); box-shadow:var(--shadow-1);
     transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
   }
   .secondaryTile:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-1-hover);}
   .secondaryTile:active{transform:scale(.98);}
   .secondaryTile .tileIcon{
-    width:40px; height:40px; border-radius:12px; background:var(--brand-navy-light); color:var(--brand-navy);
+    width:40px; height:40px; border-radius:12px; background:var(--accent-light); color:var(--accent);
     display:flex; align-items:center; justify-content:center; flex:none;
   }
   .secondaryTile .tileIcon svg{width:20px; height:20px;}
-  .secondaryTile .tileText{min-width:0;}
-  .secondaryTile .eyebrow{font-size:11px; font-weight:400; color:var(--sub); margin-bottom:1px;}
-  .secondaryTile .cardTitle{font-size:15px; font-weight:700;}
-
-  /* ---- tessere grandi (Crea Scheda + Gestisci Pazienti): stessa struttura di
-     prima (icona in alto, testo in basso, invece che affiancati in riga) ---- */
-  .tileBig{
-    flex-direction:column; align-items:flex-start; justify-content:space-between;
-    min-height:200px; padding:20px 18px;
-  }
-  .tileBig .tileIcon{width:48px; height:48px; border-radius:13px;}
-  .tileBig .tileIcon svg{width:24px; height:24px;}
-  .tileBig .eyebrow{font-size:13px;}
-  .tileBig .cardTitle{font-size:19px;}
-
-  /* stessa struttura di libraryTile/calendarTile: foto propria sotto l'overlay
-     blu navy pieno. Qui l'immagine non è desaturata perché è già su toni freddi. */
-  .secondaryTile.schedaTile{
-    position:relative; overflow:hidden;
-    background:var(--card); border-color:transparent; color:#fff;
-  }
-  .secondaryTile.schedaTile::before{
-    content:''; position:absolute; inset:0; z-index:0;
-    background:url('primary-card-bg.jpg') center/cover;
-    transition:transform .5s cubic-bezier(.2,.8,.2,1);
-  }
-  .secondaryTile.schedaTile::after{
-    content:''; position:absolute; inset:0; z-index:1;
-    background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
-  }
-  .secondaryTile.schedaTile:hover{border-color:rgba(255,255,255,.4);}
-  .secondaryTile.schedaTile:hover::before{transform:scale(1.06);}
-  .secondaryTile.schedaTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
-  .secondaryTile.schedaTile .eyebrow{color:rgba(255,255,255,.8);}
-  .secondaryTile.schedaTile .tileIcon, .secondaryTile.schedaTile .tileText{position:relative; z-index:2;}
-
-  /* la foto (sotto, desaturata per spegnere i toni caldi marrone/dorato) e l'overlay blu
-     navy (sopra, alla stessa opacità della card "Crea Scheda", non filtrato quindi resta
-     blu navy pieno) sono due livelli separati: il filtro va solo sulla foto, non sul navy */
-  .secondaryTile.libraryTile{
-    position:relative; overflow:hidden;
-    background:var(--card); border-color:transparent; color:#fff;
-  }
-  .secondaryTile.libraryTile::before{
-    content:''; position:absolute; inset:0; z-index:0;
-    background:url('libreria-card-bg.png') center/cover;
-    filter:saturate(35%);
-    transition:transform .5s cubic-bezier(.2,.8,.2,1);
-  }
-  .secondaryTile.libraryTile::after{
-    content:''; position:absolute; inset:0; z-index:1;
-    background:linear-gradient(160deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
-  }
-  .secondaryTile.libraryTile:hover{border-color:rgba(255,255,255,.4);}
-  .secondaryTile.libraryTile:hover::before{transform:scale(1.06);}
-  .secondaryTile.libraryTile:active{transform:scale(.98);}
-  .secondaryTile.libraryTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
-  .secondaryTile.libraryTile .eyebrow{color:rgba(255,255,255,.8);}
-  .secondaryTile.libraryTile .tileIcon, .secondaryTile.libraryTile .tileText{position:relative; z-index:2;}
-
-  /* stessa struttura della tessera "Libreria": foto propria (desaturata per
-     spegnere i toni caldi) sotto l'overlay blu navy pieno */
-  .secondaryTile.calendarTile{
-    position:relative; overflow:hidden;
-    background:var(--card); border-color:transparent; color:#fff;
-  }
-  .secondaryTile.calendarTile::before{
-    content:''; position:absolute; inset:0; z-index:0;
-    background:url('calendario-card-bg.jpg') center/cover;
-    filter:saturate(35%);
-    transition:transform .5s cubic-bezier(.2,.8,.2,1);
-  }
-  .secondaryTile.calendarTile::after{
-    content:''; position:absolute; inset:0; z-index:1;
-    background:linear-gradient(160deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
-  }
-  .secondaryTile.calendarTile:hover{border-color:rgba(255,255,255,.4);}
-  .secondaryTile.calendarTile:hover::before{transform:scale(1.06);}
-  .secondaryTile.calendarTile:active{transform:scale(.98);}
-  .secondaryTile.calendarTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
-  .secondaryTile.calendarTile .eyebrow{color:rgba(255,255,255,.8);}
-  .secondaryTile.calendarTile .tileIcon, .secondaryTile.calendarTile .tileText{position:relative; z-index:2;}
-
-  /* "Gestisci Pazienti": stessa struttura di libraryTile/calendarTile — foto propria
-     (desaturata per spegnere i toni caldi) sotto l'overlay blu navy pieno */
-  .secondaryTile.pazientiTile{
-    position:relative; overflow:hidden;
-    background:var(--card); border-color:transparent; color:#fff;
-  }
-  .secondaryTile.pazientiTile::before{
-    content:''; position:absolute; inset:0; z-index:0;
-    background:url('pazienti-card-bg.jpg') center/cover;
-    filter:saturate(35%);
-    transition:transform .5s cubic-bezier(.2,.8,.2,1);
-  }
-  .secondaryTile.pazientiTile::after{
-    content:''; position:absolute; inset:0; z-index:1;
-    background:linear-gradient(165deg, rgba(28,63,102,.58), rgba(28,63,102,.76));
-  }
-  .secondaryTile.pazientiTile:hover{border-color:rgba(255,255,255,.4);}
-  .secondaryTile.pazientiTile:hover::before{transform:scale(1.06);}
-  .secondaryTile.pazientiTile .tileIcon{background:rgba(255,255,255,.18); color:#fff;}
-  .secondaryTile.pazientiTile .eyebrow{color:rgba(255,255,255,.8);}
-  .secondaryTile.pazientiTile .tileIcon, .secondaryTile.pazientiTile .tileText{position:relative; z-index:2;}
+  .secondaryTile .eyebrow{font-size:12px; font-weight:400; color:var(--sub); margin-bottom:1px;}
+  .secondaryTile .cardTitle{font-family:'Sora',-apple-system,sans-serif; font-size:16px; font-weight:700;}
+  .secondaryTile.schedaTile .tileIcon{background:var(--accent2-light); color:var(--accent2);}
 
   .upcomingSection{width:100%; max-width:640px; margin-top:26px;}
   .upcomingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:10px;}
@@ -234,11 +138,26 @@
   .footerInfo h1{font-size:17px; font-weight:700; font-style:italic; margin:0 0 6px;}
   .footerInfo p{font-size:12px; color:var(--sub); margin:0; line-height:1.5; max-width:40ch;}
 
+  /* ---- barra di navigazione fissa in fondo, presente su tutte le pagine principali
+     (Dashboard/Pazienti/Calendario/Libreria/Impostazioni); scheda.html non la ha,
+     è una pagina di lavoro concentrata, non una sezione dell'app ---- */
+  .bottomNav{
+    position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--card);
+    border-top:1px solid var(--line); box-shadow:0 -6px 20px rgba(28,63,102,.06);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .bottomNavInner{ max-width:640px; margin:0 auto; display:flex; padding:8px 4px 10px; }
+  .bottomNavItem{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    text-decoration:none; color:var(--sub); font-size:9.5px; font-weight:600; padding:4px 0;
+  }
+  .bottomNavItem svg{width:20px; height:20px;}
+  .bottomNavItem.active{color:var(--accent); font-weight:700;}
+
   @media (max-width:480px){
-    .headerLogo{width:50px; height:50px;}
-    .headerGreeting h1{font-size:21px;}
-    .secondaryTile{min-height:96px; padding:14px;}
-    .tileBig{min-height:180px; padding:16px;}
+    .headerLogo{width:26px; height:26px;}
+    .headerGreeting h1{font-size:20px;}
+    .secondaryTile{min-height:120px; padding:14px;}
   }
 </style>
 <script>
@@ -264,24 +183,37 @@ window.addEventListener('pagereveal', function(){
 </script>
 </head>
 <body>
-  <a class="settingsBtn" href="impostazioni.html" title="Impostazioni">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  </a>
 
   <div class="headerBand">
-    <div class="headerRow">
-      <img class="headerLogo" src="logo.png" alt="Logo">
-      <div class="headerDivider"></div>
+    <div class="headerInner">
+      <div class="headerBrandRow">
+        <img class="headerLogo" src="logo.png" alt="Logo">
+        <span class="headerBrand">StudioFKT</span>
+      </div>
       <div class="headerGreeting">
-        <div class="headerBrand">StudioFKT</div>
         <h1>Ciao, Kamil 👋</h1>
         <p>Cosa vuoi fare oggi?</p>
       </div>
     </div>
   </div>
 
+  <div class="statRow">
+    <div class="statTile">
+      <div class="statNum" id="statToday">0</div>
+      <div class="statLabel">Pazienti<br>oggi</div>
+    </div>
+    <div class="statTile">
+      <div class="statNum" id="statActive">0</div>
+      <div class="statLabel">Pazienti<br>attivi</div>
+    </div>
+    <div class="statTile">
+      <div class="statNum attention" id="statPending">0</div>
+      <div class="statLabel">Richieste<br>in attesa</div>
+    </div>
+  </div>
+
   <div class="actionGrid">
-    <a class="secondaryTile tileBig schedaTile" href="scheda.html">
+    <a class="secondaryTile schedaTile" href="scheda.html">
       <div class="tileIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
       </div>
@@ -291,7 +223,7 @@ window.addEventListener('pagereveal', function(){
       </div>
     </a>
 
-    <a class="secondaryTile tileBig pazientiTile" href="pazienti.html">
+    <a class="secondaryTile" href="pazienti.html">
       <div class="tileIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
@@ -301,7 +233,7 @@ window.addEventListener('pagereveal', function(){
       </div>
     </a>
 
-    <a class="secondaryTile tileBig libraryTile" href="libreria.html">
+    <a class="secondaryTile" href="libreria.html">
       <div class="tileIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       </div>
@@ -311,7 +243,7 @@ window.addEventListener('pagereveal', function(){
       </div>
     </a>
 
-    <a class="secondaryTile tileBig calendarTile" href="calendario.html">
+    <a class="secondaryTile" href="calendario.html">
       <div class="tileIcon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
       </div>
@@ -332,13 +264,38 @@ window.addEventListener('pagereveal', function(){
     <p>Fisioterapista iscritto all'albo di Bergamo al nr. 1244 — Trescore Balneario (BG), studio c/o Veryfit</p>
   </div>
 
+  <nav class="bottomNav">
+    <div class="bottomNavInner">
+      <a href="index.html" class="bottomNavItem active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="pazienti.html" class="bottomNavItem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Pazienti</span>
+      </a>
+      <a href="calendario.html" class="bottomNavItem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+        <span>Calendario</span>
+      </a>
+      <a href="libreria.html" class="bottomNavItem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>Libreria</span>
+      </a>
+      <a href="impostazioni.html" class="bottomNavItem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Impostazioni</span>
+      </a>
+    </div>
+  </nav>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ---- widget "Prossimi appuntamenti": lettura locale immediata (funziona
-   offline, come il resto dell'app), poi se collegato un refresh dal cloud
-   per includere gli appuntamenti creati da altri dispositivi. Non scrive
+/* ---- widget "Prossimi appuntamenti" + i tre numeri in cima: lettura locale
+   immediata (funziona offline, come il resto dell'app), poi se collegato un
+   refresh dal cloud per includere dati creati da altri dispositivi. Non scrive
    mai in localStorage da qui: è una vista, la sorgente di verità resta
-   calendario.html. ---- */
+   calendario.html/pazienti.html. ---- */
 const LS_PREFIX = 'esercizi_fisio_tool_v1__';
 function lsGet(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
 function escapeHtmlDash(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -369,15 +326,29 @@ function renderUpcoming(list, workTypes){
   }).join('');
 }
 
-(function initUpcomingLocal(){
+function renderStats(today, active, pending){
+  if(today!=null) document.getElementById('statToday').textContent = today;
+  if(active!=null) document.getElementById('statActive').textContent = active;
+  if(pending!=null) document.getElementById('statPending').textContent = pending;
+}
+
+(function initLocal(){
   const appts = lsGet(LS_PREFIX+'appointments', []);
+  const patients = lsGet(LS_PREFIX+'patients', []);
   const workTypes = lsGet(LS_PREFIX+'workTypes', []);
   const now = new Date();
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayEnd = new Date(todayStart); todayEnd.setDate(todayEnd.getDate()+1);
+
   const upcoming = appts.filter(a=> new Date(a.start_at) >= now).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
   renderUpcoming(upcoming, workTypes);
+
+  const todayCount = appts.filter(a=>{ const t=new Date(a.start_at); return t>=todayStart && t<todayEnd; }).length;
+  const activeCount = patients.filter(p=>!p.archived).length;
+  renderStats(todayCount, activeCount, 0);
 })();
 
-(async function initUpcomingCloud(){
+(async function initCloudRefresh(){
   const SUPABASE_URL = 'https://tnzsyeqyghknjnbwknry.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_ci7BzjLo_d2M8KijY6V5Wg_nQ6IFctR';
   const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
@@ -386,11 +357,19 @@ function renderUpcoming(list, workTypes){
   try{
     const {data:{session}} = await supabaseClient.auth.getSession();
     if(!session || !session.user) return;
+    const uid = session.user.id;
     const nowIso = new Date().toISOString();
-    const [apptsRes, settingsRes] = await Promise.all([
-      supabaseClient.from('appointments').select('*').eq('user_id', session.user.id).gte('start_at', nowIso).order('start_at').limit(4),
-      supabaseClient.from('calendar_settings').select('work_types').eq('user_id', session.user.id).maybeSingle()
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const todayEnd = new Date(todayStart); todayEnd.setDate(todayEnd.getDate()+1);
+
+    const [apptsRes, settingsRes, todayRes, patientsRes, pendingRes] = await Promise.all([
+      supabaseClient.from('appointments').select('*').eq('user_id', uid).gte('start_at', nowIso).order('start_at').limit(4),
+      supabaseClient.from('calendar_settings').select('work_types').eq('user_id', uid).maybeSingle(),
+      supabaseClient.from('appointments').select('*', {count:'exact', head:true}).eq('user_id', uid).gte('start_at', todayStart.toISOString()).lt('start_at', todayEnd.toISOString()),
+      supabaseClient.from('patients').select('*', {count:'exact', head:true}).eq('user_id', uid).eq('archived', false),
+      supabaseClient.from('booking_requests').select('*', {count:'exact', head:true}).eq('status', 'pending')
     ]);
+
     if(apptsRes.data){
       // esclude appuntamenti eliminati in locale ma non ancora confermati sul cloud
       // (stesso meccanismo di calendario.html: evita che qui riappaiano per qualche istante)
@@ -398,6 +377,11 @@ function renderUpcoming(list, workTypes){
       const filtered = apptsRes.data.filter(a=>!pendingDeletes.includes(a.id));
       renderUpcoming(filtered, settingsRes.data ? settingsRes.data.work_types : []);
     }
+    renderStats(
+      todayRes.error ? null : todayRes.count,
+      patientsRes.error ? null : patientsRes.count,
+      pendingRes.error ? null : pendingRes.count
+    );
   }catch(e){}
 })();
 
