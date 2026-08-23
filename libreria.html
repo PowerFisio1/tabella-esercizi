@@ -12,6 +12,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
   /* transizione fluida tra le pagine (View Transitions API): dove il browser
      non la supporta ancora, queste righe vengono semplicemente ignorate e la
@@ -29,18 +32,24 @@
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
     --danger:#b3412f;
+    --shadow-1: 0 2px 6px rgba(28,63,102,.05), 0 20px 40px rgba(28,63,102,.09);
+    --shadow-1-hover: 0 3px 8px rgba(28,63,102,.07), 0 26px 48px rgba(28,63,102,.13);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
       --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
       --danger:#c8543c;
+      --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
+      --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
     }
   }
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
     --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
     --danger:#c8543c;
+    --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
+    --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
   }
   *{box-sizing:border-box;}
   body{
@@ -65,7 +74,7 @@
   .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
   .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
   .backLink:hover{color:var(--accent);}
-  h1{font-size:20px; margin:0 0 14px;}
+  h1{font-family:'Sora',-apple-system,sans-serif; font-size:20px; font-weight:700; margin:0 0 14px;}
   .searchWrap{margin-bottom:22px;}
   .searchInput{
     width:100%; max-width:420px; font-family:inherit; font-size:14px; color:var(--ink); background:var(--card);
@@ -101,7 +110,7 @@
   .cardGrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:14px;}
   .exCard{
     background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px;
-    display:flex; flex-direction:column; gap:8px;
+    display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow-1);
   }
   .exPic{width:100%; aspect-ratio:4/3.2; display:flex; align-items:center; justify-content:center; border-radius:8px; background:var(--bg); overflow:hidden;}
   .exPic .ekfig{width:100%; height:100%; display:flex; align-items:center; justify-content:center; padding:6px;}

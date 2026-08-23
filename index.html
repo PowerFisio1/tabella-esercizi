@@ -91,7 +91,11 @@
   .statTile{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:13px 8px; text-align:center; box-shadow:var(--shadow-1);
+    text-decoration:none; color:inherit; display:block;
+    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
   }
+  .statTile:hover{border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow-1-hover);}
+  .statTile:active{transform:scale(.96);}
   .statNum{
     font-family:'Sora',-apple-system,sans-serif; font-size:24px; font-weight:700;
     color:var(--accent); line-height:1; font-variant-numeric:tabular-nums;
@@ -198,18 +202,18 @@ window.addEventListener('pagereveal', function(){
   </div>
 
   <div class="statRow">
-    <div class="statTile">
+    <a class="statTile" href="calendario.html">
       <div class="statNum" id="statToday">0</div>
       <div class="statLabel">Pazienti<br>oggi</div>
-    </div>
-    <div class="statTile">
+    </a>
+    <a class="statTile" href="pazienti.html">
       <div class="statNum" id="statActive">0</div>
       <div class="statLabel">Pazienti<br>attivi</div>
-    </div>
-    <div class="statTile">
+    </a>
+    <a class="statTile" href="calendario.html#pendingSection">
       <div class="statNum attention" id="statPending">0</div>
       <div class="statLabel">Richieste<br>in attesa</div>
-    </div>
+    </a>
   </div>
 
   <div class="actionGrid">

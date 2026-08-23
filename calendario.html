@@ -12,6 +12,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tabella Esercizi">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
   /* transizione fluida tra le pagine (View Transitions API): dove il browser
      non la supporta ancora, queste righe vengono semplicemente ignorate e la
@@ -29,18 +32,24 @@
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
     --danger:#b3412f;
+    --shadow-1: 0 2px 6px rgba(28,63,102,.05), 0 20px 40px rgba(28,63,102,.09);
+    --shadow-1-hover: 0 3px 8px rgba(28,63,102,.07), 0 26px 48px rgba(28,63,102,.13);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
       --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
       --danger:#c8543c;
+      --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
+      --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
     }
   }
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
     --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
     --danger:#c8543c;
+    --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
+    --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
   }
   *{box-sizing:border-box;}
   body{
@@ -65,7 +74,7 @@
   .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
   .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
   .backLink:hover{color:var(--accent);}
-  h1{font-size:20px; margin:0;}
+  h1{font-family:'Sora',-apple-system,sans-serif; font-size:20px; font-weight:700; margin:0;}
   .titleRow{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
 
   button{
@@ -97,7 +106,7 @@
 
   .monthNav{display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
   .monthNav button{padding:7px 11px;}
-  .monthLabel{flex:1; min-width:140px; font-size:14px; font-weight:700; text-align:center; text-transform:capitalize;}
+  .monthLabel{flex:1; min-width:140px; font-family:'Sora',-apple-system,sans-serif; font-size:14px; font-weight:700; text-align:center; text-transform:capitalize;}
 
   .monthGrid{display:grid; grid-template-columns:repeat(7, 1fr); gap:4px;}
   .monthWeekday{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); text-align:center; padding:2px 0 6px;}
@@ -143,10 +152,10 @@
 
   .apptCard{
     display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--line);
-    border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
-    transition:border-color .15s ease, transform .15s ease;
+    border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer; box-shadow:var(--shadow-1);
+    transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;
   }
-  .apptCard:hover{border-color:var(--accent); transform:translateY(-1px);}
+  .apptCard:hover{border-color:var(--accent); transform:translateY(-1px); box-shadow:var(--shadow-1-hover);}
   .apptCard:active{transform:scale(.98);}
   .apptTime{font-size:14px; font-weight:700; color:var(--ink); flex:none; width:62px; line-height:1.3;}
   .apptTimeEnd{display:block; font-size:11px; font-weight:600; color:var(--sub);}
@@ -171,7 +180,7 @@
   .pendingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:12px;}
   .pendingCard{
     display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--accent2);
-    border-radius:12px; padding:12px 14px; margin-bottom:10px; flex-wrap:wrap;
+    border-radius:12px; padding:12px 14px; margin-bottom:10px; flex-wrap:wrap; box-shadow:var(--shadow-1);
   }
   .pendingMain{flex:1; min-width:180px;}
   .pendingName{font-size:14px; font-weight:700;}
@@ -810,6 +819,14 @@ function renderPendingRequests(){
   wrap.querySelectorAll('.pendingDeclineBtn').forEach(btn=>{
     btn.addEventListener('click', ()=> declineRequest(btn.dataset.id));
   });
+  // la sezione parte nascosta (display:none) e diventa visibile solo dopo
+  // il caricamento cloud: se si arriva da un link diretto (es. #pendingSection
+  // dalla dashboard) il salto automatico del browser avviene prima, quando
+  // non c'è ancora nulla da mostrare, quindi va rifatto a mano qui una volta sola.
+  if(location.hash === '#pendingSection' && !renderPendingRequests._scrolled){
+    renderPendingRequests._scrolled = true;
+    section.scrollIntoView({behavior:'smooth', block:'start'});
+  }
 }
 async function fetchPendingRequests(){
   if(!supabaseClient || !syncUser){ pendingRequests = []; renderPendingRequests(); return; }
