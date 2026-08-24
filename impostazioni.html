@@ -363,8 +363,15 @@ document.getElementById('syncLogoutBtn').addEventListener('click', async ()=>{
 })();
 
 /* ---- Google Calendar (sincronizzazione one-way: app -> Google, non il contrario) ----
-   Il Client ID non è un segreto (è pensato per stare nel codice del browser): niente
-   client secret qui, il flusso "token" di Google Identity Services non ne ha bisogno. */
+   Il Client ID non è un segreto (è pensato per stare nel codice del browser). Il
+   collegamento usa il flusso "code" di Google Identity Services (non più "token"):
+   il popup di consenso restituisce un codice una tantum, che viene scambiato dalla
+   Edge Function "google-token" (supabase/functions/google-token/index.ts, con
+   accesso al Client Secret) per un access_token + un refresh_token. Il
+   refresh_token viene salvato lato server (tabella google_oauth_tokens) e riusato
+   per ottenere nuovi access_token quando servono, senza dover ripetere il popup
+   di consenso ogni ora — prima non c'era nessun refresh_token (il vecchio flusso
+   "token" non lo fornisce) ed era per questo che bisognava ricollegarsi spesso. */
 const GOOGLE_CLIENT_ID = '713281846725-v39g4p2aujtkfku3mrd2lp606c5fgo9f.apps.googleusercontent.com';
 const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 const LS_GOOGLE_TOKEN = 'esercizi_fisio_tool_v1__googleToken';
@@ -455,53 +462,87 @@ function updateGoogleStatus(opts){
   if(!isGoogleConfigured()) setGoogleMessage('Non ancora configurato lato sviluppo: manca il Client ID di Google Cloud.');
 }
 
-let googleTokenClient = null;
+/* ---- rinnovo del token lato server (Edge Function "google-token") ----
+   Il vero refresh_token di Google non può mai stare nel browser (richiederebbe
+   di esporre il Client Secret): viene scambiato/salvato dalla Edge Function e
+   usato solo lì. Da qui chiediamo solo un access_token fresco quando serve —
+   una normale fetch, non un popup: funziona sempre (nessun blocco popup) finché
+   l'autorizzazione non viene revocata o non scade davvero. */
+async function callGoogleTokenFunction(body){
+  if(!supabaseClient) return {error:'supabase_non_disponibile'};
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(!session) return {error:'not_logged_in'};
+  try{
+    const res = await fetch(SUPABASE_URL+'/functions/v1/google-token', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token, 'apikey':SUPABASE_ANON_KEY},
+      body: JSON.stringify(body)
+    });
+    return await res.json();
+  }catch(e){ return {error:'network'}; }
+}
+
+async function refreshGoogleAccessToken(){
+  const data = await callGoogleTokenFunction({action:'refresh'});
+  if(data && data.access_token){
+    localStorage.setItem(LS_GOOGLE_TOKEN, JSON.stringify({token:data.access_token, expiresAt: Date.now()+(data.expires_in*1000)}));
+  }
+  updateGoogleStatus();
+  return !!(data && data.access_token);
+}
+
+let googleCodeClient = null;
 function initGoogleClient(){
   if(!isGoogleConfigured()) { updateGoogleStatus(); return; }
   if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(initGoogleClient, 300); return; }
-  googleTokenClient = google.accounts.oauth2.initTokenClient({
+  googleCodeClient = google.accounts.oauth2.initCodeClient({
     client_id: GOOGLE_CLIENT_ID,
     scope: GOOGLE_SCOPE,
-    callback: (resp)=>{
-      if(resp && resp.access_token){
-        localStorage.setItem(LS_GOOGLE_TOKEN, JSON.stringify({token:resp.access_token, expiresAt: Date.now()+(resp.expires_in*1000)}));
-        localStorage.setItem(LS_GOOGLE_CONNECTED, 'true');
-        setGoogleMessage('Collegato con successo.');
+    ux_mode: 'popup',
+    access_type: 'offline', // necessario per ottenere un refresh_token, non solo l'access_token
+    prompt: 'consent', // forza sempre la schermata di consenso: senza, Google restituisce un refresh_token solo la prima volta in assoluto
+    callback: async (resp)=>{
+      if(resp && resp.code){
+        const data = await callGoogleTokenFunction({action:'exchange', code:resp.code});
+        if(data && data.access_token){
+          localStorage.setItem(LS_GOOGLE_TOKEN, JSON.stringify({token:data.access_token, expiresAt: Date.now()+(data.expires_in*1000)}));
+          localStorage.setItem(LS_GOOGLE_CONNECTED, 'true');
+          setGoogleMessage('Collegato con successo.');
+        } else {
+          setGoogleMessage('Autorizzazione non riuscita'+(data&&data.error?': '+data.error:'')+'.');
+        }
         updateGoogleStatus();
       } else if(resp && resp.error){
-        setGoogleMessage(isGoogleConnected() ? 'La sessione con Google è scaduta: premi "Ricollega".' : 'Autorizzazione non riuscita: '+resp.error);
+        setGoogleMessage('Autorizzazione non riuscita: '+resp.error);
         updateGoogleStatus();
       }
     }
   });
   updateGoogleStatus();
-  // se risultava già collegato ma il token è scaduto, tenta un rinnovo silenzioso
-  // (nessun popup) prima di arrendersi e chiedere di ricollegarsi a mano — prima
-  // questo non succedeva mai, ed era il motivo per cui bisognava sempre ricollegarsi.
-  // Se il browser blocca il tentativo silenzioso del tutto (niente popup, niente
-  // consenso da negare), il callback potrebbe non arrivare mai: il timeout qui sotto
-  // fa comunque uscire dallo stato "Verifica connessione…" mostrando lo stato reale.
+  // se risultava già collegato ma il token è scaduto, chiede subito un access_token
+  // fresco al server (senza popup) prima di mostrare "Sessione scaduta" — prima
+  // questo non succedeva mai, ed era il motivo per cui bisognava sempre ricollegarsi
   if(isGoogleConnected() && !hasValidGoogleToken()){
     updateGoogleStatus({refreshing:true});
-    googleTokenClient.requestAccessToken({prompt:''});
-    setTimeout(()=>{ if(!hasValidGoogleToken()) updateGoogleStatus(); }, 3000);
+    refreshGoogleAccessToken();
   }
 }
 
 googleConnectBtn.addEventListener('click', ()=>{
   if(!isGoogleConfigured()){ setGoogleMessage('Non ancora configurato lato sviluppo: manca il Client ID di Google Cloud.'); return; }
-  if(!googleTokenClient){ setGoogleMessage('Libreria Google non ancora caricata, riprova tra un istante.'); return; }
+  if(!googleCodeClient){ setGoogleMessage('Libreria Google non ancora caricata, riprova tra un istante.'); return; }
   setGoogleMessage('');
-  googleTokenClient.requestAccessToken({prompt:'consent'});
+  googleCodeClient.requestCode();
 });
 
-googleDisconnectBtn.addEventListener('click', ()=>{
+googleDisconnectBtn.addEventListener('click', async ()=>{
   try{
     const t = JSON.parse(localStorage.getItem(LS_GOOGLE_TOKEN) || 'null');
     if(t && t.token && window.google && google.accounts && google.accounts.oauth2){
       google.accounts.oauth2.revoke(t.token, ()=>{});
     }
   }catch(e){}
+  await callGoogleTokenFunction({action:'disconnect'}); // elimina anche il refresh_token salvato lato server
   localStorage.removeItem(LS_GOOGLE_TOKEN);
   localStorage.removeItem(LS_GOOGLE_CONNECTED);
   setGoogleMessage('Disconnesso.');

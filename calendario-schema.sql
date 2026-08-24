@@ -210,3 +210,21 @@ create policy "booking_requests_admin_select" on booking_requests
 drop policy if exists "booking_requests_admin_update" on booking_requests;
 create policy "booking_requests_admin_update" on booking_requests
   for update using (auth.uid() = 'INCOLLA-QUI-IL-TUO-UID'::uuid);
+
+-- ============================================================================
+-- Aggiunta successiva: refresh_token di Google Calendar, per rendere stabile la
+-- sincronizzazione (l'access_token dura solo ~1h e prima andava rinnovato a
+-- mano). Il refresh_token viene scambiato/usato SOLO dalla Edge Function
+-- "google-token" (service role, bypassa RLS) — di proposito NESSUNA policy per
+-- "authenticated": la tabella deve restare del tutto inaccessibile dal client,
+-- altrimenti chiunque con una sessione valida potrebbe leggere il proprio (o,
+-- se le policy fossero sbagliate, l'altrui) refresh_token e usarlo per
+-- accedere al Google Calendar collegato senza passare dall'app.
+-- Idempotente: sicuro da rieseguire.
+-- ============================================================================
+create table if not exists google_oauth_tokens (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  refresh_token text not null,
+  updated_at timestamptz not null default now()
+);
+alter table google_oauth_tokens enable row level security;

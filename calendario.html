@@ -476,7 +476,6 @@ window.addEventListener('pagereveal', function(){
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 
 function escapeHtml(s){
@@ -1291,18 +1290,18 @@ document.addEventListener('keydown', (e)=>{
 });
 
 /* ===================== Google Calendar (one-way: app -> Google) =====================
-   Il collegamento (prima autorizzazione OAuth, con popup di consenso) si fa da
-   impostazioni.html. Qui il token viene solo letto — MA da questa pagina viene anche
-   rinnovato in automatico quando è scaduto (vedi silentGoogleTokenRefresh più sotto):
-   prima non succedeva, ed era il motivo per cui bisognava riandare in Impostazioni e
-   ricollegarsi quasi ad ogni apertura dell'app (il token dura ~1h). Il tentativo è
-   "silenzioso" (senza il popup di consenso, prompt:'') ma i browser possono comunque
-   bloccarlo se non parte da un click dell'utente: se succede, compare il banner
-   "Ricollega" in cima alla pagina, che essendo un vero click funziona sempre. */
+   Il collegamento vero e proprio (popup di consenso Google) si fa da
+   impostazioni.html, che scambia il codice ottenuto con un access_token +
+   refresh_token tramite la Edge Function "google-token" (il refresh_token resta
+   sempre lato server, mai nel browser). Qui il token viene solo letto — e quando
+   risulta scaduto, questa pagina ne chiede uno nuovo alla stessa Edge Function:
+   una normale fetch (non un popup Google), quindi funziona sempre finché
+   l'utente ha una sessione Supabase attiva e non ha revocato l'autorizzazione.
+   Prima (col vecchio flusso senza refresh_token) questo non era possibile, ed
+   era il motivo per cui bisognava riandare in Impostazioni e ricollegarsi quasi
+   ad ogni apertura dell'app (l'access_token dura solo ~1h). */
 const LS_GOOGLE_TOKEN = LS_PREFIX+'googleToken';
 const LS_GOOGLE_CONNECTED = LS_PREFIX+'googleConnected';
-const GOOGLE_CLIENT_ID = '713281846725-v39g4p2aujtkfku3mrd2lp606c5fgo9f.apps.googleusercontent.com';
-const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 function getGoogleToken(){
   const t = lsGet(LS_GOOGLE_TOKEN, null);
@@ -1313,43 +1312,35 @@ function getGoogleToken(){
 const googleReconnectBanner = document.getElementById('googleReconnectBanner');
 function showGoogleReconnectBanner(show){ googleReconnectBanner.style.display = show ? '' : 'none'; }
 
-let googleTokenClientCal = null;
-function ensureGoogleTokenClientCal(){
-  if(googleTokenClientCal) return googleTokenClientCal;
-  googleTokenClientCal = google.accounts.oauth2.initTokenClient({
-    client_id: GOOGLE_CLIENT_ID,
-    scope: GOOGLE_SCOPE,
-    callback: (resp)=>{
-      if(resp && resp.access_token){
-        lsSet(LS_GOOGLE_TOKEN, {token:resp.access_token, expiresAt: Date.now()+(resp.expires_in*1000)});
-        showGoogleReconnectBanner(false);
-        if(currentView==='month') refreshGoogleMonthEventsIfNeeded();
-        syncGoogleBusyCache();
-      } else {
-        showGoogleReconnectBanner(true);
-      }
-    }
-  });
-  return googleTokenClientCal;
-}
-
-/* rinnovo silenzioso (nessun popup di consenso) del token quando risulta scaduto:
-   funziona se questo browser ha ancora una sessione Google attiva e l'app era già
-   stata autorizzata in precedenza. Se il browser blocca comunque il tentativo (non
-   essendo partito da un click) o la sessione Google non c'è più, mostriamo il
-   banner "Ricollega" dopo una breve attesa invece di restare in silenzio. */
-function silentGoogleTokenRefresh(){
+/* rinnovo del token lato server: se fallisce (refresh_token revocato/scaduto,
+   o utente non loggato su Supabase in questo browser) mostra il banner
+   "Ricollega", che rimanda a Impostazioni per un vero popup di consenso. */
+async function silentGoogleTokenRefresh(){
   if(localStorage.getItem(LS_GOOGLE_CONNECTED) !== 'true') return;
   if(getGoogleToken()) return;
-  if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(silentGoogleTokenRefresh, 300); return; }
-  ensureGoogleTokenClientCal().requestAccessToken({prompt:''});
-  setTimeout(()=>{ if(!getGoogleToken()) showGoogleReconnectBanner(true); }, 3000);
+  if(!supabaseClient) return;
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(!session) return;
+  try{
+    const res = await fetch(SUPABASE_URL+'/functions/v1/google-token', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token, 'apikey':SUPABASE_ANON_KEY},
+      body: JSON.stringify({action:'refresh'})
+    });
+    const data = await res.json();
+    if(data && data.access_token){
+      lsSet(LS_GOOGLE_TOKEN, {token:data.access_token, expiresAt: Date.now()+(data.expires_in*1000)});
+      showGoogleReconnectBanner(false);
+      if(currentView==='month') refreshGoogleMonthEventsIfNeeded();
+      syncGoogleBusyCache();
+    } else {
+      showGoogleReconnectBanner(true);
+    }
+  }catch(e){ showGoogleReconnectBanner(true); }
 }
-silentGoogleTokenRefresh();
 
 document.getElementById('googleReconnectBtn').addEventListener('click', ()=>{
-  if(!window.google || !google.accounts || !google.accounts.oauth2) return;
-  ensureGoogleTokenClientCal().requestAccessToken({prompt:'consent'});
+  location.href = 'impostazioni.html';
 });
 
 // tavolozza fissa dei colorId evento di Google Calendar: la tipologia di lavoro viene
@@ -1599,7 +1590,8 @@ function setSyncUser(user){ syncUser = user ? {id:user.id, email:user.email} : n
     await pullAppointments();
     await fetchPendingRequests();
     renderList();
-    syncGoogleBusyCache();
+    silentGoogleTokenRefresh(); // rinnova l'access_token se serve, poi lancia da sola syncGoogleBusyCache()/refreshGoogleMonthEventsIfNeeded()
+    if(getGoogleToken()) syncGoogleBusyCache(); // token già valido: non aspettare il rinnovo per aggiornare la cache impegni
   }
   supabaseClient.auth.onAuthStateChange((event)=>{
     if(event === 'SIGNED_OUT'){ unsubscribeRealtime(); setSyncUser(null); }
