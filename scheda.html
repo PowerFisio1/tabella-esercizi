@@ -65,7 +65,7 @@
     padding-bottom:env(safe-area-inset-bottom);
     transition:transform .25s ease;
   }
-  .bottomNav.navHidden{transform:translateY(100%);}
+  .bottomNav.navHidden{transform:translateY(calc(100% + 24px));} /* +24px: copre anche il cerchio "Crea" che sporge sopra il bordo della barra */
   @media (prefers-reduced-motion:reduce){ .bottomNav{transition:none;} }
   .bottomNavInner{ max-width:640px; margin:0 auto; display:flex; padding:8px 4px 10px; }
   .bottomNavItem{
