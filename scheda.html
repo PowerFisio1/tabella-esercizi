@@ -29,34 +29,68 @@
     --ink:#1c2b2a; --sub:#5b6b69; --line:#dfe3e1; --bg:#faf3ea;
     --card:#fffdf9; --accent:#1c3f66; --accent-light:#e4ebf2; --accent2:#e8720f;
     --danger:#b3412f;
+    --fab-shadow: 0 8px 18px rgba(232,114,15,.35), 0 2px 6px rgba(20,25,20,.15);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
       --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
       --danger:#c8543c;
+      --fab-shadow: 0 8px 18px rgba(242,145,58,.3), 0 2px 6px rgba(0,0,0,.35);
     }
   }
   :root[data-theme="dark"]{
     --ink:#eef1f5; --sub:#8fa0b3; --line:#28384a; --bg:#0e1620;
     --card:#16212e; --accent:#4a80c4; --accent-light:#1c2d40; --accent2:#f2913a;
     --danger:#c8543c;
+    --fab-shadow: 0 8px 18px rgba(242,145,58,.3), 0 2px 6px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box;}
   body{transition:background-color .2s ease, color .2s ease;}
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    padding:32px 24px 80px;
+    padding:32px 24px 130px;
   }
   .wrap{max-width:1160px; margin:0 auto;}
+
+  /* ---- barra di navigazione fissa in fondo — prima questa pagina non la aveva
+     (era pensata come "lavoro concentrato"), rimessa per coerenza con "Crea" ora
+     presente nella barra di tutte le altre pagine come pulsante di pari livello.
+     Si nasconde scorrendo verso il basso e ricompare scorrendo verso l'alto, per
+     lasciare più spazio alla tabella mentre si scorre (vedi script dopo la <nav>). ---- */
+  .bottomNav{
+    position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--card);
+    border-top:1px solid var(--line); box-shadow:0 -6px 20px rgba(28,63,102,.06);
+    padding-bottom:env(safe-area-inset-bottom);
+    transition:transform .25s ease;
+  }
+  .bottomNav.navHidden{transform:translateY(100%);}
+  @media (prefers-reduced-motion:reduce){ .bottomNav{transition:none;} }
+  .bottomNavInner{ max-width:640px; margin:0 auto; display:flex; padding:8px 4px 10px; }
+  .bottomNavItem{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    text-decoration:none; color:var(--sub); font-size:9.5px; font-weight:600; padding:4px 0;
+  }
+  .bottomNavItem svg{width:20px; height:20px;}
+  .bottomNavItem.active{color:var(--accent); font-weight:700;}
+  .bottomNavFab{position:relative; justify-content:flex-end;}
+  .fabCircle{
+    position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+    width:44px; height:44px; border-radius:50%; background:var(--accent2);
+    border:3px solid var(--bg); box-shadow:var(--fab-shadow);
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    transition:transform .15s ease;
+  }
+  .bottomNavFab:active .fabCircle{transform:translateX(-50%) scale(.92);}
+  .fabCircle svg{width:20px; height:20px;}
+  .fabLbl{font-size:9.5px; font-weight:700; color:var(--accent2);}
+
   header{
-    display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
+    display:flex; justify-content:flex-end; align-items:flex-start; gap:16px;
     margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--line); flex-wrap:wrap;
   }
   header p{margin:0; font-size:13px; color:var(--sub); max-width:62ch;}
-  .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
-  .backLink:hover{color:var(--accent);}
   .actions{display:flex; gap:8px; flex-wrap:wrap;}
   button{
     font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
@@ -307,7 +341,7 @@
       --danger:#b3412f !important;
     }
     body{background:#fff; padding:0; font-size:12px;}
-    header, .rowActions, footer.credits, .exSearchWrap{display:none;}
+    header, .rowActions, footer.credits, .exSearchWrap, .bottomNav{display:none;}
     .masthead{display:flex !important;}
     header{margin-bottom:4px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
     .mastheadLogo{width:40px; height:40px; box-shadow:none;}
@@ -356,7 +390,7 @@
   /* ---- adattamento a schermi stretti (telefono) ---- */
   .modalCard{min-width:0;}
   @media screen and (max-width: 720px){
-    body{padding:18px 14px 60px;}
+    body{padding:18px 14px 130px;}
     .wrap{max-width:100%;}
     header{flex-direction:column; align-items:stretch; gap:12px; padding-bottom:14px;}
     .actions{width:100%;}
@@ -420,7 +454,6 @@ window.addEventListener('pagereveal', function(){
     </div>
   </div>
   <header>
-    <a class="backLink" href="index.html">← Dashboard</a>
     <div class="actions">
       <button id="addRow">+ Aggiungi riga</button>
       <button id="templatesBtn">Modelli</button>
@@ -525,6 +558,50 @@ window.addEventListener('pagereveal', function(){
     </div>
   </div>
 </div>
+
+<nav class="bottomNav" id="bottomNav">
+  <div class="bottomNavInner">
+    <a href="index.html" class="bottomNavItem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="pazienti.html" class="bottomNavItem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Pazienti</span>
+    </a>
+    <a href="scheda.html" class="bottomNavItem bottomNavFab">
+      <span class="fabCircle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="fabLbl">Crea</span>
+    </a>
+    <a href="calendario.html" class="bottomNavItem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+      <span>Calendario</span>
+    </a>
+    <a href="impostazioni.html" class="bottomNavItem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Impostazioni</span>
+    </a>
+  </div>
+</nav>
+<script>
+(function(){
+  var nav = document.getElementById('bottomNav');
+  if(!nav) return;
+  var lastY = window.scrollY, ticking = false;
+  function onScroll(){
+    var y = Math.max(0, window.scrollY);
+    if(Math.abs(y - lastY) > 8){
+      if(y > lastY && y > 60) nav.classList.add('navHidden');
+      else nav.classList.remove('navHidden');
+      lastY = y;
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){ window.requestAnimationFrame(onScroll); ticking = true; }
+  }, {passive:true});
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="exercises-data.js"></script>

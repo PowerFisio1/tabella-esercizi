@@ -34,6 +34,7 @@
     --danger:#b3412f;
     --shadow-1: 0 2px 6px rgba(28,63,102,.05), 0 20px 40px rgba(28,63,102,.09);
     --shadow-1-hover: 0 3px 8px rgba(28,63,102,.07), 0 26px 48px rgba(28,63,102,.13);
+    --fab-shadow: 0 8px 18px rgba(232,114,15,.35), 0 2px 6px rgba(20,25,20,.15);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -42,6 +43,7 @@
       --danger:#c8543c;
       --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
       --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
+      --fab-shadow: 0 8px 18px rgba(242,145,58,.3), 0 2px 6px rgba(0,0,0,.35);
     }
   }
   :root[data-theme="dark"]{
@@ -50,6 +52,7 @@
     --danger:#c8543c;
     --shadow-1: 0 2px 6px rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.3);
     --shadow-1-hover: 0 3px 8px rgba(0,0,0,.26), 0 26px 48px rgba(0,0,0,.34);
+    --fab-shadow: 0 8px 18px rgba(242,145,58,.3), 0 2px 6px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box;}
   body{
@@ -57,12 +60,17 @@
     font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     padding:24px 20px 130px; transition:background-color .2s ease, color .2s ease;
   }
-  /* ---- barra di navigazione fissa in fondo, presente su tutte le pagine principali ---- */
+  /* ---- barra di navigazione fissa in fondo, presente su TUTTE le pagine (anche
+     scheda.html, che prima non la aveva). Si nasconde scorrendo verso il basso e
+     ricompare scorrendo verso l'alto (vedi script dopo il markup della <nav>). ---- */
   .bottomNav{
     position:fixed; left:0; right:0; bottom:0; z-index:20; background:var(--card);
     border-top:1px solid var(--line); box-shadow:0 -6px 20px rgba(28,63,102,.06);
     padding-bottom:env(safe-area-inset-bottom);
+    transition:transform .25s ease;
   }
+  .bottomNav.navHidden{transform:translateY(100%);}
+  @media (prefers-reduced-motion:reduce){ .bottomNav{transition:none;} }
   .bottomNavInner{ max-width:640px; margin:0 auto; display:flex; padding:8px 4px 10px; }
   .bottomNavItem{
     flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -70,10 +78,22 @@
   }
   .bottomNavItem svg{width:20px; height:20px;}
   .bottomNavItem.active{color:var(--accent); font-weight:700;}
+
+  /* ---- "Crea": pulsante centrale sollevato, stesso arancio della tessera
+     "Crea Scheda" in dashboard (in entrambi i temi, per restare riconoscibile) ---- */
+  .bottomNavFab{position:relative; justify-content:flex-end;}
+  .fabCircle{
+    position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+    width:44px; height:44px; border-radius:50%; background:var(--accent2);
+    border:3px solid var(--bg); box-shadow:var(--fab-shadow);
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    transition:transform .15s ease;
+  }
+  .bottomNavFab:active .fabCircle{transform:translateX(-50%) scale(.92);}
+  .fabCircle svg{width:20px; height:20px;}
+  .fabLbl{font-size:9.5px; font-weight:700; color:var(--accent2);}
   .wrap{max-width:760px; margin:0 auto;}
-  .topBar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
-  .backLink{display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600;}
-  .backLink:hover{color:var(--accent);}
+  .topBar{display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
   h1{font-family:'Sora',-apple-system,sans-serif; font-size:20px; font-weight:700; margin:0;}
   .titleRow{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
 
@@ -308,7 +328,6 @@ window.addEventListener('pagereveal', function(){
 <body>
 <div class="wrap">
   <div class="topBar">
-    <a class="backLink" href="index.html">← Dashboard</a>
     <button type="button" id="newApptBtn" class="primary">+ Nuovo appuntamento</button>
   </div>
   <div class="titleRow">
@@ -449,23 +468,23 @@ window.addEventListener('pagereveal', function(){
   </div>
 </div>
 
-<nav class="bottomNav">
+<nav class="bottomNav" id="bottomNav">
   <div class="bottomNavInner">
     <a href="index.html" class="bottomNavItem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>
-      <span>Dashboard</span>
+      <span>Home</span>
     </a>
     <a href="pazienti.html" class="bottomNavItem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Pazienti</span>
     </a>
+    <a href="scheda.html" class="bottomNavItem bottomNavFab">
+      <span class="fabCircle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="fabLbl">Crea</span>
+    </a>
     <a href="calendario.html" class="bottomNavItem active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
       <span>Calendario</span>
-    </a>
-    <a href="libreria.html" class="bottomNavItem">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      <span>Libreria</span>
     </a>
     <a href="impostazioni.html" class="bottomNavItem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -473,6 +492,25 @@ window.addEventListener('pagereveal', function(){
     </a>
   </div>
 </nav>
+<script>
+(function(){
+  var nav = document.getElementById('bottomNav');
+  if(!nav) return;
+  var lastY = window.scrollY, ticking = false;
+  function onScroll(){
+    var y = Math.max(0, window.scrollY);
+    if(Math.abs(y - lastY) > 8){
+      if(y > lastY && y > 60) nav.classList.add('navHidden');
+      else nav.classList.remove('navHidden');
+      lastY = y;
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){ window.requestAnimationFrame(onScroll); ticking = true; }
+  }, {passive:true});
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
