@@ -1,6 +1,6 @@
 {
-  "name": "Tabella Esercizi - Dott. Kamil Gontarski",
-  "short_name": "Tabella Esercizi",
+  "name": "StudioFKT - Dott. Kamil Gontarski",
+  "short_name": "StudioFKT",
   "description": "Tabella esercizi per la riabilitazione fisioterapica",
   "start_url": "./index.html",
   "scope": "./",
