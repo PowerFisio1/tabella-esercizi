@@ -424,14 +424,32 @@ const googleMessage = document.getElementById('googleMessage');
 function setGoogleMessage(text){ googleMessage.textContent = text || ''; }
 function isGoogleConfigured(){ return GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('INSERISCI'); }
 function isGoogleConnected(){ return localStorage.getItem(LS_GOOGLE_CONNECTED) === 'true'; }
+function hasValidGoogleToken(){
+  try{
+    const t = JSON.parse(localStorage.getItem(LS_GOOGLE_TOKEN) || 'null');
+    return !!(t && t.token && t.expiresAt > Date.now() + 30000); // 30s di margine
+  }catch(e){ return false; }
+}
 
-function updateGoogleStatus(){
+function updateGoogleStatus(opts){
+  opts = opts || {};
   const connected = isGoogleConnected();
-  googleStatusLabel.textContent = connected ? 'Collegato ✓' : 'Non collegato';
-  googleStatusSub.textContent = connected
-    ? 'Gli appuntamenti vengono copiati automaticamente su Google Calendar.'
-    : 'Gli appuntamenti restano solo nell\'app finché non ti colleghi.';
-  googleConnectBtn.style.display = connected ? 'none' : '';
+  const fresh = hasValidGoogleToken();
+  if(connected && fresh){
+    googleStatusLabel.textContent = 'Collegato ✓';
+    googleStatusSub.textContent = 'Gli appuntamenti vengono copiati automaticamente su Google Calendar.';
+  } else if(connected && opts.refreshing){
+    googleStatusLabel.textContent = 'Verifica connessione…';
+    googleStatusSub.textContent = 'Sto controllando se la sessione con Google è ancora attiva.';
+  } else if(connected){
+    googleStatusLabel.textContent = 'Sessione scaduta';
+    googleStatusSub.textContent = 'Premi "Ricollega" per riprendere la sincronizzazione con Google Calendar.';
+  } else {
+    googleStatusLabel.textContent = 'Non collegato';
+    googleStatusSub.textContent = 'Gli appuntamenti restano solo nell\'app finché non ti colleghi.';
+  }
+  googleConnectBtn.textContent = connected ? 'Ricollega' : 'Connetti';
+  googleConnectBtn.style.display = (connected && fresh) ? 'none' : '';
   googleDisconnectBtn.style.display = connected ? '' : 'none';
   document.getElementById('googleColorSection').style.display = connected ? '' : 'none';
   if(!isGoogleConfigured()) setGoogleMessage('Non ancora configurato lato sviluppo: manca il Client ID di Google Cloud.');
@@ -451,11 +469,23 @@ function initGoogleClient(){
         setGoogleMessage('Collegato con successo.');
         updateGoogleStatus();
       } else if(resp && resp.error){
-        setGoogleMessage('Autorizzazione non riuscita: '+resp.error);
+        setGoogleMessage(isGoogleConnected() ? 'La sessione con Google è scaduta: premi "Ricollega".' : 'Autorizzazione non riuscita: '+resp.error);
+        updateGoogleStatus();
       }
     }
   });
   updateGoogleStatus();
+  // se risultava già collegato ma il token è scaduto, tenta un rinnovo silenzioso
+  // (nessun popup) prima di arrendersi e chiedere di ricollegarsi a mano — prima
+  // questo non succedeva mai, ed era il motivo per cui bisognava sempre ricollegarsi.
+  // Se il browser blocca il tentativo silenzioso del tutto (niente popup, niente
+  // consenso da negare), il callback potrebbe non arrivare mai: il timeout qui sotto
+  // fa comunque uscire dallo stato "Verifica connessione…" mostrando lo stato reale.
+  if(isGoogleConnected() && !hasValidGoogleToken()){
+    updateGoogleStatus({refreshing:true});
+    googleTokenClient.requestAccessToken({prompt:''});
+    setTimeout(()=>{ if(!hasValidGoogleToken()) updateGoogleStatus(); }, 3000);
+  }
 }
 
 googleConnectBtn.addEventListener('click', ()=>{

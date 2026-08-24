@@ -176,6 +176,16 @@
   }
   .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
 
+  .googleReconnectBanner{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    background:var(--card); border:1px solid var(--accent2); border-radius:10px;
+    padding:10px 14px; margin-bottom:18px; font-size:12.5px; color:var(--ink);
+  }
+  .googleReconnectBanner button{
+    flex:none; font-size:12px; padding:6px 12px; background:var(--accent2); color:#fff; border-color:var(--accent2);
+  }
+  .googleReconnectBanner button:hover{opacity:.9; border-color:var(--accent2);}
+
   .pendingSection{margin-bottom:26px; padding-bottom:20px; border-bottom:1px solid var(--line);}
   .pendingTitle{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); margin-bottom:12px;}
   .pendingCard{
@@ -304,6 +314,11 @@ window.addEventListener('pagereveal', function(){
   <div class="titleRow">
     <h1>Calendario</h1>
     <button type="button" id="manageTypesBtn" class="manageTypesBtn">Gestisci tipologie</button>
+  </div>
+
+  <div class="googleReconnectBanner" id="googleReconnectBanner" style="display:none;">
+    <span>La sessione con Google Calendar è scaduta: gli eventi/impegni reali non sono aggiornati.</span>
+    <button type="button" id="googleReconnectBtn">Ricollega</button>
   </div>
 
   <div class="pendingSection" id="pendingSection" style="display:none;">
@@ -461,6 +476,7 @@ window.addEventListener('pagereveal', function(){
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 
 function escapeHtml(s){
@@ -1275,17 +1291,66 @@ document.addEventListener('keydown', (e)=>{
 });
 
 /* ===================== Google Calendar (one-way: app -> Google) =====================
-   Il collegamento (autorizzazione OAuth) si fa da impostazioni.html, che salva il token
-   in localStorage; qui lo leggiamo soltanto. Se manca o è scaduto, la copia su Google
-   viene semplicemente saltata in silenzio — l'appuntamento resta comunque salvato
-   regolarmente in locale/Supabase, si sincronizzerà su Google al prossimo ricollegamento. */
+   Il collegamento (prima autorizzazione OAuth, con popup di consenso) si fa da
+   impostazioni.html. Qui il token viene solo letto — MA da questa pagina viene anche
+   rinnovato in automatico quando è scaduto (vedi silentGoogleTokenRefresh più sotto):
+   prima non succedeva, ed era il motivo per cui bisognava riandare in Impostazioni e
+   ricollegarsi quasi ad ogni apertura dell'app (il token dura ~1h). Il tentativo è
+   "silenzioso" (senza il popup di consenso, prompt:'') ma i browser possono comunque
+   bloccarlo se non parte da un click dell'utente: se succede, compare il banner
+   "Ricollega" in cima alla pagina, che essendo un vero click funziona sempre. */
 const LS_GOOGLE_TOKEN = LS_PREFIX+'googleToken';
+const LS_GOOGLE_CONNECTED = LS_PREFIX+'googleConnected';
+const GOOGLE_CLIENT_ID = '713281846725-v39g4p2aujtkfku3mrd2lp606c5fgo9f.apps.googleusercontent.com';
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 function getGoogleToken(){
   const t = lsGet(LS_GOOGLE_TOKEN, null);
   if(t && t.token && t.expiresAt > Date.now() + 30000) return t.token; // 30s di margine
   return null;
 }
+
+const googleReconnectBanner = document.getElementById('googleReconnectBanner');
+function showGoogleReconnectBanner(show){ googleReconnectBanner.style.display = show ? '' : 'none'; }
+
+let googleTokenClientCal = null;
+function ensureGoogleTokenClientCal(){
+  if(googleTokenClientCal) return googleTokenClientCal;
+  googleTokenClientCal = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_SCOPE,
+    callback: (resp)=>{
+      if(resp && resp.access_token){
+        lsSet(LS_GOOGLE_TOKEN, {token:resp.access_token, expiresAt: Date.now()+(resp.expires_in*1000)});
+        showGoogleReconnectBanner(false);
+        if(currentView==='month') refreshGoogleMonthEventsIfNeeded();
+        syncGoogleBusyCache();
+      } else {
+        showGoogleReconnectBanner(true);
+      }
+    }
+  });
+  return googleTokenClientCal;
+}
+
+/* rinnovo silenzioso (nessun popup di consenso) del token quando risulta scaduto:
+   funziona se questo browser ha ancora una sessione Google attiva e l'app era già
+   stata autorizzata in precedenza. Se il browser blocca comunque il tentativo (non
+   essendo partito da un click) o la sessione Google non c'è più, mostriamo il
+   banner "Ricollega" dopo una breve attesa invece di restare in silenzio. */
+function silentGoogleTokenRefresh(){
+  if(localStorage.getItem(LS_GOOGLE_CONNECTED) !== 'true') return;
+  if(getGoogleToken()) return;
+  if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(silentGoogleTokenRefresh, 300); return; }
+  ensureGoogleTokenClientCal().requestAccessToken({prompt:''});
+  setTimeout(()=>{ if(!getGoogleToken()) showGoogleReconnectBanner(true); }, 3000);
+}
+silentGoogleTokenRefresh();
+
+document.getElementById('googleReconnectBtn').addEventListener('click', ()=>{
+  if(!window.google || !google.accounts || !google.accounts.oauth2) return;
+  ensureGoogleTokenClientCal().requestAccessToken({prompt:'consent'});
+});
 
 // tavolozza fissa dei colorId evento di Google Calendar: la tipologia di lavoro viene
 // mappata sul colore più vicino, non esistono colori arbitrari lato Google
