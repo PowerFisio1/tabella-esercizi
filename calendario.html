@@ -1247,6 +1247,14 @@ document.getElementById('apptModalOverlay').addEventListener('click', (e)=>{ if(
    realtime, merge per updated_at) — qui l'unica scrittura possibile è *aggiungere*
    un paziente nuovo per intero, mai toccare uno esistente, per non rischiare di
    corrompere dati già compilati a mano. */
+// normalizza il nome digitato ("MARIO ROSSI", "mario rossi"...) in "Mario Rossi",
+// così lo stesso paziente scritto con maiuscole/minuscole diverse in appuntamenti
+// diversi risulta sempre scritto allo stesso modo (il confronto in findOrCreatePatientId
+// è già case-insensitive di suo, questo serve solo per come il nome viene salvato)
+function toTitleCase(name){
+  return name.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
 async function findOrCreatePatientId(name){
   const norm = name.trim().toLowerCase();
   if(supabaseClient && syncUser){
@@ -1273,7 +1281,7 @@ async function findOrCreatePatientId(name){
 }
 
 document.getElementById('apptModalSave').addEventListener('click', async ()=>{
-  const patient = document.getElementById('apptFormPatient').value.trim();
+  const patient = toTitleCase(document.getElementById('apptFormPatient').value);
   const dateVal = document.getElementById('apptFormDate').value;
   const timeVal = document.getElementById('apptFormTime').value;
   const msg = document.getElementById('apptModalMsg');
