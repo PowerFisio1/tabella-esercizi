@@ -265,7 +265,6 @@
     border-bottom:1px solid var(--line); padding-bottom:6px; margin:24px 0 10px;
   }
   .reportContent p{font-size:13.5px; margin:0 0 8px; line-height:1.55;}
-  .reportContent .signature{margin-top:36px; padding-top:16px; border-top:1px solid var(--line); font-size:13px;}
   .reportContent .planText{white-space:pre-wrap;}
 
   @media print{
@@ -839,8 +838,7 @@ document.getElementById('reportModalGenerate').addEventListener('click', ()=>{
     '<p style="white-space:pre-wrap;">'+escapeHtml(treatment || autoTreatmentText(rangeVisits.length))+'</p>'+
     '<h2>Valutazione oggettiva attuale — '+fmtDateFull(latest.visit_date)+'</h2>'+reportVisitBlockHtml(latest)+
     (latest.adherence ? '<h2>Aderenza al programma domiciliare</h2><p>'+(ADHERENCE_SIMPLE_LABELS[latest.adherence]||escapeHtml(latest.adherence))+'</p>' : '')+
-    '<h2>Valutazione complessiva e piano</h2><p class="planText">'+(plan ? escapeHtml(plan) : '—')+'</p>'+
-    '<div class="signature"><b>Dott. Kamil Gontarski</b><br>Fisioterapista iscritto all\'albo di Bergamo al nr. 1244 — Trescore Balneario (BG), studio c/o Veryfit</div>';
+    '<h2>Valutazione complessiva e piano</h2><p class="planText">'+(plan ? escapeHtml(plan) : '—')+'</p>';
 
   document.getElementById('reportContent').innerHTML = html;
   closeReportModal();
