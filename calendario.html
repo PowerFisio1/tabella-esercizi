@@ -199,7 +199,7 @@
   .dayGridLegendDot{width:7px; height:7px; border-radius:50%; flex:none;}
 
   .dayGridPanel{border:1px solid var(--line); border-radius:14px; background:var(--card); overflow:hidden;}
-  .dayGridScroll{max-height:60vh; overflow-y:auto;}
+  .dayGridScroll{max-height:50vh; overflow-y:auto;}
   .dayGrid{position:relative; display:flex;}
   .dayGridHours{flex:none; width:40px; border-right:1px solid var(--line);}
   .dayGridHourRow{position:relative; box-sizing:border-box; height:var(--hh);}
@@ -620,7 +620,7 @@ function fmtDay(d){
 function fmtTime(d){ return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); }
 function roundToNext15(d){ const ms = 15*60000; return new Date(Math.ceil(d.getTime()/ms)*ms); }
 
-const HOUR_HEIGHT = 54; // px per ora nella griglia oraria sotto il mese
+const HOUR_HEIGHT = 50; // px per ora nella griglia oraria sotto il mese
 function hexToRgba(hex, alpha){
   const h = hex.replace('#','');
   const r = parseInt(h.length===3?h[0]+h[0]:h.slice(0,2),16);
@@ -796,14 +796,9 @@ function renderSelectedDayGrid(){
     return {start, durationMin:Math.max(5, Math.round((end-start)/60000)), kind:'google', event:e};
   })).sort((x,y)=> x.start-y.start);
 
-  // orario base 7-21, allargato se un impegno (reale o solo-Google) esce da questo intervallo
-  let startHour = 7, endHour = 21;
-  items.forEach(({start, durationMin})=>{
-    const h = start.getHours();
-    const endH = Math.ceil((start.getHours()*60 + start.getMinutes() + durationMin) / 60);
-    if(h < startHour) startHour = h;
-    if(endH > endHour) endHour = endH;
-  });
+  // tutte le 24 ore, sempre: anche senza impegni già segnati fuori dal solito orario di
+  // lavoro, deve restare possibile toccare qualunque fascia per segnare altri impegni
+  const startHour = 0, endHour = 24;
 
   const hoursHtml = [];
   for(let h = startHour; h < endHour; h++){
@@ -915,15 +910,15 @@ function renderSelectedDayGrid(){
   requestAnimationFrame(()=>{
     const scrollBox = container.querySelector('.dayGridScroll');
     if(!scrollBox) return;
-    let target = 0;
+    let target = 7*HOUR_HEIGHT - 40; // giorno vuoto e non odierno: senza nulla a cui agganciarsi, parte comunque dal mattino invece che da mezzanotte (ora c'è sempre l'intera giornata 0-24)
     if(isToday){
       const nowMinutes = (now.getHours()*60+now.getMinutes()) - startHour*60;
-      target = Math.max(0, (nowMinutes/60)*HOUR_HEIGHT - 120);
+      target = (nowMinutes/60)*HOUR_HEIGHT - 120;
     } else if(items.length){
       const m = (items[0].start.getHours()*60+items[0].start.getMinutes()) - startHour*60;
-      target = Math.max(0, (m/60)*HOUR_HEIGHT - 80);
+      target = (m/60)*HOUR_HEIGHT - 80;
     }
-    scrollBox.scrollTop = target;
+    scrollBox.scrollTop = Math.max(0, target);
   });
 }
 
