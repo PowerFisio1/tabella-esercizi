@@ -186,15 +186,48 @@
     background:var(--wc, var(--accent-light)); color:#fff;
   }
   .apptTypeTagNone{background:var(--line); color:var(--sub);}
-  .googleApptCard{border-style:dashed; opacity:.85;}
-  .googleApptCard:hover{opacity:1;}
-  .googleApptTag{background:var(--line); color:var(--sub);}
   .apptNotes{font-size:12px; color:var(--sub); margin-top:5px; line-height:1.4;}
   .apptDuration{
     flex:none; font-size:11px; font-weight:700; color:var(--sub); background:var(--bg);
     border:1px solid var(--line); padding:4px 10px; border-radius:100px;
   }
   .emptyState{font-size:13px; color:var(--sub); padding:20px 2px;}
+
+  /* ---- griglia oraria del giorno selezionato, sotto il mese (stile Google Calendar) ---- */
+  .dayGridLegend{display:flex; flex-wrap:wrap; gap:6px 12px; margin-bottom:10px;}
+  .dayGridLegendItem{display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; color:var(--sub);}
+  .dayGridLegendDot{width:7px; height:7px; border-radius:50%; flex:none;}
+
+  .dayGridPanel{border:1px solid var(--line); border-radius:14px; background:var(--card); overflow:hidden;}
+  .dayGridScroll{max-height:60vh; overflow-y:auto;}
+  .dayGrid{position:relative; display:flex;}
+  .dayGridHours{flex:none; width:40px; border-right:1px solid var(--line);}
+  .dayGridHourRow{position:relative; box-sizing:border-box; height:var(--hh);}
+  .dayGridHourLabel{position:absolute; top:-6px; right:6px; font-size:9.5px; font-weight:700; color:var(--sub); background:var(--card); padding:0 2px;}
+  .dayGridHourRow:first-child .dayGridHourLabel{display:none;}
+  .dayGridCol{
+    position:relative; flex:1; cursor:pointer;
+    background-image:repeating-linear-gradient(to bottom, var(--line) 0, var(--line) 1px, transparent 1px, transparent var(--hh));
+  }
+  /* riga dei mezzi orari: stesso disegno ma dimezzato e più tenue, sopra al layer delle ore intere */
+  .dayGridCol::before{
+    content:''; position:absolute; inset:0; z-index:0; opacity:.55; pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom, var(--line) 0, var(--line) 1px, transparent 1px, transparent calc(var(--hh) / 2));
+  }
+  .dayAppt{
+    position:absolute; z-index:2; left:3px; right:3px; border-left:3px solid var(--cc); border-radius:7px;
+    padding:4px 8px; overflow:hidden; cursor:pointer; background:var(--cc-tint);
+    transition:opacity .12s ease, transform .12s ease;
+  }
+  .dayAppt:hover{opacity:.85;}
+  .dayAppt:active{transform:scale(.98);}
+  .dayApptTime{font-size:10px; font-weight:700; color:var(--sub); display:block; line-height:1.3;}
+  .dayApptPatient{font-size:12px; font-weight:700; color:var(--ink); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .dayAppt.short .dayApptTime{display:none;}
+  .dayAppt.short .dayApptPatient{font-size:11px;}
+  .dayAppt.googleOnlyAppt{border-left-style:dashed; background:var(--bg);}
+  .dayNowLine{position:absolute; left:0; right:0; height:0; border-top:2px solid var(--danger); z-index:3; pointer-events:none;}
+  .dayNowDot{position:absolute; left:-4px; top:-4px; width:8px; height:8px; border-radius:50%; background:var(--danger);}
 
   .googleReconnectBanner{
     display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
@@ -587,6 +620,15 @@ function fmtDay(d){
 function fmtTime(d){ return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}); }
 function roundToNext15(d){ const ms = 15*60000; return new Date(Math.ceil(d.getTime()/ms)*ms); }
 
+const HOUR_HEIGHT = 54; // px per ora nella griglia oraria sotto il mese
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.length===3?h[0]+h[0]:h.slice(0,2),16);
+  const g = parseInt(h.length===3?h[1]+h[1]:h.slice(2,4),16);
+  const b = parseInt(h.length===3?h[2]+h[2]:h.slice(4,6),16);
+  return 'rgba('+r+','+g+','+b+','+alpha+')';
+}
+
 /* ===================== rendering lista appuntamenti ===================== */
 let showPast = false;
 
@@ -603,21 +645,6 @@ function apptCardHtml(a, d){
       (a.notes ? '<div class="apptNotes">'+escapeHtml(a.notes)+'</div>' : '')+
     '</div>'+
     '<div class="apptDuration">'+a.duration_min+' min</div>'+
-  '</div>';
-}
-
-// stesso layout di apptCardHtml, per un evento letto da Google che non è (ancora)
-// un appuntamento dell'app: bordo tratteggiato, tag "Solo su Google" al posto
-// della tipologia, nessuna durata a fianco (viene ricavata solo al momento di
-// trasformarlo in appuntamento)
-function googleApptCardHtml(e){
-  const start = new Date(e.start.dateTime), end = new Date(e.end.dateTime);
-  return '<div class="apptCard googleApptCard" data-id="'+e.id+'">'+
-    '<div class="apptTime">'+fmtTime(start)+'<span class="apptTimeEnd">–'+fmtTime(end)+'</span></div>'+
-    '<div class="apptMain">'+
-      '<div class="apptPatient">'+escapeHtml(e.summary||'(senza titolo)')+'</div>'+
-      '<span class="apptTypeTag googleApptTag">Solo su Google · tocca per trasformarlo</span>'+
-    '</div>'+
   '</div>';
 }
 
@@ -649,7 +676,7 @@ function renderList(){
   }
   // questa riga deve girare sempre, anche a lista vuota: un "return" anticipato qui in
   // passato la saltava a calendario vuoto, lasciando il mese non disegnato al primo carico
-  if(currentView==='month'){ renderMonthView(); renderSelectedDayList(); }
+  if(currentView==='month'){ renderMonthView(); renderSelectedDayGrid(); }
 }
 
 document.getElementById('togglePastBtn').addEventListener('click', ()=>{ showPast = !showPast; renderList(); });
@@ -664,7 +691,7 @@ function setView(view){
   currentView = view;
   document.getElementById('listView').style.display = view==='list' ? '' : 'none';
   document.getElementById('monthView').style.display = view==='month' ? '' : 'none';
-  if(view==='month'){ renderMonthView(); renderSelectedDayList(); }
+  if(view==='month'){ renderMonthView(); renderSelectedDayGrid(); }
 }
 
 const WEEKDAY_LABELS = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
@@ -734,42 +761,169 @@ function renderMonthView(){
       const [y,m,d] = cell.dataset.date.split('-').map(Number);
       selectedDate = new Date(y, m-1, d);
       renderMonthView();
-      renderSelectedDayList();
+      renderSelectedDayGrid();
     });
   });
 
   refreshGoogleMonthEventsIfNeeded(); // async: se serve un nuovo fetch, ridisegna da sola al termine
 }
 
-/* lista appuntamenti del giorno evidenziato, sotto la griglia del mese: sostituisce
-   la vecchia vista "Giorno" a griglia oraria (rimossa) — niente più click-su-orario per
-   creare, ma "+ Nuovo appuntamento" precompila comunque la data col giorno selezionato */
-function renderSelectedDayList(){
+/* griglia oraria del giorno evidenziato, sotto la griglia del mese: mostra a colpo
+   d'occhio come sono distribuiti gli appuntamenti nelle ore (stile Google Calendar),
+   invece del solo elenco testuale. Stessa idea della vecchia vista "Giorno" a griglia
+   (rimossa in 200deda perché era una vista separata da raggiungere navigando) ma qui
+   resta inline sotto il mese: nessuna navigazione, si cambia giorno restando sul posto.
+   Include anche gli eventi "solo su Google" (non esistevano ancora quando la vecchia
+   griglia fu rimossa), impacchettati insieme ai veri appuntamenti così due impegni
+   sovrapposti finiscono affiancati invece che uno sopra l'altro. Toccare uno slot
+   libero apre "Nuovo appuntamento" precompilato con l'orario toccato (arrotondato
+   al quarto d'ora più vicino); "+ Nuovo appuntamento" in alto resta invariato. */
+function renderSelectedDayGrid(){
   const dayStart = new Date(selectedDate); dayStart.setHours(0,0,0,0);
   const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
   const dayAppts = appointments.filter(a=>{
     const t = new Date(a.start_at);
     return t >= dayStart && t < dayEnd;
-  }).sort((a,b)=> new Date(a.start_at)-new Date(b.start_at));
-  const googleOnly = googleEventsForDate(dayStart).sort((a,b)=> new Date(a.start.dateTime)-new Date(b.start.dateTime));
+  });
+  const googleOnly = googleEventsForDate(dayStart);
 
   document.getElementById('monthDayListTitle').textContent = fmtDay(dayStart);
 
-  const container = document.getElementById('monthDayList');
-  if(!dayAppts.length && !googleOnly.length){
-    container.innerHTML = '<div class="emptyState">Nessun appuntamento in questo giorno.</div>';
-    return;
-  }
-  container.innerHTML = dayAppts.map(a => apptCardHtml(a, new Date(a.start_at))).join('')
-    + googleOnly.map(googleApptCardHtml).join('');
-  container.querySelectorAll('.apptCard:not(.googleApptCard)').forEach(card=>{
-    card.addEventListener('click', ()=> openApptModal(card.dataset.id));
+  const items = dayAppts.map(a=>(
+    {start:new Date(a.start_at), durationMin:a.duration_min, kind:'real', appt:a}
+  )).concat(googleOnly.map(e=>{
+    const start = new Date(e.start.dateTime), end = new Date(e.end.dateTime);
+    return {start, durationMin:Math.max(5, Math.round((end-start)/60000)), kind:'google', event:e};
+  })).sort((x,y)=> x.start-y.start);
+
+  // orario base 7-21, allargato se un impegno (reale o solo-Google) esce da questo intervallo
+  let startHour = 7, endHour = 21;
+  items.forEach(({start, durationMin})=>{
+    const h = start.getHours();
+    const endH = Math.ceil((start.getHours()*60 + start.getMinutes() + durationMin) / 60);
+    if(h < startHour) startHour = h;
+    if(endH > endHour) endHour = endH;
   });
-  container.querySelectorAll('.googleApptCard').forEach(card=>{
-    card.addEventListener('click', ()=>{
-      const e = googleOnly.find(x=>x.id===card.dataset.id);
-      if(e) startImportGoogleEvent(e);
+
+  const hoursHtml = [];
+  for(let h = startHour; h < endHour; h++){
+    hoursHtml.push('<div class="dayGridHourRow"><span class="dayGridHourLabel">'+pad(h)+':00</span></div>');
+  }
+
+  // assegna una colonna a ogni impegno, così due sovrapposti nello stesso orario
+  // vengono affiancati invece che disegnati uno sopra l'altro (greedy: riusa la
+  // prima colonna già libera a quell'orario). Le colonne si contano per singolo
+  // "grappolo" di sovrapposizioni, non su tutta la giornata: altrimenti un
+  // appuntamento delle 17 senza alcun conflitto finirebbe comunque a metà
+  // larghezza solo perché alle 9 ce n'erano due insieme.
+  const placed = [];
+  let cluster = [], clusterEnds = [], clusterMaxEnd = -Infinity;
+  function flushCluster(){
+    if(!cluster.length) return;
+    const totalCols = clusterEnds.length;
+    cluster.forEach(p => p.totalCols = totalCols);
+    placed.push(...cluster);
+    cluster = []; clusterEnds = []; clusterMaxEnd = -Infinity;
+  }
+  items.forEach(item=>{
+    const start = item.start.getTime();
+    const end = start + item.durationMin*60000;
+    if(cluster.length && start >= clusterMaxEnd) flushCluster();
+    let col = clusterEnds.findIndex(ce => ce <= start);
+    if(col === -1){ col = clusterEnds.length; clusterEnds.push(end); }
+    else { clusterEnds[col] = end; }
+    clusterMaxEnd = Math.max(clusterMaxEnd, end);
+    cluster.push({...item, col});
+  });
+  flushCluster();
+
+  const legendEntries = [];
+  const seenTypeIds = new Set();
+  dayAppts.forEach(a=>{
+    if(seenTypeIds.has(a.work_type_id)) return;
+    seenTypeIds.add(a.work_type_id);
+    const wt = workTypeById(a.work_type_id);
+    if(wt) legendEntries.push({color:wt.color, label:wt.label});
+  });
+  if(googleOnly.length) legendEntries.push({color:'#8a8f87', label:'Solo su Google'});
+  const legendHtml = legendEntries.length ? '<div class="dayGridLegend">'+
+    legendEntries.map(e=>'<span class="dayGridLegendItem"><span class="dayGridLegendDot" style="background:'+e.color+'"></span>'+escapeHtml(e.label)+'</span>').join('')
+  +'</div>' : '';
+
+  const blocksHtml = placed.map(({start, durationMin, kind, appt, event, col, totalCols})=>{
+    const isGoogle = kind==='google';
+    const minutesFromStart = (start.getHours()*60 + start.getMinutes()) - startHour*60;
+    const top = (minutesFromStart/60) * HOUR_HEIGHT;
+    const height = Math.max((durationMin/60) * HOUR_HEIGHT - 2, 30);
+    const widthPct = 100/totalCols;
+    const leftPct = col*widthPct;
+    const wt = isGoogle ? null : workTypeById(appt.work_type_id);
+    const color = isGoogle ? '#8a8f87' : (wt ? wt.color : '#8a8f87');
+    const name = isGoogle ? (event.summary || '(senza titolo)') : appt.patient_name;
+    const end = new Date(start.getTime()+durationMin*60000);
+    const dataAttr = isGoogle ? ' data-google-id="'+event.id+'"' : ' data-id="'+appt.id+'"';
+    return '<div class="dayAppt'+(height<34?' short':'')+(isGoogle?' googleOnlyAppt':'')+'"'+dataAttr+
+      ' style="top:'+top+'px; height:'+height+'px; left:calc('+leftPct+'% + 2px); width:calc('+widthPct+'% - 4px); --cc:'+color+'; --cc-tint:'+hexToRgba(color,.16)+';">'+
+      '<span class="dayApptTime">'+fmtTime(start)+'–'+fmtTime(end)+'</span>'+
+      '<span class="dayApptPatient">'+escapeHtml(name)+'</span>'+
+    '</div>';
+  }).join('');
+
+  const now = new Date();
+  const isToday = dayStart.getTime() === startOfToday().getTime();
+  let nowLineHtml = '';
+  if(isToday){
+    const nowMinutes = (now.getHours()*60+now.getMinutes()) - startHour*60;
+    if(nowMinutes >= 0 && nowMinutes <= (endHour-startHour)*60){
+      nowLineHtml = '<div class="dayNowLine" style="top:'+((nowMinutes/60)*HOUR_HEIGHT)+'px;"><span class="dayNowDot"></span></div>';
+    }
+  }
+
+  const gridHeight = (endHour-startHour) * HOUR_HEIGHT;
+  const container = document.getElementById('monthDayList');
+  container.innerHTML = legendHtml +
+    '<div class="dayGridPanel"><div class="dayGridScroll"><div class="dayGrid" style="--hh:'+HOUR_HEIGHT+'px;">'+
+      '<div class="dayGridHours">'+hoursHtml.join('')+'</div>'+
+      '<div class="dayGridCol" id="dayGridCol" style="height:'+gridHeight+'px;">'+blocksHtml+nowLineHtml+'</div>'+
+    '</div></div></div>';
+
+  const col = document.getElementById('dayGridCol');
+  col.addEventListener('click', (e)=>{
+    if(e.target.closest('.dayAppt')) return;
+    const rect = col.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    let minutesFromStart = Math.round((offsetY / HOUR_HEIGHT) * 60 / 15) * 15;
+    minutesFromStart = Math.max(0, minutesFromStart);
+    const clicked = new Date(dayStart);
+    clicked.setMinutes(startHour*60 + minutesFromStart);
+    openApptModal(null, clicked);
+  });
+  col.querySelectorAll('.dayAppt').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(el.dataset.googleId){
+        const ev = googleOnly.find(x=>x.id===el.dataset.googleId);
+        if(ev) startImportGoogleEvent(ev);
+      } else {
+        openApptModal(el.dataset.id);
+      }
     });
+  });
+
+  // porta in vista "adesso" (se oggi) o il primo impegno del giorno, invece di
+  // partire sempre dalla prima riga dell'intervallo mostrato
+  requestAnimationFrame(()=>{
+    const scrollBox = container.querySelector('.dayGridScroll');
+    if(!scrollBox) return;
+    let target = 0;
+    if(isToday){
+      const nowMinutes = (now.getHours()*60+now.getMinutes()) - startHour*60;
+      target = Math.max(0, (nowMinutes/60)*HOUR_HEIGHT - 120);
+    } else if(items.length){
+      const m = (items[0].start.getHours()*60+items[0].start.getMinutes()) - startHour*60;
+      target = Math.max(0, (m/60)*HOUR_HEIGHT - 80);
+    }
+    scrollBox.scrollTop = target;
   });
 }
 
@@ -785,7 +939,7 @@ document.getElementById('monthTodayBtn').addEventListener('click', ()=>{
   monthDate = new Date(startOfToday().getFullYear(), startOfToday().getMonth(), 1);
   selectedDate = startOfToday();
   renderMonthView();
-  renderSelectedDayList();
+  renderSelectedDayGrid();
 });
 
 /* ===================== modale nuovo/modifica appuntamento ===================== */
@@ -1064,7 +1218,7 @@ async function refreshGoogleMonthEventsIfNeeded(){
   if(key === googleMonthRangeKey) return; // già aggiornato per questo intervallo/colori, niente da rifare
   googleMonthRangeKey = key;
   googleMonthEvents = await fetchGoogleRangeEvents(gridStart, gridEnd, colorIds);
-  if(currentView==='month'){ renderMonthView(); renderSelectedDayList(); } // arrivati i dati, si ridisegna
+  if(currentView==='month'){ renderMonthView(); renderSelectedDayGrid(); } // arrivati i dati, si ridisegna
 }
 // un evento già "adottato" come appuntamento (stesso google_event_id) non va mostrato
 // due volte: una come promemoria Google e una come appuntamento vero
