@@ -228,3 +228,12 @@ create table if not exists google_oauth_tokens (
   updated_at timestamptz not null default now()
 );
 alter table google_oauth_tokens enable row level security;
+
+-- ============================================================================
+-- Aggiunta successiva: consenso privacy sulla richiesta di prenotazione dal
+-- sito pubblico (checkbox obbligatoria in prenota.html, aggiunta perché il
+-- campo Note può contenere dati sulla salute). Traccia SE e QUANDO è stato
+-- dato, a fini di accountability GDPR. Idempotente: sicuro da rieseguire.
+-- ============================================================================
+alter table booking_requests add column if not exists privacy_consent boolean not null default false;
+alter table booking_requests add column if not exists privacy_consent_at timestamptz;
