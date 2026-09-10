@@ -198,6 +198,15 @@
   .dayGridLegendItem{display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; color:var(--sub);}
   .dayGridLegendDot{width:7px; height:7px; border-radius:50%; flex:none;}
 
+  .dayAllDayRow{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
+  .dayAllDayChip{
+    display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; cursor:pointer;
+    background:var(--cc-tint); border-left:3px solid var(--cc); transition:transform .1s ease;
+  }
+  .dayAllDayChip:active{transform:scale(.98);}
+  .dayAllDayBadge{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--sub); flex:none;}
+  .dayAllDayPatient{font-size:13px; font-weight:700;}
+
   .dayGridPanel{border:1px solid var(--line); border-radius:14px; background:var(--card); overflow:hidden;}
   .dayGridScroll{max-height:50vh; overflow-y:auto;}
   .dayGrid{position:relative; display:flex;}
@@ -415,17 +424,21 @@ window.addEventListener('pagereveal', function(){
           <span class="label">Data</span>
           <input type="date" id="apptFormDate" class="exFormInput">
         </label>
-        <label class="exFormField">
+        <label class="exFormField" id="apptFormTimeField">
           <span class="label">Ora inizio</span>
           <input type="time" id="apptFormTime" class="exFormInput">
         </label>
       </div>
-      <div class="exFormField">
+      <label class="workTypeLinkRow">
+        <input type="checkbox" id="apptFormAllDay"> Tutto il giorno
+      </label>
+      <div class="exFormField" id="apptFormDurationField">
         <span class="label">Durata</span>
         <div class="durationRow" id="durationRow">
           <button type="button" class="durationBtn" data-min="30">30 min</button>
           <button type="button" class="durationBtn" data-min="45">45 min</button>
           <button type="button" class="durationBtn" data-min="60">60 min</button>
+          <button type="button" class="durationBtn" data-min="120">2h</button>
         </div>
       </div>
       <div class="exFormField">
@@ -621,6 +634,8 @@ function fmtTime(d){ return d.toLocaleTimeString('it-IT', {hour:'2-digit', minut
 function roundToNext15(d){ const ms = 15*60000; return new Date(Math.ceil(d.getTime()/ms)*ms); }
 
 const HOUR_HEIGHT = 50; // px per ora nella griglia oraria sotto il mese
+const ALL_DAY_MINUTES = 1440; // sentinella "tutto il giorno": nessuna colonna nuova nello schema,
+                               // un appuntamento del genere è semplicemente start_at=mezzanotte, duration_min=1440
 function hexToRgba(hex, alpha){
   const h = hex.replace('#','');
   const r = parseInt(h.length===3?h[0]+h[0]:h.slice(0,2),16);
@@ -795,6 +810,10 @@ function renderSelectedDayGrid(){
     const start = new Date(e.start.dateTime), end = new Date(e.end.dateTime);
     return {start, durationMin:Math.max(5, Math.round((end-start)/60000)), kind:'google', event:e};
   })).sort((x,y)=> x.start-y.start);
+  // gli appuntamenti "tutto il giorno" non entrano nella griglia oraria (ci
+  // starebbero malissimo, un blocco di 24 ore che copre tutto): riga a parte sopra
+  const timedItems = items.filter(it => it.durationMin < ALL_DAY_MINUTES);
+  const allDayItems = items.filter(it => it.durationMin >= ALL_DAY_MINUTES);
 
   // tutte le 24 ore, sempre: anche senza impegni già segnati fuori dal solito orario di
   // lavoro, deve restare possibile toccare qualunque fascia per segnare altri impegni
@@ -820,7 +839,7 @@ function renderSelectedDayGrid(){
     placed.push(...cluster);
     cluster = []; clusterEnds = []; clusterMaxEnd = -Infinity;
   }
-  items.forEach(item=>{
+  timedItems.forEach(item=>{
     const start = item.start.getTime();
     const end = start + item.durationMin*60000;
     if(cluster.length && start >= clusterMaxEnd) flushCluster();
@@ -831,6 +850,17 @@ function renderSelectedDayGrid(){
     cluster.push({...item, col});
   });
   flushCluster();
+
+  const allDayHtml = allDayItems.length ? '<div class="dayAllDayRow">'+
+    allDayItems.map(({appt})=>{
+      const wt = workTypeById(appt.work_type_id);
+      const color = wt ? wt.color : '#8a8f87';
+      return '<div class="dayAllDayChip" data-id="'+appt.id+'" style="--cc:'+color+'; --cc-tint:'+hexToRgba(color,.16)+';">'+
+        '<span class="dayAllDayBadge">Tutto il giorno</span>'+
+        '<span class="dayAllDayPatient">'+escapeHtml(appt.patient_name)+'</span>'+
+      '</div>';
+    }).join('')
+  +'</div>' : '';
 
   const legendEntries = [];
   const seenTypeIds = new Set();
@@ -876,11 +906,15 @@ function renderSelectedDayGrid(){
 
   const gridHeight = (endHour-startHour) * HOUR_HEIGHT;
   const container = document.getElementById('monthDayList');
-  container.innerHTML = legendHtml +
+  container.innerHTML = legendHtml + allDayHtml +
     '<div class="dayGridPanel"><div class="dayGridScroll"><div class="dayGrid" style="--hh:'+HOUR_HEIGHT+'px;">'+
       '<div class="dayGridHours">'+hoursHtml.join('')+'</div>'+
       '<div class="dayGridCol" id="dayGridCol" style="height:'+gridHeight+'px;">'+blocksHtml+nowLineHtml+'</div>'+
     '</div></div></div>';
+
+  container.querySelectorAll('.dayAllDayChip').forEach(el=>{
+    el.addEventListener('click', ()=> openApptModal(el.dataset.id));
+  });
 
   const col = document.getElementById('dayGridCol');
   col.addEventListener('click', (e)=>{
@@ -914,8 +948,8 @@ function renderSelectedDayGrid(){
     if(isToday){
       const nowMinutes = (now.getHours()*60+now.getMinutes()) - startHour*60;
       target = (nowMinutes/60)*HOUR_HEIGHT - 120;
-    } else if(items.length){
-      const m = (items[0].start.getHours()*60+items[0].start.getMinutes()) - startHour*60;
+    } else if(timedItems.length){
+      const m = (timedItems[0].start.getHours()*60+timedItems[0].start.getMinutes()) - startHour*60;
       target = (m/60)*HOUR_HEIGHT - 80;
     }
     scrollBox.scrollTop = Math.max(0, target);
@@ -952,6 +986,15 @@ document.querySelectorAll('#durationRow .durationBtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{ selectedDuration = Number(btn.dataset.min); renderDurationButtons(); });
 });
 
+// "Tutto il giorno": nasconde ora inizio/durata (non servono, l'appuntamento
+// copre l'intera giornata) invece di aggiungere un campo orario libero in più
+const apptFormAllDayCheckbox = document.getElementById('apptFormAllDay');
+function setAllDayFieldsVisibility(isAllDay){
+  document.getElementById('apptFormTimeField').style.display = isAllDay ? 'none' : '';
+  document.getElementById('apptFormDurationField').style.display = isAllDay ? 'none' : '';
+}
+apptFormAllDayCheckbox.addEventListener('change', ()=> setAllDayFieldsVisibility(apptFormAllDayCheckbox.checked));
+
 function renderApptFormWorkTypes(){
   const wrap = document.getElementById('apptFormWorkTypes');
   wrap.innerHTML = workTypes.map(w=>
@@ -978,6 +1021,9 @@ function openApptModal(id, prefillDate, prefillExtra){
   document.getElementById('apptFormTime').value = toTimeInputValue(d);
   document.getElementById('apptFormNotes').value = a ? (a.notes||'') : (prefillExtra && prefillExtra.notes ? prefillExtra.notes : '');
   selectedDuration = a ? a.duration_min : ((prefillExtra && prefillExtra.durationMin) || 30);
+  const isAllDay = selectedDuration >= ALL_DAY_MINUTES;
+  apptFormAllDayCheckbox.checked = isAllDay;
+  setAllDayFieldsVisibility(isAllDay);
   const prefillWorkTypeId = prefillExtra && prefillExtra.workTypeId && workTypeById(prefillExtra.workTypeId) ? prefillExtra.workTypeId : null;
   selectedWorkType = a ? a.work_type_id : (prefillWorkTypeId || (workTypes[0] ? workTypes[0].id : null));
   renderDurationButtons();
@@ -1283,11 +1329,13 @@ async function findOrCreatePatientId(name){
 document.getElementById('apptModalSave').addEventListener('click', async ()=>{
   const patient = toTitleCase(document.getElementById('apptFormPatient').value);
   const dateVal = document.getElementById('apptFormDate').value;
-  const timeVal = document.getElementById('apptFormTime').value;
+  const isAllDay = apptFormAllDayCheckbox.checked;
+  const timeVal = isAllDay ? '00:00' : document.getElementById('apptFormTime').value;
   const msg = document.getElementById('apptModalMsg');
   if(!patient){ msg.textContent = 'Inserisci il nome del paziente.'; return; }
   if(!dateVal || !timeVal){ msg.textContent = 'Inserisci data e ora.'; return; }
   if(!selectedWorkType){ msg.textContent = 'Seleziona una tipologia di lavoro.'; return; }
+  if(isAllDay) selectedDuration = ALL_DAY_MINUTES;
   const start = new Date(dateVal+'T'+timeVal+':00');
   const notes = document.getElementById('apptFormNotes').value.trim();
   const now = new Date().toISOString();
@@ -1565,13 +1613,16 @@ async function pushAppointmentToGoogle(a){
   const wt = workTypeById(a.work_type_id);
   const start = new Date(a.start_at);
   const end = new Date(start.getTime() + a.duration_min*60000);
+  // "tutto il giorno": Google vuole un evento a giornata intera (date, non dateTime),
+  // con "end" pari al giorno successivo (esclusivo) — non un evento di 24 ore con orario
+  const isAllDay = a.duration_min >= ALL_DAY_MINUTES;
   const event = {
     summary: a.patient_name,
     location: wt ? wt.label : undefined,
     description: a.notes || undefined,
     colorId: wt ? closestGoogleColorId(wt.color) : undefined,
-    start: {dateTime: start.toISOString()},
-    end: {dateTime: end.toISOString()}
+    start: isAllDay ? {date: toDateInputValue(start)} : {dateTime: start.toISOString()},
+    end: isAllDay ? {date: toDateInputValue(end)} : {dateTime: end.toISOString()}
   };
   try{
     const method = a.google_event_id ? 'PATCH' : 'POST';
